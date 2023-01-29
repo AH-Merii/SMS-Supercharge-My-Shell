@@ -16,7 +16,7 @@ get-latest-release() {
 
     curl -L "https://api.github.com/repos/$repo/releases/latest" | \
         jq -r ".assets[].browser_download_url" | \
-        grep -Pi "(?=.*[_-]linux[_-])(?=.*[_-](amd64|x86_64).\b).*"
+        grep -Pi "(?=.*[_.-]linux[_.-])(?=.*[_.-](amd64|x86_64)[_.-]).*"
 } 
 
 # installs the latest release of repo
