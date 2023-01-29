@@ -1,0 +1,17 @@
+bat
+zsh
+unzip
+jq
+build-essential
+xclip 
+stow
+tmux
+ripgrep
+fzf
+exa
+podman
+nodejs
+npm
+procps
+curl
+file
