@@ -12,8 +12,12 @@ pushd "${TOOLS_HOME}"
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # install go
-rm -rf /usr/local/go && tar -C /usr/local -xzf go1.19.5.linux-amd64.tar.gz
-
+version=$(curl https://go.dev/VERSION?m=text)
+url=https://go.dev/dl/$version.linux-amd64.tar.gz
+curl -Lo "go.tar.gz" $url
+rm -rf "$HOME/.local/go" && tar -C "$HOME/.local/" -xzf "go.tar.gz"
+mv $HOME/.local/go/bin/go $HOME/.local/bin 
+ 
 # install helix editor
 echo "Installing helix editor"
 clone-repo git@github.com:helix-editor/helix.git
