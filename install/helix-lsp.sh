@@ -26,9 +26,11 @@ echo "  • JavaScript (typescript, typescript-language-server)"
 npm install -g typescript typescript-language-server
 
 # Python
+echo "  • Python (pylsp)"
 sudo apt install python3-pylsp
 
 # Terraform HCL
+echo "  • Terraform (terraform-ls)"
 sudo apt install terraform-ls
 
 # Latex
@@ -46,12 +48,15 @@ curl -Lo "marksman" $release_url \
 && mv marksman "$HOME/.local/bin"
 
 # TOML
+echo "  • TOML (taplo)"
 cargo install taplo-cli --locked --features lsp
 
 # Go
+echo "  • Go (gopls)"
 go install golang.org/x/tools/gopls@latest
 
 # Docker
+echo "  • Docker (dockerfile-language-server-nodejs)"
 npm install -g dockerfile-language-server-nodejs
 
 # Rust
