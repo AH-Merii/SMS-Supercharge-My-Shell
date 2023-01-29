@@ -1,0 +1,10 @@
+HISTSIZE=1000000
+SAVEHIST=1000000
+export EDITOR=$HOME/.cargo/bin/hx
+export SUDOEDITOR=$HOME/.cargo/bin/hx
+export VISUAL=$HOME/.cargo/bin/hx
+export PATH="$HOME/.local/bin":$PATH
+export MANWIDTH=999
+export PATH=$HOME/.cargo/bin:$PATH
+export PATH=$HOME/.local/share/go/bin:$PATH
+export GOPATH=$HOME/.local/share/go
