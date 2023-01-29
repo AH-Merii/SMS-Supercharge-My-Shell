@@ -32,3 +32,12 @@ install-latest-release() {
     popd
 }
 
+# takes in command and input file and executes command on each line of the input file
+loop-apply() {
+    command=$1
+    input_file=$2
+    cat $input_file | while read line || [[ -n $line ]];
+    do
+      eval "$command $line"
+    done
+}
