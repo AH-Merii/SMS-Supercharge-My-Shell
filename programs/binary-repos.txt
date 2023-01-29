@@ -1,0 +1,2 @@
+gokcehan/lf
+jesseduffield/lazygit
