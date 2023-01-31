@@ -18,5 +18,3 @@ bash install/helix-lsp.sh
 
 # empty /tmp dir
 sudo find /tmp/* -exec rm -rf {} + 
-
-# 
