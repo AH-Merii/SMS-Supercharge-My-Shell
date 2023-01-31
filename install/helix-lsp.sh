@@ -60,7 +60,8 @@ echo "  • Docker (dockerfile-language-server-nodejs)"
 npm install -g dockerfile-language-server-nodejs
 
 # Rust
-# Automatically installed by rustup during rust installation
+echo "  • Rust (rust-analyzer)"
+rustup component add rust-analyzer
 
 # Clean up.
 popd
