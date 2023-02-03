@@ -41,3 +41,14 @@ loop-apply() {
       eval "$command $line"
     done
 }
+
+# Exit if the input command could not be found
+check-command() {
+    if ! (( $+commands[$1] ))
+    then
+        echo "ERROR: '$1' command not found"
+        return 1
+    else
+        return 0
+    fi
+}
