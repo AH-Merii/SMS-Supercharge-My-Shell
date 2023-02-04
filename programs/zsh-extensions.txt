@@ -1,7 +1,7 @@
 zsh-users/zsh-autosuggestions
 hlissner/zsh-autopair
 zap-zsh/supercharge
-zap-zsh/vim
+jeffreytse/zsh-vi-mode
 zap-zsh/fzf
 zap-zsh/exa
 zdharma-continuum/fast-syntax-highlighting
