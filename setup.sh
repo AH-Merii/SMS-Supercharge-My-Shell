@@ -1,15 +1,18 @@
 #!/bin/bash
 
-NIX_PACKAGES_FILE="programs/nix-packages.txddt"
+NIX_PACKAGES_FILE="programs/nix-packages.txt"
 
 # check and install any updates
 echo "Updating packages"
 sudo apt -y update
 sudo apt -y upgrade
 
-# install nix package 
-echo "Installing Nix package manager"
-curl -L https://nixos.org/nix/install | sh
+# check if nix is installed on the system
+if ! (which nix); then 
+  # install nix package manager
+  echo "Installing Nix package manager"
+  curl -L https://nixos.org/nix/install | sh
+fi
 
 echo "Updating Nix packages"
 Nix-channel --update
@@ -26,7 +29,7 @@ else # exit if package file does not exist
 fi
 
 # change default shell to zsh
-[[ -s /usr/bin/zsh ]] && chsh -s /usr/bin/zsh || echo zsh not found
+which zsh && chsh -s $(which zsh) || echo zsh not found
 
 # install tools programming languages and editors
 chmod +x install/tools.sh
