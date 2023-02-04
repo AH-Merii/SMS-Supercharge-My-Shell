@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # source scripts containing helper functions
-source "../scripts/helper-funcs"
+source "scripts/helper-funcs"
 
 # default location for tools
 TOOLS_HOME="${HOME}/tools"
@@ -12,11 +12,11 @@ pushd "${TOOLS_HOME}"
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # install go
-version=$(curl https://go.dev/VERSION?m=text)
-url=https://go.dev/dl/$version.linux-amd64.tar.gz
-curl -Lo "go.tar.gz" $url
-rm -rf "$HOME/.local/go" && tar -C "$HOME/.local/" -xzf "go.tar.gz"
-mv usr/local/go/bin/go usr/local/bin 
+GO_VERSION=$(curl https://go.dev/VERSION?m=text)
+URL=https://go.dev/dl/$GO_VERSION.linux-amd64.tar.gz
+GO_INSTALLATION_PATH="$HOME/usr/local"
+curl -Lo "go.tar.gz" $URL
+rm -rf "$GO_INSTALLATION_PATH/go" && tar -C $GO_INSTALLATION_PATH -xzf "go.tar.gz"
  
 # install helix editor
 echo "Installing helix editor"
