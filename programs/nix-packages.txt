@@ -1,0 +1,27 @@
+zsh
+unzip
+jq
+build-essential
+stow
+nodejs
+npm
+procps
+curl
+file
+zellij # terminal multiplexer
+fzf # fuzzy finder
+bat # alternative to cat
+ripgrep # alternative to grep
+exa # alternative to ls
+podman # alternative to docker
+fd # alternative to find
+delta # alternative to diff
+xh # alternative to curl
+duf # alternativtive to du
+dogdns # alternative to digp
+procs # alternative to ps
+gping # alternative to ping
+bottom # alternative to htop
+du-dust # alternative to du
+lf # terminal file explorer
+lazygit # terminal git tool

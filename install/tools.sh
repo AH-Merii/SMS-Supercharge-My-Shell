@@ -31,6 +31,3 @@ zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh)
 
 # install starship
 curl -sS https://starship.rs/install.sh | sh
-
-# install binaries from repos
-loop-apply install-latest-release "programs/binary-repos.txt"
