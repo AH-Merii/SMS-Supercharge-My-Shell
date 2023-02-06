@@ -1,28 +1,24 @@
 #!/bin/sh
-[ -f "$HOME/.local/share/zap/zap.zsh" ] && source "$HOME/.local/share/zap/zap.zsh"
+[ -f "$XDG_DATA_HOME/zap/zap.zsh" ] && source "$XDG_DATA_HOME/zap/zap.zsh"
 
 
 # history
-HISTFILE=~/.zsh_history
+HISTSIZE=1000000
+SAVEHIST=1000000
+HISTFILE="$ZDOTDIR/.zsh_history"
+
+# allow pushd without explicit command
+setopt autopushd
 
 # source
-plug "$HOME/.config/zsh/aliases.zsh"
-plug "$HOME/.config/zsh/exports.zsh"
+plug "$ZDOTDIR/aliases.zsh"
+plug "$ZDOTDIR/scripts/helper-funcs.sh"
 
 # plugins
-plug "zsh-users/zsh-autosuggestions"
-plug "hlissner/zsh-autopair"
-plug "zap-zsh/supercharge"
-plug "zap-zsh/vim"
-plug "zap-zsh/fzf"
-plug "zap-zsh/exa"
-plug "zdharma-continuum/fast-syntax-highlighting"
-plug "Aloxaf/fzf-tab"
+loop_apply plug "programs/zsh-extensions.txt"
 
 # keybinds
 bindkey '^ ' autosuggest-accept
-
-export PATH="$HOME/.local/bin":$PATH
 
 if command -v bat &> /dev/null; then
   alias cat="bat -pp --theme \"Visual Studio Dark+\"" 
