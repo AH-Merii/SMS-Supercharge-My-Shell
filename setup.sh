@@ -32,6 +32,9 @@ fi
 # change default shell to zsh
 which zsh && chsh -s $(which zsh) || echo zsh not found
 
+# simlink scripts file
+ln -s scripts $ZDOTDIR/scripts
+
 # install tools programming languages and editors
 chmod +x install/tools.sh
 ./install/tools.sh
