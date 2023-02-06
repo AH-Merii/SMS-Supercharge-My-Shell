@@ -28,3 +28,4 @@ bottom # alternative to htop
 du-dust # alternative to du
 lf # terminal file explorer
 lazygit # terminal git tool
+starship # prompt customization tool

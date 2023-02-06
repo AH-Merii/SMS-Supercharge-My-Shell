@@ -4,7 +4,7 @@
 source "scripts/helper-funcs"
 
 # default location for tools
-TOOLS_HOME="${HOME}/tools"
+TOOLS_HOME="${XDG_DATA}/tools"
 mkdir -p "${TOOLS_HOME}"
 pushd "${TOOLS_HOME}"
 
@@ -21,6 +21,3 @@ popd
 
 # install zap plugin manager
 zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh)
-
-# install starship
-curl -sS https://starship.rs/install.sh | sh
