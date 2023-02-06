@@ -3,11 +3,14 @@ unzip
 jq
 build-essential
 stow
-nodejs
-npm
 procps
 curl
 file
+# programming languages
+nodejs
+npm
+go
+# modern terminal helper tools
 zellij # terminal multiplexer
 fzf # fuzzy finder
 bat # alternative to cat

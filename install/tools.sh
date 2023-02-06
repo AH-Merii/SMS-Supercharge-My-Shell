@@ -11,13 +11,6 @@ pushd "${TOOLS_HOME}"
 # install rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# install go
-GO_VERSION=$(curl https://go.dev/VERSION?m=text)
-URL=https://go.dev/dl/$GO_VERSION.linux-amd64.tar.gz
-GO_INSTALLATION_PATH="$HOME/usr/local"
-curl -Lo "go.tar.gz" $URL
-rm -rf "$GO_INSTALLATION_PATH/go" && tar -C $GO_INSTALLATION_PATH -xzf "go.tar.gz"
- 
 # install helix editor
 echo "Installing helix editor"
 clone-repo git@github.com:helix-editor/helix.git
