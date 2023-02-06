@@ -23,7 +23,7 @@ if [ -s $NIX_PACKAGES_FILE ]; then
   echo "Installing the following packages:"
   cat $NIX_PACKAGES_FILE
   # the command below adds "nixpkgs." to the start of each packages and removes all comments and newlines
-  Nix-env -iA $(sed 's/^/nixpkgs./' $NIX_PACKAGES_FILE | grep -o '^[^#]*' $NIX_PACKAGES_FILE | tr '\n' ' ')
+  Nix-env -iA $(sed 's/^/nixpkgs./' $NIX_PACKAGES_FILE | grep -o '^[^#]*' | tr '\n' ' ')
 else # exit if package file does not exist
   echo $NIX_PACKAGES_FILE is empty or does not exist
   exit 1
