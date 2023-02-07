@@ -2,7 +2,6 @@ theme = "tokyonight_storm"
 
 [editor]
 true-color = true
-rulers = [79,88]
 line-number = "relative"
 mouse = true
 bufferline = "multiple"
