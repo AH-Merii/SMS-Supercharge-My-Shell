@@ -27,3 +27,9 @@ if command -v bat &> /dev/null; then
   alias cat="bat -pp --theme \"Visual Studio Dark+\"" 
   alias catt="bat --theme \"Visual Studio Dark+\"" 
 fi
+
+# start at home directory
+cd ~
+
+# initialize starship prompt
+eval "$(starship init zsh)"
