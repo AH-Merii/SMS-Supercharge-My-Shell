@@ -29,6 +29,7 @@ alias_check lg lazygit
 
 # lf
 alias_check lfh "lf --command 'set hidden'"
+alias_check lf=lf-ueberzug
 
 # fzf
 # adds preview file to fzf
