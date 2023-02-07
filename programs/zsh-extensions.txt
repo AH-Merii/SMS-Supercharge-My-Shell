@@ -1,8 +1,8 @@
 zsh-users/zsh-autosuggestions
 hlissner/zsh-autopair
 zap-zsh/supercharge
+MichaelAquilina/zsh-you-should-use
 jeffreytse/zsh-vi-mode
-zap-zsh/fzf
 zap-zsh/exa
 zdharma-continuum/fast-syntax-highlighting
 Aloxaf/fzf-tab
