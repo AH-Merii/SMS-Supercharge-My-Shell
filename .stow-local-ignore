@@ -24,3 +24,8 @@ _darcs
 ^/README.*
 ^/LICENSE.*
 ^/COPYING
+
+*.sh
+install
+programs
+scripts
