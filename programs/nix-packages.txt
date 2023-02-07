@@ -21,7 +21,7 @@ fd # alternative to find
 delta # alternative to diff
 xh # alternative to curl
 duf # alternativtive to du
-dogdns # alternative to digp
+dogdns # alternative to dig
 procs # alternative to ps
 gping # alternative to ping
 bottom # alternative to htop
@@ -29,3 +29,6 @@ du-dust # alternative to du
 lf # terminal file explorer
 lazygit # terminal git tool
 starship # prompt customization tool
+# development tools
+awscli2
+terraform
