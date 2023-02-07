@@ -32,3 +32,8 @@ starship # prompt customization tool
 # development tools
 awscli2
 terraform
+# terminal previewer tools
+ueberzug
+graphicsmagick
+ffmpeg
+ghostscript
