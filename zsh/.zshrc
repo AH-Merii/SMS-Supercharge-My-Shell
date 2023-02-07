@@ -14,6 +14,9 @@ setopt autopushd
 plug "$ZDOTDIR/aliases.zsh"
 plug "$ZDOTDIR/scripts/helper-funcs.sh"
 
+# source fzf zsh keybindings
+source /usr/share/doc/fzf/examples/key-bindings.zsh
+
 # plugins
 loop_apply plug "programs/zsh-extensions.txt"
 
