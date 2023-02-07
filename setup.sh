@@ -12,9 +12,12 @@ sudo apt -y upgrade
 
 # check if nix is installed on the system
 if ! (which nix); then 
-  # install nix package manager
-  echo "Installing Nix package manager"
-  curl -L https://nixos.org/nix/install | sh
+  echo -e "\033[31mError: An error occurred\033[0m" >&2
+  echo -e "\033[31mnix is not installed on the system\033[0m" >&2
+  echo -e "\033[36mrun ./install/nix.sh to install nix package manager\033[0m"
+  echo -e "\033[36mrestart your terminal after installing nix\033[0m"
+  echo -e "\033[36mre-run this script after you have restarted your terminal\033[0m" 
+  exit 1
 fi
 
 echo "Updating Nix packages"
