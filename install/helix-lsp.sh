@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# source helper functions
-source "../scripts/helper-funcs.sh"
-
 BINARY_HOME="${HOME}/.local/bin"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 

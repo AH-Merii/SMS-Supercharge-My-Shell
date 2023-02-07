@@ -1,6 +1,9 @@
 #!/bin/bash
 
-NIX_PACKAGES_FILE="programs/nix-packages.txt"
+# NOTE: the order of operations in the script matters, changing the order of the commands below may break the script 
+
+# file containing nix packages to install
+NIX_PACKAGES_FILE="$(pwd)/programs/nix-packages.txt"
 
 # check and install any updates
 echo "Updating packages"
@@ -32,8 +35,15 @@ fi
 # change default shell to zsh
 which zsh && chsh -s $(which zsh) || echo zsh not found
 
-# simlink scripts file
-ln -s scripts $ZDOTDIR/scripts
+# create symlinks to dotfiles using stow
+stow */
+
+# simlink and source scripts file
+ln -s scripts "$ZDOTDIR/scripts"
+source "$ZDOTDIR/scripts"
+
+# export environment variables from .zshenv
+source "~/.zshenv"
 
 # install tools programming languages and editors
 chmod +x install/tools.sh
@@ -42,6 +52,9 @@ chmod +x install/tools.sh
 # install helix editor language server protocols 
 chmod +x install/helix-lsp.sh
 ./install/helix-lsp.sh
+
+# source .zshrc
+source "~/.zshrc"
 
 # empty /tmp dir
 sudo find /tmp/* -exec rm -rf {} + 

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# source scripts containing helper functions
-source "scripts/helper-funcs"
-
 # default location for tools
 TOOLS_HOME="${XDG_DATA}/tools"
 mkdir -p "${TOOLS_HOME}"
