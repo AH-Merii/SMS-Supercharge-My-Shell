@@ -9,7 +9,7 @@ This directory contains all the dotfiles for a supercharged development environm
     - [Zsh](#zsh)
 - [Install](#install)
     - [Prerequisites](#prerequisites)
-    - [setup.sh](#setup.sh)
+    - [Setup Script](#setup-script)
     - [Dotfiles](#dotfiles)
     - [Programs](#programs)
 
@@ -48,12 +48,13 @@ The setup installs `zsh` and sets it as the default shell. The following `zsh` e
 * [fast-syntax-highlighting](https://github.com/zdharma-continuum/fast-syntax-highlighting)
 * [fzf-tab](https://github.com/Aloxaf/fzf-tab)
 
-## Prerequisites
+## Install
+### Prerequisites
 * [ssh connection to github](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) ps: [info on using `~/.ssh/config`](https://www.freecodecamp.org/news/how-to-manage-multiple-ssh-keys/) 
 * [NerdFonts](https://www.nerdfonts.com/font-downloads) compatible font
 * If you are on wsl2 -> make sure you [enable systemd](https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/)
 
-## Install
+
 You will need `git` and GNU `stow`
 
 Clone into your `$HOME` directory or `~`
@@ -64,7 +65,7 @@ Modify the `.gitconfig` file found in the gitconfig directory, and add your name
 git clone git@github.com:AH-Merii/dotfiles.git ~
 ```
 
-### setup.sh
+### Setup Script
 To automatically setup the development environment simply navigate to the root directory of the repo, and run: 
 ```bash
 ./setup.sh
