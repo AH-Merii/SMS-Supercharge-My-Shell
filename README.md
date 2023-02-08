@@ -77,11 +77,11 @@ You can copy specific configurations without going through the entire setup, usi
 Run `stow` to symlink everything or just select what you want
 
 ```bash
-stow */ # Everything (the '/' ignores the README)
+stow */ -t ~ # creates a symlink for all config files
 ```
 
 ```bash
-stow zsh # Just my zsh config
+stow zsh # creates symlink for only zsh configs
 ```
 
 ### Programs
