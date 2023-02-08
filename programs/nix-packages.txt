@@ -1,14 +1,11 @@
-zsh
 unzip
 jq
-build-essential
 stow
 procps
 curl
 file
 # programming languages
-nodejs
-npm
+nodejs-19_x
 go
 # modern terminal helper tools
 zellij # terminal multiplexer

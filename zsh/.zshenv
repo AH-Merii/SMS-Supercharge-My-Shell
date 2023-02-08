@@ -28,6 +28,8 @@ export FZF_CTRL_R_OPTS="
   --header 'Press CTRL-Y to copy command into clipboard'"
 # add scripts directory to PATH
 export PATH=$PATH:$ZDOTDIR/scripts
+# path for binaries installed using nix-env
+export PATH=$PATH:~/.nix-profile/bin
 # lf icons
 export LF_ICONS="\
 tw=:\
