@@ -11,6 +11,7 @@ export XDG_CONFIG_HOME=$HOME/.config
 export XDG_DATA_HOME=$HOME/.local/share
 export XDG_CACHE_HOME=$HOME/.cache
 export ZDOTDIR=$HOME/.config/zsh
+export PATH=$PATH:$HOME/.cargo/env
 export ZSH_ALIAS_DIR=$ZDOTDIR/aliases.zsh
 export FZF_CTRL_T_COMMAND="fd --hidden --follow --type f --exclude '.git'"
 export FZF_CTRL_T_OPTS="
@@ -30,6 +31,9 @@ export FZF_CTRL_R_OPTS="
 export PATH=$PATH:$ZDOTDIR/scripts
 # path for binaries installed using nix-env
 export PATH=$PATH:~/.nix-profile/bin
+# add path for nvm
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 # lf icons
 export LF_ICONS="\
 tw=:\
@@ -193,3 +197,4 @@ ex=:\
 *.pdf=:\
 *.nix=:\
 "
+. "$HOME/.cargo/env"

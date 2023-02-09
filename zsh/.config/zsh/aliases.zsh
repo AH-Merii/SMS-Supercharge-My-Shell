@@ -16,20 +16,20 @@ alias_check curl xh
 alias_check dig  dog   
 alias_check ps   procs 
 alias_check ping gping 
-alias_check top  bottom
+alias_check top  btm
 alias_check du   dust  
 alias_check df   duf   
 alias_check grep rg
 
 #shortcuts
-alias_check b popd
+alias_check b    popd
 
 # lazygit
-alias_check lg lazygit
+alias_check lg   lazygit
 
 # lf
-alias_check lfh "lf --command 'set hidden'"
-alias_check lf=lf-ueberzug
+alias_check lfh  "lf --command 'set hidden'"
+alias_check lf   lf-ueberzug
 
 # fzf
 # adds preview file to fzf

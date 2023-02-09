@@ -1,12 +1,20 @@
 #!/bin/bash
 
+# source helper functions
+source $ZDOTDIR/scripts/helper-funcs.sh
+
 # default location for tools
-TOOLS_HOME="${XDG_DATA}/tools"
-mkdir -p "${TOOLS_HOME}"
-pushd "${TOOLS_HOME}"
+TOOLS_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/tools"
+mkdir -p $TOOLS_HOME
+pushd $TOOLS_HOME
 
 # install rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# install nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+source ~.zshenv
+nvm install node # install node package manager
 
 # install helix editor
 echo "Installing helix editor"

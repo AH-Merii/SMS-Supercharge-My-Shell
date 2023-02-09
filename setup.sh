@@ -15,7 +15,7 @@ sudo apt install build-essential zsh
 if ! (which nix); then 
   # install nix package manager using helper script
   ./install/nix.sh
-  source /home/amerii/.nix-profile/etc/profile.d/nix.sh
+  source $HOME/.nix-profile/etc/profile.d/nix.sh
 fi
 
 echo "Updating Nix packages"
@@ -41,25 +41,25 @@ fi
 which zsh && chsh -s $(which zsh) || echo zsh not found
 
 # create symlinks to dotfiles using stow
-stow */ -t ~
+stow */ -t ~ && echo -e "\033[32mSTOW COMPLETE\033[0m"
 
 # export environment variables from .zshenv
-source "~/.zshenv"
+[ -f ~/.zshenv ] && source ~/.zshenv && echo -e "\033[32m.zshenv SOURCED\033[0m" 
 
-# simlink and source scripts file
-ln -s scripts "$ZDOTDIR/scripts"
-source "$ZDOTDIR/scripts"
+# source helper-funcs.sh
+source $ZDOTDIR/scripts/helper-funcs.sh && echo -e "\033[32mSOURCED HELPER FUNCS\033[0m"
 
 # install tools programming languages and editors
-chmod +x install/tools.sh
-./install/tools.sh
+./install/tools.sh && echo -e "\033[32m TOOLS INSTALLED\033[0m"
 
 # install helix editor language server protocols 
-chmod +x install/helix-lsp.sh
-./install/helix-lsp.sh
+./install/helix-lsp.sh && echo -e "\033[32m HELIX TEXT EDITOR INSTALLED\033[0m"
+
+# create a hard link for zsh-extensions
+ln programs/zsh-extensions.txt $ZDOTDIR
 
 # source .zshrc
-source "~/.zshrc"
+/usr/bin/env zsh 
 
 # empty /tmp dir
-sudo find /tmp/* -exec rm -rf {} + 
+sudo find /tmp/* -exec rm -rf {} + && echo -e "\033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m" 

@@ -1,14 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 
-BINARY_HOME="${HOME}/.local/bin"
+# source helper functions
+echo "Sourcing helper functions"
+source $ZDOTDIR/scripts/helper-funcs.sh
+
+BINARY_HOME=$HOME/.local/bin
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 echo "Installing Language Servers for Helix Editor:"
 
 # Work in a throwaway temporary directory so as not to pollute the file system.
 temporaryDirectory="/tmp/helix-editor-language-server-installer"
-mkdir -p "${temporaryDirectory}"
-pushd "${temporaryDirectory}"
+echo "creating temporary directory"
+mkdir -p $temporaryDirectory
+pushd $temporaryDirectory
 
 # Bash
 echo "  • Bash (bash-language-server)"
