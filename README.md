@@ -1,4 +1,4 @@
-# Dotfiles
+# SMS Supercharge-My-Shell
 ## About
 This directory contains all the dotfiles for a supercharged development environment. It includes an easy way to make sure that all the necessary programs are installed using the `setup.sh` script.
 
@@ -43,7 +43,7 @@ The setup installs `zsh` and sets it as the default shell. The following `zsh` e
 * [zsh-autopair](https://github.com/hlissner/zsh-autopair)
 * [supercharge](https://github.com/zap-zsh/supercharge)
 * [zsh-you-should-use](https://github.com/MichaelAquilina/zsh-you-should-use)
-* [zsh-vi-mode](https://github.com/jeffreytse/zsh-vi-mode)
+* [vim-mode](https://github.com/zap-zsh/vim)
 * [exa](https://github.com/zap-zsh/exa)
 * [fast-syntax-highlighting](https://github.com/zdharma-continuum/fast-syntax-highlighting)
 * [fzf-tab](https://github.com/Aloxaf/fzf-tab)
