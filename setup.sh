@@ -40,6 +40,9 @@ fi
 # change default shell to zsh
 which zsh && chsh -s $(which zsh) || echo zsh not found
 
+# add stowignore .git folder
+[ ! -f .git/.stow-local-ignore ] && cp scripts/.stow-local-ignore .git/
+
 # create symlinks to dotfiles using stow
 stow */ -t ~ && echo -e "\033[32mSTOW COMPLETE\033[0m"
 
