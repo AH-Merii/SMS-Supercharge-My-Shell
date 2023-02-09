@@ -15,8 +15,8 @@ This directory contains all the dotfiles for a supercharged development environm
 
 ## Modern Unix Tools
 The setup adds the following modern unix tools and creates aliases for their GNU counterparts:
-* [`cat:bat`](https://github.com/sharkdp/bat) - *A cat clone with syntax highlighting and Git integration.*
-* [`grep:ripgrep`](https://github.com/BurntSushi/ripgrep) - *An extremely fast alternative to grep that respects your gitignore*
+* [`cat:bat`](https://github.com/sharkdp/bat) - *A `cat` clone with syntax highlighting and Git integration.*
+* [`grep:ripgrep`](https://github.com/BurntSushi/ripgrep) - *An extremely fast alternative to `grep` that respects your gitignore*
 * [`ls:exa`](https://github.com/ogham/exa) - *A modern replacement for `ls`*
 * [`find:fd`](https://github.com/sharkdp/fd) - *A simple, fast user friendly alternative to `find`*
 * [`diff:delta`](https://github.com/dandavison/delta) - *A viewer for `git` and `diff` output*
