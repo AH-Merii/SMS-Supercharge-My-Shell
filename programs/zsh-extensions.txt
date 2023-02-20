@@ -2,7 +2,6 @@ zsh-users/zsh-autosuggestions
 hlissner/zsh-autopair
 zap-zsh/supercharge
 MichaelAquilina/zsh-you-should-use
-zap-zsh/vim
 zap-zsh/exa
 zap-zsh/fzf
 zdharma-continuum/fast-syntax-highlighting
