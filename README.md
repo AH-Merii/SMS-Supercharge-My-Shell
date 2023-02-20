@@ -43,10 +43,22 @@ The setup installs `zsh` and sets it as the default shell. The following `zsh` e
 * [zsh-autopair](https://github.com/hlissner/zsh-autopair)
 * [supercharge](https://github.com/zap-zsh/supercharge)
 * [zsh-you-should-use](https://github.com/MichaelAquilina/zsh-you-should-use)
-* [vim-mode](https://github.com/zap-zsh/vim)
 * [exa](https://github.com/zap-zsh/exa)
 * [fast-syntax-highlighting](https://github.com/zdharma-continuum/fast-syntax-highlighting)
 * [fzf-tab](https://github.com/Aloxaf/fzf-tab)
+
+This setup also includes all the shortcuts for selecting text that you would use on a normal text editor such as:
+* `ctrl + ->`         move one word right
+* `ctrl + <-`         move one word left
+* `ctrl + shift + ->` select one word right
+* `ctrl + shift + <-` select one word left
+* `home`              go to start of line
+* `end`               go to end of line
+* `shift + home`      select to start of line
+* `shift + end`       select to end of line
+* `ctrl + c`          during selection copy
+* `ctrl + x`          during selection cut
+* `ctrl + v`          paste
 
 ## Install
 ### Prerequisites
