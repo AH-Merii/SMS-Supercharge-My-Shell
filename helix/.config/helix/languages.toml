@@ -1,3 +1,9 @@
 [[language]]
 name = "python"
 rulers = [79,88]
+
+[[language]]
+name = "hcl"
+file-types = ["tf"]
+auto-format = true
+formatter = { command = "terraform fmt %f" , args = ["--stdin"] }
