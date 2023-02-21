@@ -50,9 +50,12 @@ repo="artempyanykh/marksman"
 release_url=$(curl -L "https://api.github.com/repos/$repo/releases/latest" | \
     jq -r ".assets[].browser_download_url" | \
     grep -Pi "linux")
-curl -Lo "marksman" $release_url \
-&& chmod +x marksman \
-&& mv marksman "$HOME/.local/bin"
+# check if we are able to fetch the release url
+[ ! -z $release_url ] && printf "\033[32m%s\033[0m\n" "Found release URL: ${release_url}" || printf "\033[32m%s\033[0m\n" "Could not resolve release url"
+
+curl -Lo "marksman" $release_url
+chmod +x marksman
+mv marksman $BINARY_HOME
 
 # TOML
 echo "  • TOML (taplo)"
@@ -69,7 +72,7 @@ npm install -g dockerfile-language-server-nodejs
 # Rust
 echo "  • Rust (rust-analyzer)"
 rustup component add rust-analyzer
-
+ls $temporaryDirectory
 # Clean up.
 popd
 rm -rf "${temporaryDirectory}"
