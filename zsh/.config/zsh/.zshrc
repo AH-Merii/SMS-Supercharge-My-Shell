@@ -147,5 +147,9 @@ if command -v bat &> /dev/null; then
   alias catt="bat --theme \"Visual Studio Dark+\"" 
 fi
 
+# Configure pyenv and pyenv-virtualenv
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
 # initialize starship prompt
 eval "$(starship init zsh)"

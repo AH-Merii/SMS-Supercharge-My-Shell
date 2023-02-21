@@ -3,6 +3,8 @@
 # source helper functions
 source $ZDOTDIR/scripts/helper-funcs.sh
 
+sudo apt update
+
 # default location for tools
 TOOLS_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/tools"
 mkdir -p $TOOLS_HOME
@@ -23,6 +25,15 @@ pushd helix
 cargo install --locked --path helix-term
 ln -s $PWD/runtime ~/.config/helix/runtime
 popd
+
+# install pip
+sudo apt install python3-pip
+
+# install virtualenv
+pip install virtualenv
+
+# install pyenv
+curl -s -S -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash
 
 # install zap plugin manager
 zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh)

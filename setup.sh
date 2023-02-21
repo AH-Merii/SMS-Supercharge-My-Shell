@@ -10,6 +10,8 @@ echo "Updating packages"
 sudo apt -y update
 sudo apt -y upgrade
 sudo apt install build-essential zsh
+# pyenv dependencies
+sudo apt install libbz2-dev libncurses5-dev libncursesw5-dev libffi-dev libreadline-dev libssl-dev
 
 # check if nix is installed on the system
 if ! (which nix); then 
