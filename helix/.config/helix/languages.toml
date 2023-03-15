@@ -1,6 +1,17 @@
 [[language]]
 name = "python"
 rulers = [79,88]
+auto-format = true
+language-server = {command = "pylsp"}
+config = { pylsp.plugins.flake8.enabled = true }
+
+[language.formatter]
+command = "black"
+args = [
+"-", # stdin
+"--quiet",
+"--line-length=79",
+]
 
 [[language]]
 name = "hcl"
