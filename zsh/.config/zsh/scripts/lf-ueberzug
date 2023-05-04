@@ -1,11 +1,14 @@
 #!/usr/bin/env zsh
 
 cleanup() {
-	lf-ueberzug-cleaner
-	kill "$UEBERZUGPID"
-	pkill -f "tail -f $LF_UEBERZUG_TEMPDIR/fifo"
-	rm -rf "$LF_UEBERZUG_TEMPDIR"
+    lf-ueberzug-cleaner
+    if ps -p $UEBERZUGPID > /dev/null; then
+        kill $UEBERZUGPID
+    fi
+    pkill -f "tail -f $LF_UEBERZUG_TEMPDIR/fifo"
+    rm -rf "$LF_UEBERZUG_TEMPDIR"
 }
+
 trap cleanup INT HUP
 
 # Set up temporary directory.
