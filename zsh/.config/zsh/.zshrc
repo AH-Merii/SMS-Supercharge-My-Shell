@@ -1,4 +1,3 @@
-[ -f "$HOME/.local/share/zap/zap.zsh" ] && source "$HOME/.local/share/zap/zap.zsh"
 # source zap
 [ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ] && source "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh"
 
@@ -17,6 +16,7 @@ setopt autocd
 
 # source
 plug "$ZDOTDIR/aliases.zsh"
+source "$ZDOTDIR/scripts/lfcd.sh"
 
 # plugins
 loop-apply plug "$ZDOTDIR/zsh-extensions.txt"
