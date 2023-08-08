@@ -32,7 +32,7 @@
   untrack = rm --cache --
 [core]
   # Don't paginate output by default
-  pager = cat
+	pager = delta --line-numbers --dark
   # Global ignore file (not shared)
   excludesfile = ~/.gitignore_global
   # Global shared hooks directory
@@ -150,3 +150,5 @@
 	defaultBranch = main
 [safe]
 	directory = *
+[delta]
+	side-by-side = true
