@@ -1,3 +1,7 @@
+# https://github.com/doron-cohen/antidot
+# Use antidot to export new xdg locations for cleaned programs
+eval "$(antidot init)"
+
 # editor
 export EDITOR=helix
 export SUDOEDITOR=helix
@@ -23,17 +27,16 @@ export XDG_STATE_HOME=~/.local/state
 export XDG_RUNTIME_DIR=~/.xdg
 export XDG_PROJECTS_DIR=~/Projects
 
+# Store zsh history
+export HISTFILE=$XDG_DATA_HOME/zsh/zsh_history
+
+# Define powerlevel10k theme
+export ZSH_THEME="powerlevel10k/powerlevel10k"
+
 # Custom
 export GNUPGHOME=$XDG_DATA_HOME/gnupg
 export REPO_HOME=$XDG_CACHE_HOME/repos
 export ANTIDOTE_HOME=$REPO_HOME
-
-# Ensure XDG dirs exist.
-for xdgdir in XDG_{CONFIG,CACHE,DATA,STATE}_HOME XDG_{RUNTIME,PROJECTS}_DIR; do
-  [[ -e ${(P)xdgdir} ]] || mkdir -p ${(P)xdgdir}
-done
-
-
 
 # fzf configuration
 export FZF_CTRL_T_COMMAND="fd --hidden --follow --type f --exclude '.git'"

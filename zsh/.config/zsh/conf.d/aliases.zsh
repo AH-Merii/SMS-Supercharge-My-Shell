@@ -8,28 +8,27 @@ alias_check() {
 }
 
 # modern shell replacement
-alias_check ls   exa   
 alias_check cat  bat   
-alias_check find fd    
 alias_check diff delta 
-alias_check curl xh    
-alias_check dig  dog   
-alias_check ps   procs 
-alias_check ping gping 
-alias_check top  btm
-alias_check du   dust  
-alias_check df   duf   
 alias_check grep rg
 
-#shortcuts
-alias_check b    popd
+# shortcuts
+alias_check b  popd
+alias_check hx helix
+
+# zsh easy access
+alias_check szrc "source $ZDOTDIR/.zshrc"
+alias_check ezrc "helix $ZDOTDIR/.zshrc"
+alias_check czrc "cat $ZDOTDIR/.zshrc"
+alias_check szenv "source $HOME/.zshenv"
+alias_check ezenv "helix $HOME/.zshenv"
+alias_check czenv "cat $HOME/.zshenv"
+
+# open all relevent supercharge-my-shell files
+alias_check esms "helix $HOME/.zshenv $ZDOTDIR/{.zshrc,.zsh_plugins.txt,conf.d/aliases.zsh}"
 
 # lazygit
-alias_check lg   lazygit
-
-# lf
-alias_check lf   lf-ueberzug
-alias_check lfh  "lf --command 'set hidden!'"
+alias_check lg lazygit
 
 # fzf
 # adds preview file to fzf
