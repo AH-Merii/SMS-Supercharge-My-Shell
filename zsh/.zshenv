@@ -1,18 +1,41 @@
-export EDITOR=$HOME/.cargo/bin/hx
-export SUDOEDITOR=$HOME/.cargo/bin/hx
-export VISUAL=$HOME/.cargo/bin/hx
+# editor
+export EDITOR=helix
+export SUDOEDITOR=helix
+export VISUAL=helix
+
+# binaries
+
 export PATH=$HOME/.local/bin:$PATH
-export MANWIDTH=999
 export PATH=$HOME/.cargo/bin:$PATH
 export PATH=$HOME/.local/share/go/bin:$PATH
-export GOPATH=$HOME/.local/share/go
-export PATH=$PATH:$GOPATH/bin
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_DATA_HOME=$HOME/.local/share
-export XDG_CACHE_HOME=$HOME/.cache
+
+### declutter home directory ###
+
+# Set zsh config directory
 export ZDOTDIR=$HOME/.config/zsh
-export PATH=$PATH:$HOME/.cargo/env
-export ZSH_ALIAS_DIR=$ZDOTDIR/aliases.zsh
+
+# Set XDG base dirs.
+# https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+export XDG_CONFIG_HOME=~/.config
+export XDG_CACHE_HOME=~/.cache
+export XDG_DATA_HOME=~/.local/share
+export XDG_STATE_HOME=~/.local/state
+export XDG_RUNTIME_DIR=~/.xdg
+export XDG_PROJECTS_DIR=~/Projects
+
+# Custom
+export GNUPGHOME=$XDG_DATA_HOME/gnupg
+export REPO_HOME=$XDG_CACHE_HOME/repos
+export ANTIDOTE_HOME=$REPO_HOME
+
+# Ensure XDG dirs exist.
+for xdgdir in XDG_{CONFIG,CACHE,DATA,STATE}_HOME XDG_{RUNTIME,PROJECTS}_DIR; do
+  [[ -e ${(P)xdgdir} ]] || mkdir -p ${(P)xdgdir}
+done
+
+
+
+# fzf configuration
 export FZF_CTRL_T_COMMAND="fd --hidden --follow --type f --exclude '.git'"
 export FZF_CTRL_T_OPTS="
   --preview 'bat -n --color=always --style=numbers {}'
@@ -27,15 +50,7 @@ export FZF_CTRL_R_OPTS="
   --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
   --color header:italic
   --header 'Press CTRL-Y to copy command into clipboard'"
-# add scripts directory to PATH
-export PATH=$PATH:$ZDOTDIR/scripts
-# path for binaries installed using nix-env
-export PATH=$PATH:~/.nix-profile/bin
-# add path for nvm
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
+
 # lf icons
 export LF_ICONS="\
 tw=:\
@@ -199,4 +214,3 @@ ex=:\
 *.pdf=:\
 *.nix=:\
 "
-. "$HOME/.cargo/env"

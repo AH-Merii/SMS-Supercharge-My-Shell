@@ -1,0 +1,20 @@
+#
+# .zplugins - antidote plugins file
+#
+
+Aloxaf/fzf-tab
+hlissner/zsh-autopair
+MichaelAquilina/zsh-you-should-use
+zsh-users/zsh-history-substring-search
+zdharma-continuum/fast-syntax-highlighting
+zsh-users/zsh-autosuggestions
+
+mattmc3/zephyr path:plugins/editor
+
+# prompts
+romkatv/powerlevel10k kind:fpath
+$ZDOTDIR/plugins/prompt
+
+# tool aliases
+zap-zsh/exa
+zap-zsh/fzf
