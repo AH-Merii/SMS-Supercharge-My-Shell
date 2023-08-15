@@ -1,43 +1,43 @@
-#!/bin/sh
+# set some colors
+CNT="[\e[1;36mNOTE\e[0m]"
+COK="[\e[1;32mOK\e[0m]"
+CER="[\e[1;31mERROR\e[0m]"
+CAT="[\e[1;37mATTENTION\e[0m]"
+CWR="[\e[1;35mWARNING\e[0m]"
+CAC="[\e[1;33mACTION\e[0m]"
+INSTLOG="install.log"
 
-# checks if repo exists. if repo does not exist clones it else it pulls the most recent changes.
-clone-repo() {
-    repo=$1 
-    repo_name=$(echo $repo | sed -rn 's/git@.+\/(.+)\.git/\1/p')
-    # handle empty input for directory
-    [ -z "$2" ] && directory="./" || directory=$2
-    # check if repo is already cloned or not; if exists then pull
-    if cd "$directory/$repo_name"; then git pull; else git clone --depth=1 $repo "$directory/$repo_name"; fi
-}
+######
+# functions go here
 
-# downloads the latest release of given repo that is compatible with linux
-get-latest-release() {
-    repo=$1
-
-    curl -L "https://api.github.com/repos/$repo/releases/latest" | \
-        jq -r ".assets[].browser_download_url" | \
-        grep -Pi "(?=.*[_.-]linux[_.-])(?=.*[_.-](amd64|x86_64)[_.-]).*"
-} 
-
-# installs the latest release of repo
-install-latest-release() {
-    repo=$1
-    program_name="$(awk -F/ '{print $2}' <<< $repo)"
-    release_url=$(get-latest-release $repo)
-    echo "Installing latest release of $program_name from: $release_url"
-    pushd /tmp
-    curl -Lo "$program_name.tar.gz" $release_url 
-    tar -xf "$program_name.tar.gz"
-    sudo install $program_name "$HOME/.local/bin"
-    popd
-}
-
-# takes in command and input file and executes command on each line of the input file
-loop-apply() {
-    command=$1
-    input_file=$2
-    cat $input_file | while read line || [[ -n $line ]];
+# function that would show a progress bar to the user
+show_progress() {
+    while ps | grep $1 &> /dev/null;
     do
-      eval "$command $line"
+        echo -n "."
+        sleep 2
     done
+    echo -en "Done!\n"
+    sleep 2
+}
+
+# function that will test for a package and if not found it will attempt to install it
+install_software() {
+    # First lets see if the package is there
+    if yay -Q $1 &>> /dev/null ; then
+        echo -e "$COK - $1 is already installed."
+    else
+        # no package found so installing
+        echo -en "$CNT - Now installing $1 ."
+        yay -S --noconfirm $1 &>> $INSTLOG &
+        show_progress $!
+        # test to make sure package installed
+        if yay -Q $1 &>> /dev/null ; then
+            echo -e "\e[1A\e[K$COK - $1 was installed."
+        else
+            # if this is hit then a package is missing, exit to review log
+            echo -e "\e[1A\e[K$CER - $1 install had failed, please check the install.log"
+            exit
+        fi
+    fi
 }
