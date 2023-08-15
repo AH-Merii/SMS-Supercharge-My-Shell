@@ -29,3 +29,5 @@ _darcs
 install
 programs
 scripts
+^\.zcompdump$
+^/scripts/helper-funcs\.sh$
