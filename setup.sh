@@ -1,70 +1,152 @@
 #!/bin/bash
 
-# NOTE: the order of operations in the script matters, changing the order of the commands below may break the script 
 
-# file containing nix packages to install
-NIX_PACKAGES_FILE="$(pwd)/programs/nix-packages.txt"
+#!/bin/bash
 
-# check and install any updates
-echo "Updating packages"
-sudo apt -y update
-sudo apt -y upgrade
-sudo apt install build-essential zsh
-# pyenv dependencies
-sudo apt install libbz2-dev libncurses5-dev libncursesw5-dev libffi-dev libreadline-dev libssl-dev
+# source helper functions
+source ./scripts/helper-funcs.sh && echo "$CNT - Sourced helper functions"
 
-# check if nix is installed on the system
-if ! (which nix); then 
-  # install nix package manager using helper script
-  ./install/nix.sh
-  source $HOME/.nix-profile/etc/profile.d/nix.sh
+
+# language servers to install
+lsp_stage=(
+    bash-language-server
+    python3-pylsp
+    vscode-langservers-extracted
+    terraform-ls
+    texlab
+    marksman
+    taplo-cli
+    gopls
+    dockerfile-language-server
+    rust-analyzer
+)
+
+# tools to install
+tool_stage=(
+    helix
+    kitty 
+    lf
+    lazygit
+    bat
+    fzf
+    exa
+    delta
+    tmux
+    ripgrep
+    stow
+    curl
+    wget
+    jq
+)
+
+# miscellaneous
+misc_stage=(
+    zsh
+    pyenv
+    python-virtualenv
+    python-pip
+    antibody
+    zsh-theme-powerlevel10k
+    ttf-firacode-nerd
+    inter-font
+    wl-clipboard
+)
+
+
+# clear the screen
+clear
+
+# let the user know that we will use sudo
+echo -e "$CNT - This script will run some commands that require sudo. You will be prompted to enter your password.
+If you are worried about entering your password then you may want to review the content of the script."
+sleep 1
+
+# give the user an option to exit out
+read -rep $'[\e[1;33mACTION\e[0m] - Would you like to continue with the install (y,n) ' CONTINST
+if [[ $CONTINST == "Y" || $CONTINST == "y" ]]; then
+    echo -e "$CNT - Setup starting..."
+else
+    echo -e "$CNT - This script will now exit, no changes were made to your system."
+    exit
 fi
 
-echo "Updating Nix packages"
-nix-channel --update
-
-# check if file containing list of packages exists
-if [ -s $NIX_PACKAGES_FILE ]; then
-  # allow the installation of proprietary packages
-  export NIXPKGS_ALLOW_UNFREE=1
-  export NIXPKGS_ALLOW_BROKEN=1
-  echo "Downloading Nix packages from $NIX_PACKAGES_FILE"
-  echo "Installing the following packages:"
-  cat $NIX_PACKAGES_FILE
-  # the command below adds "nixpkgs." to the start of each packages and removes all comments and newlines
-  cat $NIX_PACKAGES_FILE | grep -o '^[^#]*' > /tmp/nix-packages.txt
-  nix-env -iA $(sed 's/^/nixpkgs./' "/tmp/nix-packages.txt" | tr '\n' ' ') 
-else # exit if package file does not exist
-  echo $NIX_PACKAGES_FILE is empty or does not exist
-  exit 1
+#### Check for paru package manager ####
+if [ ! -f /usr/bin/paru ]; then  
+    echo -en "$CNT - Configuring paru."
+    
+    # Clone the paru repository
+    git clone https://aur.archlinux.org/paru.git &>> $INSTLOG
+    cd paru
+    
+    # Build and install paru
+    makepkg -si --noconfirm &>> ../$INSTLOG &
+    show_progress $!
+    
+    if [ -f /usr/bin/paru ]; then
+        echo -e "\e[1A\e[K$COK - paru configured"
+        cd ..
+        
+        # Update the paru database
+        echo -en "$CNT - Updating paru."
+        paru -Syu --noconfirm &>> $INSTLOG &
+        show_progress $!
+        echo -e "\e[1A\e[K$COK - paru updated."
+    else
+        # If this is hit then a package is missing, exit to review log
+        echo -e "\e[1A\e[K$CER - paru install failed, please check the install.log"
+        exit
+    fi
 fi
 
-# change default shell to zsh
-which zsh && chsh -s $(which zsh) || echo zsh not found
+### Install all of the above pacakges ####
+read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
+if [[ $INST == "Y" || $INST == "y" ]]; then
 
-# add stowignore .git folder
-[ ! -f .git/.stow-local-ignore ] && cp scripts/.stow-local-ignore .git/
+    # LSP Stage - Language Servers
+    echo -e "$CNT - LSP Stage - Installing Language Servers, this may take a while..."
+    for SOFTWR in ${lsp_stage[@]}; do
+        install_software $SOFTWR 
+    done
 
-# create symlinks to dotfiles using stow
-stow */ -t ~ && echo -e "\033[32mSTOW COMPLETE\033[0m"
+    # dev tool Stage - dev tools
+    echo -e "$CNT - Installing dev tools, this may take a while..."
+    for SOFTWR in ${tool_stage[@]}; do
+        install_software $SOFTWR 
+    done
 
-# export environment variables from .zshenv
-[ -f ~/.zshenv ] && source ~/.zshenv && echo -e "\033[32m.zshenv SOURCED\033[0m" 
+    # misc Stage - Supercharging Shell
+    echo -e "$CNT - Supercharging your shell, this may take a while..."
+    for SOFTWR in ${misc_stage[@]}; do
+        install_software $SOFTWR 
+    done
+    
+fi
 
-# source helper-funcs.sh
-source $ZDOTDIR/scripts/helper-funcs.sh && echo -e "\033[32mSOURCED HELPER FUNCS\033[0m"
+### Copy Config Files ###
+read -rep $'[\e[1;33mACTION\e[0m] - Would you like to copy config files? (y,n) ' CFG
+if [[ $CFG == "Y" || $CFG == "y" ]]; then
+    echo -e "$CNT - Copying config files..."
 
-# install tools programming languages and editors
-./install/tools.sh && echo -e "\033[32m TOOLS INSTALLED\033[0m"
+    # add stowignore .git folder
+    [ ! -f .git/.stow-local-ignore ] && cp scripts/.stow-local-ignore .git/
 
-# install helix editor language server protocols 
-./install/helix-lsp.sh && echo -e "\033[32m HELIX TEXT EDITOR INSTALLED\033[0m"
+    # create symlinks to dotfiles using stow
+    stow */ -t ~ && echo -e "$CNT - Linked config files." 
 
-# create a hard link for zsh-extensions
-ln programs/zsh-extensions.txt $ZDOTDIR
+    # export environment variables from .zshenv
+    [ -f ~/.zshenv ] && source ~/.zshenv && echo -e "$CNT - Sourced .zshenv" 
+
+### Copy Config Files ###
+read -rep $'[\e[1;33mACTION\e[0m] - Would you like to run antidot (declutter your home directory)? (y,n) ' CFG
+if [[ $CFG == "Y" || $CFG == "y" ]]; then
+
+    echo -e "$CNT - Decluttering home directory..."
+    antidot update
+    antidot clean
+    antidot init
 
 # source .zshrc
 /usr/bin/env zsh 
 
-# empty /tmp dir
-sudo find /tmp/* -exec rm -rf {} + && echo -e "\033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m" 
+# setup complete
+echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m" 
