@@ -2,8 +2,9 @@
 ![image](https://github.com/AH-Merii/SMS-Supercharge-My-Shell/assets/43741215/09bfeb3b-3387-47e3-9ef9-34dae4ba4b41)
 
 ## About
-This directory contains all the dotfiles for a supercharged development environment. It includes an easy way to make sure that all the necessary programs are installed using the `setup.sh` script.
-**NOTE**: This setup only works on Arch Linux as it makes heavy use of the AUR.
+This directory contains all the dotfiles for a supercharged development environment. It includes an easy way to make sure that all the necessary programs are installed using the `setup.sh` script.<br>
+
+> :warning: ***NOTE***: This setup only works on Arch Linux as it makes heavy use of the AUR.
 
 *Table of Contents*
 - [About](#about)
