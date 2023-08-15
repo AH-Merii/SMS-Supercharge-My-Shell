@@ -1,8 +1,5 @@
 #!/bin/bash
 
-
-#!/bin/bash
-
 # source helper functions
 source ./scripts/helper-funcs.sh && echo "$CNT - Sourced helper functions"
 
@@ -10,7 +7,7 @@ source ./scripts/helper-funcs.sh && echo "$CNT - Sourced helper functions"
 # language servers to install
 lsp_stage=(
     bash-language-server
-    python3-pylsp
+    python-lsp-server
     vscode-langservers-extracted
     terraform-ls
     texlab
@@ -24,19 +21,20 @@ lsp_stage=(
 # tools to install
 tool_stage=(
     helix
-    kitty 
+    kitty
     lf
     lazygit
     bat
     fzf
     exa
-    delta
+    git-delta-git
     tmux
     ripgrep
     stow
     curl
     wget
     jq
+    xclip
 )
 
 # miscellaneous
@@ -45,7 +43,8 @@ misc_stage=(
     pyenv
     python-virtualenv
     python-pip
-    antibody
+    go
+    zsh-antidote
     zsh-theme-powerlevel10k
     ttf-firacode-nerd
     inter-font
@@ -65,38 +64,14 @@ sleep 1
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to continue with the install (y,n) ' CONTINST
 if [[ $CONTINST == "Y" || $CONTINST == "y" ]]; then
     echo -e "$CNT - Setup starting..."
+    sudo touch /tmp/setup.tmp
 else
     echo -e "$CNT - This script will now exit, no changes were made to your system."
     exit
 fi
 
-#### Check for paru package manager ####
-if [ ! -f /usr/bin/paru ]; then  
-    echo -en "$CNT - Configuring paru."
-    
-    # Clone the paru repository
-    git clone https://aur.archlinux.org/paru.git &>> $INSTLOG
-    cd paru
-    
-    # Build and install paru
-    makepkg -si --noconfirm &>> ../$INSTLOG &
-    show_progress $!
-    
-    if [ -f /usr/bin/paru ]; then
-        echo -e "\e[1A\e[K$COK - paru configured"
-        cd ..
-        
-        # Update the paru database
-        echo -en "$CNT - Updating paru."
-        paru -Syu --noconfirm &>> $INSTLOG &
-        show_progress $!
-        echo -e "\e[1A\e[K$COK - paru updated."
-    else
-        # If this is hit then a package is missing, exit to review log
-        echo -e "\e[1A\e[K$CER - paru install failed, please check the install.log"
-        exit
-    fi
-fi
+# checks for paru, and installs it if it is not found
+install_paru_if_not_found
 
 ### Install all of the above pacakges ####
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
@@ -105,19 +80,19 @@ if [[ $INST == "Y" || $INST == "y" ]]; then
     # LSP Stage - Language Servers
     echo -e "$CNT - LSP Stage - Installing Language Servers, this may take a while..."
     for SOFTWR in ${lsp_stage[@]}; do
-        install_software $SOFTWR 
+        install_software_paru $SOFTWR 
     done
 
     # dev tool Stage - dev tools
     echo -e "$CNT - Installing dev tools, this may take a while..."
     for SOFTWR in ${tool_stage[@]}; do
-        install_software $SOFTWR 
+        install_software_paru $SOFTWR 
     done
 
     # misc Stage - Supercharging Shell
     echo -e "$CNT - Supercharging your shell, this may take a while..."
     for SOFTWR in ${misc_stage[@]}; do
-        install_software $SOFTWR 
+        install_software_paru $SOFTWR 
     done
     
 fi
@@ -125,28 +100,27 @@ fi
 ### Copy Config Files ###
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to copy config files? (y,n) ' CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
-    echo -e "$CNT - Copying config files..."
-
-    # add stowignore .git folder
-    [ ! -f .git/.stow-local-ignore ] && cp scripts/.stow-local-ignore .git/
+    echo -e "$CNT - Creating config files symobic links using stow..."
 
     # create symlinks to dotfiles using stow
-    stow */ -t ~ && echo -e "$CNT - Linked config files." 
+    stow */ --verbose -t ~ && echo -e "$CNT - Linked config files." &>> $INSTLOG
 
     # export environment variables from .zshenv
-    [ -f ~/.zshenv ] && source ~/.zshenv && echo -e "$CNT - Sourced .zshenv" 
+    [ -f ~/.zshenv ] && source ~/.zshenv && echo -e "$CNT - Sourced .zshenv" &>> $INSTLOG
+
+fi
 
 ### Copy Config Files ###
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to run antidot (declutter your home directory)? (y,n) ' CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
 
     echo -e "$CNT - Decluttering home directory..."
-    antidot update
-    antidot clean
-    antidot init
+    antidot update &>> $INSTLOG
+    antidot clean &>> $INSTLOG
+    antidot init &>> $INSTLOG
 
-# source .zshrc
-/usr/bin/env zsh 
+fi
 
 # setup complete
-echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m" 
+echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m\n\033[95mPLEASE RESTART YOUR TERMINAL TO COMPLETE SETUP\033[0m"
+
