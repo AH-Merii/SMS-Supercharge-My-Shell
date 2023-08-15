@@ -51,6 +51,16 @@ misc_stage=(
     wl-clipboard
 )
 
+#software for nvidia GPU only
+nvidia_drivers_stage=(
+    linux-headers 
+    nvidia-dkms 
+    nvidia-settings 
+    libva 
+    libva-nvidia-driver-git
+)
+
+# nvidia_cudnn_stage=()
 
 # clear the screen
 clear
@@ -97,6 +107,15 @@ if [[ $INST == "Y" || $INST == "y" ]]; then
     
 fi
 
+### Install all of the nvidia drivers and dependencies ####
+read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install Nvidia Drivers? \033[31m[WARNING]\033[0m Skip this step if you are using WSL! (y,n)' INST
+if [[ $INST == "Y" || $INST == "y" ]]; then
+    # nvidia drivers Stage
+    echo -e "$CNT - Nvidia Drivers Stage - Installing Nvidia Drivers, this may take a while..."
+    for SOFTWR in ${nvidia_drivers_stage[@]}; do
+        install_software_paru $SOFTWR 
+    done
+fi
 ### Copy Config Files ###
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to copy config files? (y,n) ' CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
