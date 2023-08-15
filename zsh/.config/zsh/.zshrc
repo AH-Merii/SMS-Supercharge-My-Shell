@@ -4,8 +4,8 @@ setopt autopushd
 # allow cd without explicit command
 setopt autocd
 
-autoload -U compinit 
-compinit
+# zstyles
+[[ -r $ZDOTDIR/.zstyles ]] && . $ZDOTDIR/.zstyles
 
 # use antidote for plugin management
 [[ -d $ANTIDOTE_HOME/mattmc3/antidote ]] ||
@@ -14,12 +14,11 @@ compinit
 source $ANTIDOTE_HOME/mattmc3/antidote/antidote.zsh
 antidote load
 
-# https://github.com/doron-cohen/antidot
-# Use antidot to export new xdg locations for cleaned programs
-eval "$(antidot init)"
-
-zstyle ':completion:*' menu select
+eval "$(enable-fzf-tab)"
 
 # history substring search options
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
+
+# check if powerlevel10k configuration exists, if not, run powerlevel10k
+[[ -f $ZDOTDIR/.p10k.zsh ]] && source $ZDOTDIR/.p10k.zsh || p10k configure
