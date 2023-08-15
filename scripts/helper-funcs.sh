@@ -41,3 +41,60 @@ install_software() {
         fi
     fi
 }
+
+install_software_paru() {
+    # First lets see if the package is there
+    if paru -Q $1 &>> /dev/null ; then
+        echo -e "$COK - $1 is already installed."
+    else
+        # no package found so installing
+        echo -en "$CNT - Now installing $1 ."
+        
+        # Check if package is 'antibody' and disable checks if so
+        if [[ $1 == "antibody" ]]; then
+            paru -S --noconfirm --nocheck $1 &>> $INSTLOG &
+        else
+            paru -S --noconfirm $1 &>> $INSTLOG &
+        fi
+        
+        show_progress $!
+        # test to make sure package installed
+        if paru -Q $1 &>> /dev/null ; then
+            echo -e "\e[1A\e[K$COK - $1 was installed."
+        else
+            # if this is hit then a package is missing, exit to review log
+            echo -e "\e[1A\e[K$CER - $1 install had failed, please check the install.log"
+            exit
+        fi
+    fi
+}
+
+install_paru_if_not_found() {
+    #### Check for paru package manager ####
+    if [ ! -f /usr/bin/paru ]; then  
+        echo -en "$CNT - Configuring paru."
+    
+        # Clone the paru repository
+        git clone https://aur.archlinux.org/paru.git &>> $INSTLOG
+        cd paru
+    
+        # Build and install paru
+        makepkg -si --noconfirm &>> ../$INSTLOG &
+        show_progress $!
+    
+        if [ -f /usr/bin/paru ]; then
+            echo -e "\e[1A\e[K$COK - paru configured"
+            cd ..
+        
+            # Update the paru database
+            echo -en "$CNT - Updating paru."
+            paru -Syu --noconfirm &>> $INSTLOG &
+            show_progress $!
+            echo -e "\e[1A\e[K$COK - paru updated."
+        else
+            # If this is hit then a package is missing, exit to review log
+            echo -e "\e[1A\e[K$CER - paru install failed, please check the install.log"
+            exit
+        fi
+    fi
+}
