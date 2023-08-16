@@ -43,6 +43,7 @@ misc_stage=(
     pyenv
     python-virtualenv
     python-pip
+    micromamba-bin
     go
     zsh-antidote
     zsh-theme-powerlevel10k
