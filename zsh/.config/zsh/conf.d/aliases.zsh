@@ -15,6 +15,7 @@ alias_check grep rg
 # shortcuts
 alias_check b  popd
 alias_check hx helix
+alias_check conda micromamba
 
 # zsh easy access
 alias_check szrc "source $ZDOTDIR/.zshrc"

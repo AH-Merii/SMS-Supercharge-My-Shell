@@ -85,6 +85,7 @@ install_paru_if_not_found() {
         if [ -f /usr/bin/paru ]; then
             echo -e "\e[1A\e[K$COK - paru configured"
             cd ..
+            rm -rf paru
         
             # Update the paru database
             echo -en "$CNT - Updating paru."

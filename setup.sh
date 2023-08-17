@@ -43,6 +43,7 @@ misc_stage=(
     pyenv
     python-virtualenv
     python-pip
+    micromamba-bin
     go
     zsh-antidote
     zsh-theme-powerlevel10k
@@ -139,6 +140,9 @@ if [[ $CFG == "Y" || $CFG == "y" ]]; then
     antidot init &>> $INSTLOG
 
 fi
+
+# Change default shell to zsh
+chsh -s $(which zsh)
 
 # setup complete
 echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m\n\033[95mPLEASE RESTART YOUR TERMINAL TO COMPLETE SETUP\033[0m"
