@@ -13,6 +13,7 @@ export PATH=$HOME/.local/bin:$PATH
 export PATH=$HOME/.cargo/bin:$PATH
 export PATH=$HOME/.local/share/go/bin:$PATH
 
+
 ### declutter home directory ###
 
 # Set zsh config directory
@@ -29,6 +30,12 @@ export XDG_PROJECTS_DIR=~/Projects
 
 # Store zsh history
 export HISTFILE=$XDG_DATA_HOME/zsh/zsh_history
+
+# XDG DATA
+export PYENV_ROOT="$XDG_DATA_HOME"/pyenv 
+
+# XDG CACHE
+export TEXMFVAR="$XDG_CACHE_HOME"/texlive/texmf-var
 
 # Define powerlevel10k theme
 export ZSH_THEME="powerlevel10k/powerlevel10k"
