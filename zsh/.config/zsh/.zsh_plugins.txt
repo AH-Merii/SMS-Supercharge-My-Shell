@@ -32,4 +32,3 @@ mattmc3/zephyr path:plugins/confd
 # deferred plugins
 zsh-users/zsh-autosuggestions
 zdharma-continuum/fast-syntax-highlighting
-# zsh-users/zsh-history-substring-search
