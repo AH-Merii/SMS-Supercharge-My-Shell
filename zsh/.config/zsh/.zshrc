@@ -16,4 +16,6 @@ antidote load
 
 # check if powerlevel10k configuration exists, if not, run powerlevel10k
 [[ -f $ZDOTDIR/.p10k.zsh ]] && source $ZDOTDIR/.p10k.zsh || p10k configure
+
 eval "$(enable-fzf-tab)"
+eval "$(pyenv init -)"

@@ -33,6 +33,7 @@ export HISTFILE=$XDG_DATA_HOME/zsh/zsh_history
 
 # XDG DATA
 export PYENV_ROOT="$XDG_DATA_HOME"/pyenv 
+export MAMBA_ROOT_PREFIX="$XDG_DATA_HOME"/micromamba
 
 # XDG CACHE
 export TEXMFVAR="$XDG_CACHE_HOME"/texlive/texmf-var
