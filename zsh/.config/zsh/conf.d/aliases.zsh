@@ -31,6 +31,9 @@ alias_check esms "helix $HOME/.zshenv $ZDOTDIR/{.zshrc,.zsh_plugins.txt,conf.d/a
 # lazygit
 alias_check lg lazygit
 
+# bottom
+alias_check btm "btm --enable_gpu_memory"
+
 # fzf
 # adds preview file to fzf
 alias_check xp "fzf --exact --preview='bat --color=always --style=numbers {}' --bind page-up:preview-up,ctrl-u:preview-page-up,page-down:preview-down,ctrl-d:preview-page-down"
