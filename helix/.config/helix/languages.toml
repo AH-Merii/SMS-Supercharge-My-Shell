@@ -2,7 +2,7 @@
 name = "python"
 rulers = [79,88]
 auto-format = true
-formatter = {command = "black", args = ["-",  "--quiet","--line-length=88",]} 
+formatter = {command = "bash", args = ["-c", "isort --profile black - | black --quiet --line-length=88 -"]} 
 
 [language.config.pylsp]
 configurationSources = ["pyproject.toml", "setup.cfg"]
