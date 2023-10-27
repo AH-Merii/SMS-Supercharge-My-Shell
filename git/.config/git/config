@@ -35,7 +35,7 @@
   # Global shared hooks directory
   # hooksPath = ~/.githooks
   #
-  editor = hx
+  editor = helix
   # Don't consider trailing space change as a cause for merge conflicts
   whitespace = -trailing-space
 [diff]
@@ -108,7 +108,7 @@
   rebase = merges
 [push]
   # Default push should only push the current branch to its push target, regardless of its remote name
-  default = upstream
+	default = current
   # When pushing, also push tags whose commit-ishs are now reachable upstream
   followTags = true
 # [rebase]
