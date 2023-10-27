@@ -26,4 +26,3 @@ formatter = { command = "terraform fmt %f" , args = ["--stdin"] }
 
 [[language]]
 name = 'toml'
-config = {}
