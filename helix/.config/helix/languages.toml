@@ -4,18 +4,16 @@ rulers = [79,88]
 auto-format = true
 formatter = {command = "bash", args = ["-c", "isort --profile black - | black --quiet --line-length=88 -"]} 
 
-[language.config.pylsp]
+[language-servers.pylsp]
 configurationSources = ["pyproject.toml", "setup.cfg"]
-plugins.pycodestyle.enabled = false
-plugins.pyflakes.enabled = false
-plugins.yapf.enabled = false
 
-[language.config.pylsp.plugins.pylint]
-enabled = true
+[language-servers.pylsp.plugins]
+pycodestyle.enabled = false
+pyflakes.enabled = false
+yapf.enabled = false
+pylint.enabled = true
 args = ["--rcfile=pyproject.toml", "--rcfile=setup.cfg"]
-
-[language.config.pylsp.plugins.flake8]
-enabled = true
+flake8.enabled = true
 
 [[language]]
 name = "hcl"
