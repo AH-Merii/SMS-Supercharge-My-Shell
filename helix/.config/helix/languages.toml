@@ -1,13 +1,13 @@
 [[language]]
 name = "python"
-rulers = [79,88]
+rulers = [88]
 auto-format = true
-formatter = {command = "bash", args = ["-c", "isort --profile black - | black --quiet --line-length=88 -"]} 
+formatter = {command = "bash", args = ["-c", "isort --profile black - | black --quiet -"]} 
 
-[language-servers.pylsp]
+[language-server.pylsp.config]
 configurationSources = ["pyproject.toml", "setup.cfg"]
 
-[language-servers.pylsp.plugins]
+[language-server.pylsp.config.plugins]
 pycodestyle.enabled = false
 pyflakes.enabled = false
 yapf.enabled = false
