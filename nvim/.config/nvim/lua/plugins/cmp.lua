@@ -39,10 +39,42 @@ local M = {
   },
 }
 
+local icons = require "user.icons"
+
+local formatting_config = {
+  fields = { "kind", "abbr", "menu" },
+  -- setting up icons for context menu in autocomplete
+  format = function(entry, vim_item)
+    vim_item.kind = icons.kind[vim_item.kind]
+    vim_item.menu = ({
+      nvim_lsp = "",
+      nvim_lua = "",
+      luasnip = "",
+      buffer = "",
+      path = "",
+      emoji = "",
+    })[entry.source.name]
+    if entry.source.name == "copilot" then
+      vim_item.kind = icons.git.Octoface
+      vim_item.kind_hl_group = "CmpItemKindCopilot"
+    end
+
+    if entry.source.name == "crates" then
+      vim_item.kind = icons.misc.Package
+      vim_item.kind_hl_group = "CmpItemKindCrate"
+    end
+
+    if entry.source.name == "emoji" then
+      vim_item.kind = icons.misc.Smiley
+      vim_item.kind_hl_group = "CmpItemKindEmoji"
+    end
+
+    return vim_item
+  end,
+}
 
 function M.config()
   vim.api.nvim_set_hl(0, "CmpItemKindCopilot", { fg = "#6CC644" })
-  vim.api.nvim_set_hl(0, "CmpItemKindTabnine", { fg = "#CA42F0" })
   vim.api.nvim_set_hl(0, "CmpItemKindCrate", { fg = "#F64D00" })
   vim.api.nvim_set_hl(0, "CmpItemKindEmoji", { fg = "#FDE030" })
 
@@ -55,7 +87,6 @@ function M.config()
     return col == 0 or vim.fn.getline("."):sub(col, col):match "%s"
   end
 
-  local icons = require "user.icons"
 
   cmp.setup {
     snippet = {
@@ -107,53 +138,12 @@ function M.config()
         "s",
       }),
     },
-    formatting = {
-      fields = { "kind", "abbr", "menu" },
-      -- setting up icons for context menu in autocomplete
-      format = function(entry, vim_item)
-        vim_item.kind = icons.kind[vim_item.kind]
-        vim_item.menu = ({
-          nvim_lsp = "",
-          nvim_lua = "",
-          luasnip = "",
-          buffer = "",
-          path = "",
-          emoji = "",
-        })[entry.source.name]
-        if entry.source.name == "copilot" then
-          vim_item.kind = icons.git.Octoface
-          vim_item.kind_hl_group = "CmpItemKindCopilot"
-        end
-
-        if entry.source.name == "cmp_tabnine" then
-          vim_item.kind = icons.misc.Robot
-          vim_item.kind_hl_group = "CmpItemKindTabnine"
-        end
-
-        if entry.source.name == "crates" then
-          vim_item.kind = icons.misc.Package
-          vim_item.kind_hl_group = "CmpItemKindCrate"
-        end
-
-        if entry.source.name == "lab.quick_data" then
-          vim_item.kind = icons.misc.CircuitBoard
-          vim_item.kind_hl_group = "CmpItemKindConstant"
-        end
-
-        if entry.source.name == "emoji" then
-          vim_item.kind = icons.misc.Smiley
-          vim_item.kind_hl_group = "CmpItemKindEmoji"
-        end
-
-        return vim_item
-      end,
-    },
+    formatting = formatting_config,
     -- order of the sources that are displayed in autocomplete
     sources = {
       { name = "copilot" },
       { name = "nvim_lsp"},
       { name = "luasnip" },
-      { name = "cmp_tabnine" },
       { name = "nvim_lua" },
       { name = "buffer" },
       { name = "path" },
