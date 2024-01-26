@@ -26,7 +26,6 @@ local languages = {
   "go"
 }
 
-
 local textobjects_config = {
   select = {
     enable = true,
@@ -99,9 +98,9 @@ local treesitter_setup = {
   incremental_selection = {
     enable = true,
     keymaps = {
-      init_selection = "<leader>s",
-      node_incremental = "<leader>s",
-      node_decremental = "<leader>S",
+     init_selection = "v",
+      node_incremental = "v",
+      node_decremental = "V",
     },
   },
   textobjects = textobjects_config,
