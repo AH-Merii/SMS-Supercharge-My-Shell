@@ -21,7 +21,7 @@ return {
         },
       },
       hint = {
-        enable = true,
+        enable = false,
         array_index = "Disable", -- "Enable" | "Auto" | "Disable"
         await = true,
         paramName = "All", -- "All" | "Literal" | "Disable"

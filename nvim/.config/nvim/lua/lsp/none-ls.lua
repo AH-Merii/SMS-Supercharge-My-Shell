@@ -21,7 +21,6 @@ function M.config()
       formatting.isort,
       diagnostics.flake8,
       diagnostics.pylint.with({ prefer_local = ".venv/bin", }),
-      completion.spell,
     },
   }
 end

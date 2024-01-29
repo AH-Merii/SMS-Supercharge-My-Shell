@@ -20,4 +20,6 @@ spec("plugins.cmp")
 spec("plugins.telescope")
 spec("plugins.telescope-tabs")
 spec("extras.dressing")
+--language specific configurations
+require("languages.python")
 require("user.lazy")
