@@ -20,7 +20,7 @@ function M.config()
       formatting.black,
       formatting.isort,
       diagnostics.flake8,
-      diagnostics.pylint,
+      diagnostics.pylint.with({ prefer_local = ".venv/bin", }),
       completion.spell,
     },
   }
