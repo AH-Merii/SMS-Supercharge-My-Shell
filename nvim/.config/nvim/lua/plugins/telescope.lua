@@ -1,13 +1,29 @@
 local M = {
   "nvim-telescope/telescope.nvim",
   dependencies = { { "nvim-telescope/telescope-fzf-native.nvim", build = "make", lazy = true } },
-  lazy = true,
-  cmd = "Telescope",
 }
 
 function M.config()
+  local wk = require "which-key"
+  wk.register {
+    ["<leader>bb"] = { "<cmd>Telescope buffers<cr>", "Find" },
+    ["<leader>fb"] = { "<cmd>Telescope git_branches<cr>", "Checkout branch" },
+    ["<leader>fc"] = { "<cmd>Telescope colorscheme<cr>", "Colorscheme" },
+    ["<leader>ff"] = { "<cmd>Telescope find_files<cr>", "Find files" },
+    ["<leader>fp"] = { "<cmd>lua require('telescope').extensions.projects.projects()<cr>", "Projects" },
+    ["<leader>ft"] = { "<cmd>Telescope live_grep<cr>", "Find Text" },
+    ["<leader>fh"] = { "<cmd>Telescope help_tags<cr>", "Help" },
+    ["<leader>fl"] = { "<cmd>Telescope resume<cr>", "Last Search" },
+    ["<leader>fr"] = { "<cmd>Telescope oldfiles<cr>", "Recent File" },
+    ["<leader>fd"] = { "<cmd>Telescope diagnostics<cr>", "Diagnostics" },
+    ["<leader>fk"] = { "<cmd>Telescope keymaps<cr>", "Keymaps" },
+    ["<leader>fC"] = { "<cmd>Telescope commands<cr>", "Commands" },
+    ["<leader>fH"] = { "<cmd>Telescope highlights<cr>", "Highlights" },
+  }
+
   local icons = require "user.icons"
   local actions = require "telescope.actions"
+
 
   require("telescope").setup {
     defaults = {
@@ -18,10 +34,6 @@ function M.config()
       selection_strategy = "reset",
       path_display = { "smart" },
       color_devicons = true,
-      set_env = { ["COLORTERM"] = "truecolor" },
-      sorting_strategy = nil,
-      layout_strategy = nil,
-      layout_config = {},
       vimgrep_arguments = {
         "rg",
         "--color=never",
@@ -50,23 +62,10 @@ function M.config()
         },
       },
     },
+
     pickers = {
-      live_grep = {
-        theme = "dropdown",
-      },
-
-      grep_string = {
-        theme = "dropdown",
-      },
-
-      find_files = {
-        theme = "dropdown",
-        previewer = false,
-      },
 
       buffers = {
-        theme = "dropdown",
-        previewer = false,
         initial_mode = "normal",
         mappings = {
           i = {
@@ -87,26 +86,6 @@ function M.config()
         enable_preview = true,
       },
 
-      lsp_references = {
-        theme = "dropdown",
-        initial_mode = "normal",
-      },
-
-      lsp_definitions = {
-        theme = "dropdown",
-        initial_mode = "normal",
-      },
-
-      lsp_declarations = {
-        theme = "dropdown",
-        initial_mode = "normal",
-      },
-
-      lsp_implementations = {
-        theme = "dropdown",
-        initial_mode = "normal",
-      },
-    },
     extensions = {
       fzf = {
         fuzzy = true, -- false will only do exact matching
@@ -116,6 +95,7 @@ function M.config()
       },
     },
   }
+}
 end
 
 return M
