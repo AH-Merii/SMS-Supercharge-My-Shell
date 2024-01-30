@@ -98,9 +98,9 @@ local treesitter_setup = {
   incremental_selection = {
     enable = true,
     keymaps = {
-     init_selection = "v",
-      node_incremental = "v",
-      node_decremental = "V",
+     init_selection = "mi",
+      node_incremental = "mi",
+      node_decremental = "md",
     },
   },
   textobjects = textobjects_config,
