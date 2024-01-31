@@ -42,6 +42,7 @@ spec("extras.ufo")
 spec("extras.fidget")
 spec("extras.modicator")
 spec("extras.noice")
+spec("extras.sourcegraph")
 --language specific configurations
 require("languages.python.editor")
 --require("languages.lua.snippets")
