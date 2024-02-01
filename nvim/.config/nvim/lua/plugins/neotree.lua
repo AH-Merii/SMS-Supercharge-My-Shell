@@ -50,7 +50,7 @@ local function copy_path(state)
 end
 
 function M.config()
-	vim.keymap.set("n", "<leader>n", ":Neotree toggle<CR>")
+	vim.keymap.set("n", "<C-n>", ":Neotree toggle<CR>")
 	require("neo-tree").setup({
 		window = {
 			mappings = {
