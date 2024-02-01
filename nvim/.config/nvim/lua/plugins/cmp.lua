@@ -2,19 +2,18 @@ local M = {
 	"hrsh7th/nvim-cmp",
 	event = "InsertEnter",
 	dependencies = {
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-emoji",
-			"hrsh7th/cmp-buffer",
-			"hrsh7th/cmp-path",
-			"hrsh7th/cmp-cmdline",
-			"saadparwaiz1/cmp_luasnip",
-			"hrsh7th/cmp-nvim-lua",
+		"hrsh7th/cmp-nvim-lsp",
+		"hrsh7th/cmp-buffer",
+		"hrsh7th/cmp-path",
+		"hrsh7th/cmp-cmdline",
+		"saadparwaiz1/cmp_luasnip",
+		"hrsh7th/cmp-nvim-lua",
 		{
 			"L3MON4D3/LuaSnip",
 			dependencies = {
 				"rafamadriz/friendly-snippets",
 			},
-    }
+		},
 	},
 }
 
@@ -24,28 +23,18 @@ local formatting_config = {
 	fields = { "kind", "abbr", "menu" },
 	-- setting up icons for context menu in autocomplete
 	format = function(entry, vim_item)
-		vim_item.kind = icons.kind[vim_item.kind]
+		vim_item.kind = tostring(icons.kind[vim_item.kind]) .. " " .. tostring(vim_item.kind)
 		vim_item.menu = ({
-			nvim_lsp = "",
-			nvim_lua = "",
-			luasnip = "",
-			buffer = "",
-			path = "",
-			emoji = "",
+			nvim_lsp = "[lsp]",
+			nvim_lua = "[lua]",
+			luasnip = "[lsnp]",
+			buffer = "[buffer]",
+			path = "[path]",
 		})[entry.source.name]
-		if entry.source.name == "copilot" then
+
+		if entry.source.name == "cody" then
 			vim_item.kind = icons.git.Octoface
 			vim_item.kind_hl_group = "CmpItemKindCopilot"
-		end
-
-		if entry.source.name == "crates" then
-			vim_item.kind = icons.misc.Package
-			vim_item.kind_hl_group = "CmpItemKindCrate"
-		end
-
-		if entry.source.name == "emoji" then
-			vim_item.kind = icons.misc.Smiley
-			vim_item.kind_hl_group = "CmpItemKindEmoji"
 		end
 
 		return vim_item
@@ -53,10 +42,6 @@ local formatting_config = {
 }
 
 function M.config()
-	vim.api.nvim_set_hl(0, "CmpItemKindCopilot", { fg = "#6CC644" })
-	vim.api.nvim_set_hl(0, "CmpItemKindCrate", { fg = "#F64D00" })
-	vim.api.nvim_set_hl(0, "CmpItemKindEmoji", { fg = "#FDE030" })
-
 	local cmp = require("cmp")
 	local luasnip = require("luasnip")
 	require("luasnip/loaders/from_vscode").lazy_load()
@@ -144,16 +129,13 @@ function M.config()
 		formatting = formatting_config,
 		-- order of the sources that are displayed in autocomplete
 		sources = {
-			{ name = "copilot" },
+			{ name = "cody" },
 			{ name = "nvim_lsp" },
 			{ name = "luasnip" },
 			{ name = "nvim_lua" },
 			{ name = "buffer" },
 			{ name = "path" },
-			{ name = "calc" },
-			{ name = "emoji" },
 			{ name = "treesitter" },
-			{ name = "crates" },
 			{ name = "tmux" },
 		},
 		confirm_opts = {
@@ -170,7 +152,7 @@ function M.config()
 			},
 		},
 		experimental = {
-			ghost_text = true,
+			ghost_text = false,
 		},
 	})
 end
