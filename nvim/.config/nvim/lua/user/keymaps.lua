@@ -7,7 +7,7 @@ vim.g.maplocalleader = " "
 keymap("n", "<C-Space>", "<cmd>WhichKey \\<space><cr>", opts)
 keymap("n", "<C-i>", "<C-i>", opts)
 
--- Remap CTRL+I (Jump backwards in jumplist for windows terminal support)  
+-- Remap CTRL+I (Jump backwards in jumplist for windows terminal support)
 -- keymap('n', '<C-S-o>', '<cmd>lua vim.cmd([[normal! \\<C-i>]])<CR>', opts)
 
 -- Better window navigation
@@ -33,8 +33,16 @@ keymap("v", ">", ">gv", opts)
 
 keymap("x", "p", [["_dP]])
 
-vim.cmd [[:amenu 10.100 mousemenu.Goto\ Definition <cmd>lua vim.lsp.buf.definition()<CR>]]
-vim.cmd [[:amenu 10.110 mousemenu.References <cmd>lua vim.lsp.buf.references()<CR>]]
+vim.api.nvim_set_keymap(
+	"n",
+	"<A-d>",
+	'"_d',
+	{ noremap = true, silent = true, desc = "Delete word using black hole register" }
+)
+
+vim.cmd([[:amenu 10.100 mousemenu.Goto\ Definition <cmd>lua vim.lsp.buf.definition()<CR>]])
+vim.cmd([[:amenu 10.110 mousemenu.References <cmd>lua vim.lsp.buf.references()<CR>]])
 
 keymap("n", "<RightMouse>", "<cmd>:popup mousemenu<CR>", opts)
--- keymap("n", "<Tab>", "<cmd>:popup mousemenu<CR>", opts)
+
+keymap("n", "<leader>c", "<cmd>set invlist<CR>", { noremap = true, silent = false , desc="Toggle Hidden Chars"})

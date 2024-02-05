@@ -56,3 +56,24 @@ vim.cmd [[set iskeyword+=_]]
 vim.g.netrw_banner = 0
 vim.g.netrw_mouse = 2
 
+-- Set listchars with Nerd Fonts icons
+vim.opt.list = true
+vim.opt.listchars = {
+    space = '·',
+    tab = '▸\\ ',       -- You can replace '▸' with your preferred tab icon
+    trail = '·',        -- Trailing spaces
+    eol = '¶',          -- End of line
+    extends = '»',      -- Extends beyond the right of the screen
+    precedes = '«',     -- Precedes beyond the left of the screen
+    nbsp = '○',         -- Non-breaking space
+}
+
+-- Set highlight for NonText and SpecialKey to a light gray color
+vim.cmd [[
+highlight NonText guifg=#cccccc ctermfg=lightgray
+highlight SpecialKey guifg=#cccccc ctermfg=lightgray
+]]
+
+-- Ensure that listchars are visible
+vim.opt.termguicolors = true
+
