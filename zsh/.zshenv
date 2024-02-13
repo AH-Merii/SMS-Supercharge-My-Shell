@@ -3,9 +3,9 @@
 eval "$(antidot init)"
 
 # editor
-export EDITOR=helix
-export SUDOEDITOR=helix
-export VISUAL=helix
+export EDITOR=nvim
+export SUDOEDITOR=nvim
+export VISUAL=nvim
 
 # binaries
 
