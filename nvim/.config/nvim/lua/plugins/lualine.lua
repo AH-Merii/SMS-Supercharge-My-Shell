@@ -2,17 +2,21 @@ local M = {
 	"nvim-lualine/lualine.nvim",
 }
 
-vim.opt.showcmdloc='statusline'
-
 function M.config()
-  require("lualine").setup({
-    options = {
-      theme = "catppuccin",
-    },
-    sections = {
-      lualine_c = {'%S'},
-    },
-  })
+	require("lualine").setup({
+		options = {
+			theme = "catppuccin",
+		},
+		sections = {
+			lualine_c = { "%S" },
+			lualine_x = {
+				{
+					require("noice").api.status.mode.get,
+					cond = require("noice").api.status.mode.has,
+				},
+			},
+		},
+	})
 end
 
 return M

@@ -4,6 +4,23 @@ local M = {
 
 function M.config()
 	require("fidget").setup({
+    progress = {
+      display = {
+        overrides = {
+          mason_null_ls_completion = {
+            update_hook = function(item)
+              require("fidget.notification").set_content_key(item)
+              if item.hidden == nil and string.match(item.annote, "lint: ") then
+                -- Hide any items whose annotation contains "lint: "
+                item.hidden = true
+              end
+            end,
+          },
+        },
+        render_limit = 6,
+      },
+    },
+
 		integration = {
 			["nvim-tree"] = {
 				enable = true,

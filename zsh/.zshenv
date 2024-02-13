@@ -62,6 +62,14 @@ export FZF_CTRL_R_OPTS="
   --color header:italic
   --header 'Press CTRL-Y to copy command into clipboard'"
 
+# mamba configuration
+export MAMBA_EXE='/usr/bin/micromamba';
+export MAMBA_ROOT_PREFIX='/home/amerii/micromamba';
+
+# API KEYS - DO NOT COMMIT
+export SRC_ENDPOINT='https://sourcegraph.com'
+export SRC_ACCESS_TOKEN=$(pass sourcegraph/tokens/cody | head -n 1)
+
 # lf icons
 export LF_ICONS="\
 tw=:\
