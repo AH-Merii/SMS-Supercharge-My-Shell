@@ -6,7 +6,7 @@ local M = {
 }
 
 function M.config()
-  vim.cmd.colorscheme "catppuccin"
+  vim.cmd.colorscheme "catppuccin-frappe"
 end
 
 return M

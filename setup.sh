@@ -6,14 +6,14 @@ source ./scripts/helper-funcs.sh && echo "$CNT - Sourced helper functions"
 # tools to install
 tool_stage=(
     neovim
-    build-essential
+    base-devel
     kitty
     lf
     lazygit
     bat
     fzf
     eza
-    git-delta-git
+    git-delta
     tmux
     ripgrep
     stow
@@ -21,15 +21,25 @@ tool_stage=(
     wget
     jq
     xclip
+    bottom
+    unzip
+    pass
+    openssh
+    zoxide
 )
 
 # miscellaneous
 misc_stage=(
     zsh
     pyenv
+    python-pipx
+    uv
+    go
+    rust
+    npm
     python-pip
-    micromamba-bin
     zsh-antidote
+    antidot-bin
     zsh-theme-powerlevel10k
     ttf-firacode-nerd
     inter-font
@@ -113,14 +123,14 @@ read -rep $'[\e[1;33mACTION\e[0m] - Would you like to run antidot (declutter you
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
 
     echo -e "$CNT - Decluttering home directory..."
-    antidot update &>> $INSTLOG
-    antidot clean &>> $INSTLOG
-    antidot init &>> $INSTLOG
+    yes | antidot update &>> $INSTLOG
+    yes | antidot clean &>> $INSTLOG
+    yes | antidot init &>> $INSTLOG
 
 fi
 
 # Change default shell to zsh
-chsh -s $(which zsh)
+chsh -s $(which /bin/zsh)
 # setup complete
 echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m\n\033[95mPLEASE RESTART YOUR TERMINAL TO COMPLETE SETUP\033[0m"
 

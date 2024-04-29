@@ -1,7 +1,5 @@
 fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/zfunctions )
 source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/zfunctions/zfunctions.plugin.zsh
-fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/clipboard )
-source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/clipboard/clipboard.plugin.zsh
 fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/color )
 source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/color/color.plugin.zsh
 fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/editor )
@@ -22,12 +20,9 @@ fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-ro
 source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-powerlevel10k/powerlevel10k.zsh-theme
 source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-powerlevel10k/powerlevel9k.zsh-theme
 fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-exa )
-source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-exa/exa.plugin.zsh
+source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-exa/eza.plugin.zsh
 fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-fzf )
 source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-fzf/fzf.plugin.zsh
-fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-completions/src )
-fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/completion )
-source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/completion/completion.plugin.zsh
 fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/confd )
 source /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/confd/confd.plugin.zsh
 fpath+=( /home/amerii/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zsh-users-SLASH-zsh-autosuggestions )

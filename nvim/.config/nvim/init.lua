@@ -40,8 +40,8 @@ spec("extras.navbuddy") -- add a sidebar for quick navigation of methods/classes
 spec("extras.ufo") -- add code folding support
 spec("extras.modicator") -- change cursor color based on current vim mode
 spec("extras.noice") -- add notifications and improve ui
-spec("extras.sourcegraph") -- add cody and sourcegraph support
-spec("extras.chatgpt") -- add chatgpt support
+-- spec("extras.sourcegraph") -- add cody and sourcegraph support
+-- spec("extras.chatgpt") -- add chatgpt support
 --language specific configurations
 require("languages.python.editor")
 --require("languages.lua.snippets")
