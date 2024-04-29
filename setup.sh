@@ -3,30 +3,16 @@
 # source helper functions
 source ./scripts/helper-funcs.sh && echo "$CNT - Sourced helper functions"
 
-
-# language servers to install
-lsp_stage=(
-    bash-language-server
-    python-lsp-server
-    vscode-langservers-extracted
-    terraform-ls
-    texlab
-    marksman
-    taplo-cli
-    gopls
-    dockerfile-language-server
-    rust-analyzer
-)
-
 # tools to install
 tool_stage=(
-    helix
+    neovim
+    build-essential
     kitty
     lf
     lazygit
     bat
     fzf
-    exa
+    eza
     git-delta-git
     tmux
     ripgrep
@@ -41,10 +27,8 @@ tool_stage=(
 misc_stage=(
     zsh
     pyenv
-    python-virtualenv
     python-pip
     micromamba-bin
-    go
     zsh-antidote
     zsh-theme-powerlevel10k
     ttf-firacode-nerd
@@ -87,12 +71,6 @@ install_paru_if_not_found
 ### Install all of the above pacakges ####
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
 if [[ $INST == "Y" || $INST == "y" ]]; then
-
-    # LSP Stage - Language Servers
-    echo -e "$CNT - LSP Stage - Installing Language Servers, this may take a while..."
-    for SOFTWR in ${lsp_stage[@]}; do
-        install_software_paru $SOFTWR 
-    done
 
     # dev tool Stage - dev tools
     echo -e "$CNT - Installing dev tools, this may take a while..."
