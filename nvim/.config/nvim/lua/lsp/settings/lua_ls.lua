@@ -22,7 +22,7 @@ return {
       },
       hint = {
         enable = false,
-        array_index = "Disable", -- "Enable" | "Auto" | "Disable"
+        arrayIndex = "Disable", -- "Enable" | "Auto" | "Disable"
         await = true,
         paramName = "All", -- "All" | "Literal" | "Disable"
         paramType = true,
@@ -35,3 +35,4 @@ return {
     },
   },
 }
+
