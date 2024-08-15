@@ -9,6 +9,7 @@ local M = {
 		"marilari88/neotest-vitest",
 		"nvim-neotest/neotest-python",
 		"nvim-neotest/neotest-plenary",
+		"nvim-neotest/nvim-nio",
 		"rouge8/neotest-rust",
 		"lawrence-laz/neotest-zig",
 		"rcasia/neotest-bash",
@@ -17,13 +18,13 @@ local M = {
 
 function M.config()
 	local wk = require("which-key")
-	wk.register({
-		["<leader>tt"] = { "<cmd>lua require'neotest'.run.run()<cr>", "Test Nearest" },
-		["<leader>tf"] = { "<cmd>lua require('neotest').run.run(vim.fn.expand('%'))<cr>", "Test File" },
-		["<leader>td"] = { "<cmd>lua require('neotest').run.run({strategy = 'dap'})<cr>", "Debug Test" },
-		["<leader>ts"] = { "<cmd>lua require('neotest').run.stop()<cr>", "Test Stop" },
-		["<leader>ta"] = { "<cmd>lua require('neotest').run.attach()<cr>", "Attach Test" },
-	})
+  wk.add({
+    { "<leader>tt", "<cmd>lua require('neotest').run.run()<cr>", desc = "Test Nearest" }, -- Run the nearest test
+    { "<leader>tf", "<cmd>lua require('neotest').run.run(vim.fn.expand('%'))<cr>", desc = "Test File" }, -- Run all tests in the current file
+    { "<leader>td", "<cmd>lua require('neotest').run.run({strategy = 'dap'})<cr>", desc = "Debug Test" }, -- Debug the nearest test using DAP
+    { "<leader>ts", "<cmd>lua require('neotest').run.stop()<cr>", desc = "Test Stop" }, -- Stop the running test
+    { "<leader>ta", "<cmd>lua require('neotest').run.attach()<cr>", desc = "Attach Test" }, -- Attach to a running test
+  })
 
 	---@diagnostic disable: missing-fields
 	require("neotest").setup({

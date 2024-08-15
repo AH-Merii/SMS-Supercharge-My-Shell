@@ -1,33 +1,30 @@
-local M = {
-	"folke/flash.nvim",
-	event = "VeryLazy",
-	---@type Flash.Config
-	opts = {},
-}
+local M = { "folke/flash.nvim", event = "VeryLazy" }
 
 function M.config()
+	require("flash").setup({
+		-- flash.nvim specific configuration options here
+		keys = {
+			-- Disable the default s and S mappings
+			normal = {
+				enabled = false,
+			},
+			visual = {
+				enabled = false,
+			},
+		},
+	})
+
+	-- Set up custom keybindings with which-key
 	local wk = require("which-key")
-  wk.register({
-      s = { function() require("flash").jump() end, "Flash" },
-      S = { function() require("flash").treesitter() end, "Flash Treesitter" },
-  }, { mode = "n" })  -- Normal mode mappings
 
-  wk.register({
-      s = { function() require("flash").jump() end, "Flash" },
-      S = { function() require("flash").treesitter() end, "Flash Treesitter" },
-  }, { mode = "x" })  -- Visual block mode mappings
-
-  wk.register({
-      s = { function() require("flash").jump() end, "Flash" },
-      S = { function() require("flash").treesitter() end, "Flash Treesitter" },
-      r = { function() require("flash").remote() end, "Remote Flash" },
-      R = { function() require("flash").treesitter_search() end, "Treesitter Search" },
-  }, { mode = "o" })  -- Operator-pending mode mappings
-
-  wk.register({
-      ["<c-s>"] = { function() require("flash").toggle() end, "Toggle Flash Search" },
-  }, { mode = "c" })  -- Command-line mode mappings
-
+	wk.add({
+		{ "<leader>s", group = "Flash" }, -- Group name under <leader>s
+		{
+			mode = { "n", "v" }, -- Apply to both Normal and Visual modes
+			{ "<leader>ss", "<cmd>lua require('flash').jump()<cr>", desc = "Flash Jump" },
+			{ "<leader>sS", "<cmd>lua require('flash').treesitter()<cr>", desc = "Flash Treesitter" },
+		},
+	})
 end
 
 return M

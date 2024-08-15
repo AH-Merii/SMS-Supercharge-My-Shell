@@ -10,12 +10,10 @@ local M = {
 function M.config()
 	local wk = require("which-key")
 
-	wk.register({
-		n = {
-			name = "+noice", -- Optional group name
-			d = { "<cmd>NoiceDismiss<CR>", "Dismiss Noice Message" },
-		},
-	}, { prefix = "<leader>" })
+  wk.add({
+    { "<leader>n", group = "noice" }, -- Define the "noice" group with leader key prefix
+    { "<leader>nd", "<cmd>NoiceDismiss<CR>", desc = "Dismiss Noice Message" }, -- Define the keybinding within the "noice" group
+  })
 
 	require("noice").setup({
 		opts = {

@@ -3,59 +3,59 @@ local M = {
 	event = "BufEnter",
 	cmd = "Gitsigns",
 }
+
 M.config = function()
 	local icons = require("user.icons")
 
+	-- Define highlights to replace deprecated `hl`, `linehl`, and `numhl`
+	vim.api.nvim_set_hl(0, "GitSignsAdd", { link = "GitSignsAdd" })
+	vim.api.nvim_set_hl(0, "GitSignsAddLn", { link = "GitSignsAddLn" })
+	vim.api.nvim_set_hl(0, "GitSignsAddNr", { link = "GitSignsAddNr" })
+	vim.api.nvim_set_hl(0, "GitSignsChange", { link = "GitSignsChange" })
+	vim.api.nvim_set_hl(0, "GitSignsChangeLn", { link = "GitSignsChangeLn" })
+	vim.api.nvim_set_hl(0, "GitSignsChangeNr", { link = "GitSignsChangeNr" })
+	vim.api.nvim_set_hl(0, "GitSignsDelete", { link = "GitSignsDelete" })
+	vim.api.nvim_set_hl(0, "GitSignsDeleteLn", { link = "GitSignsDeleteLn" })
+	vim.api.nvim_set_hl(0, "GitSignsDeleteNr", { link = "GitSignsDeleteNr" })
+
+	-- Update which-key mappings
 	local wk = require("which-key")
-	wk.register({
-		["<leader>gj"] = { "<cmd>lua require 'gitsigns'.next_hunk({navigation_message = false})<cr>", "Next Hunk" },
-		["<leader>gk"] = { "<cmd>lua require 'gitsigns'.prev_hunk({navigation_message = false})<cr>", "Prev Hunk" },
-		["<leader>gp"] = { "<cmd>lua require 'gitsigns'.preview_hunk()<cr>", "Preview Hunk" },
-		["<leader>gr"] = { "<cmd>lua require 'gitsigns'.reset_hunk()<cr>", "Reset Hunk" },
-		["<leader>gb"] = { "<cmd>lua require 'gitsigns'.blame_line()<cr>", "Blame" },
-		["<leader>gR"] = { "<cmd>lua require 'gitsigns'.reset_buffer()<cr>", "Reset Buffer" },
-		["<leader>gs"] = { "<cmd>lua require 'gitsigns'.stage_hunk()<cr>", "Stage Hunk" },
-		["<leader>gu"] = {
-			"<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>",
-			"Undo Stage Hunk",
+	wk.add({
+		{
+			"<leader>gj",
+			"<cmd>lua require('gitsigns').next_hunk({navigation_message = false})<cr>",
+			desc = "Next Hunk",
 		},
-		["<leader>gd"] = {
-			"<cmd>Gitsigns diffthis HEAD<cr>",
-			"Git Diff",
+		{
+			"<leader>gk",
+			"<cmd>lua require('gitsigns').prev_hunk({navigation_message = false})<cr>",
+			desc = "Prev Hunk",
 		},
+		{ "<leader>gp", "<cmd>lua require('gitsigns').preview_hunk()<cr>", desc = "Preview Hunk" },
+		{ "<leader>gr", "<cmd>lua require('gitsigns').reset_hunk()<cr>", desc = "Reset Hunk" },
+		{ "<leader>gb", "<cmd>lua require('gitsigns').blame_line()<cr>", desc = "Blame" },
+		{ "<leader>gR", "<cmd>lua require('gitsigns').reset_buffer()<cr>", desc = "Reset Buffer" },
+		{ "<leader>gs", "<cmd>lua require('gitsigns').stage_hunk()<cr>", desc = "Stage Hunk" },
+		{ "<leader>gu", "<cmd>lua require('gitsigns').undo_stage_hunk()<cr>", desc = "Undo Stage Hunk" },
+		{ "<leader>gd", "<cmd>Gitsigns diffthis HEAD<cr>", desc = "Git Diff" },
 	})
 
 	require("gitsigns").setup({
 		signs = {
 			add = {
-				hl = "GitSignsAdd",
 				text = icons.ui.BoldLineMiddle,
-				numhl = "GitSignsAddNr",
-				linehl = "GitSignsAddLn",
 			},
 			change = {
-				hl = "GitSignsChange",
 				text = icons.ui.BoldLineDashedMiddle,
-				numhl = "GitSignsChangeNr",
-				linehl = "GitSignsChangeLn",
 			},
 			delete = {
-				hl = "GitSignsDelete",
 				text = icons.ui.TriangleShortArrowRight,
-				numhl = "GitSignsDeleteNr",
-				linehl = "GitSignsDeleteLn",
 			},
 			topdelete = {
-				hl = "GitSignsDelete",
 				text = icons.ui.TriangleShortArrowRight,
-				numhl = "GitSignsDeleteNr",
-				linehl = "GitSignsDeleteLn",
 			},
 			changedelete = {
-				hl = "GitSignsChange",
 				text = icons.ui.BoldLineMiddle,
-				numhl = "GitSignsChangeNr",
-				linehl = "GitSignsChangeLn",
 			},
 		},
 		watch_gitdir = {

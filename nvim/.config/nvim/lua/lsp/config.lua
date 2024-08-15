@@ -8,15 +8,16 @@ local M = {
 	},
 }
 
+local wk = require("which-key")
+
 local function lsp_keymaps(bufnr)
-	local opts = { noremap = true, silent = true }
 	local keymap = vim.api.nvim_buf_set_keymap
-	keymap(bufnr, "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
-	keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-	keymap(bufnr, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
-	keymap(bufnr, "n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
-	keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-	keymap(bufnr, "n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
+  keymap(bufnr, "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", { desc = "Go to Declaration", noremap=true, silent=true })
+  keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", { desc = "Go to Definition", noremap=true, silent=true })
+  keymap(bufnr, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", { desc = "Hover Documentation", noremap=true, silent=true })
+  keymap(bufnr, "n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", { desc = "Go to Implementation", noremap=true, silent=true })
+  keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", { desc = "Go to References", noremap=true, silent=true })
+  keymap(bufnr, "n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", { desc = "Go to Line Diagnostics", noremap=true, silent=true })
 end
 
 function M.common_capabilities()
@@ -25,32 +26,32 @@ function M.common_capabilities()
 	return capabilities
 end
 
+function M.on_attach(client, bufnr)
+	lsp_keymaps(bufnr) -- Call the lsp_keymaps function with the buffer number
+	-- Add any other on_attach logic here
+end
+
 M.toggle_inlay_hints = function()
 	vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
 end
 
 function M.config()
-	local wk = require("which-key")
 	wk.add({
-		["<leader>la"] = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code Action" },
-		["<leader>lf"] = {
+		{ "<leader>l", group = "LSP" }, -- Define the LSP group
+		{ "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "Code Action", mode = { "n", "v" } }, -- Both normal and visual mode
+		{
+			"<leader>lf",
 			"<cmd>lua vim.lsp.buf.format({async = true, filter = function(client) return client.name ~= 'typescript-tools' end})<cr>",
-			"Format",
+			desc = "Format",
+			mode = "n",
 		},
-		["<leader>li"] = { "<cmd>LspInfo<cr>", "Info" },
-		["<leader>lj"] = { "<cmd>lua vim.diagnostic.goto_next()<cr>", "Next Diagnostic" },
-		["<leader>lh"] = { "<cmd>lua require('lsp.config').toggle_inlay_hints()<cr>", "Hints" },
-		["<leader>lk"] = { "<cmd>lua vim.diagnostic.goto_prev()<cr>", "Prev Diagnostic" },
-		["<leader>ll"] = { "<cmd>lua vim.lsp.codelens.run()<cr>", "CodeLens Action" },
-		["<leader>lq"] = { "<cmd>lua vim.diagnostic.setloclist()<cr>", "Quickfix" },
-		["<leader>lr"] = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
-	})
-
-	wk.add({
-		["<leader>la"] = {
-			name = "LSP",
-			a = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code Action", mode = "v" },
-		},
+		{ "<leader>li", "<cmd>LspInfo<cr>", desc = "Info", mode = "n" },
+		{ "<leader>lj", "<cmd>lua vim.diagnostic.goto_next()<cr>", desc = "Next Diagnostic", mode = "n" },
+		{ "<leader>lh", "<cmd>lua require('lsp.config').toggle_inlay_hints()<cr>", desc = "Hints", mode = "n" },
+		{ "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev()<cr>", desc = "Prev Diagnostic", mode = "n" },
+		{ "<leader>ll", "<cmd>lua vim.lsp.codelens.run()<cr>", desc = "CodeLens Action", mode = "n" },
+		{ "<leader>lq", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "Quickfix", mode = "n" },
+		{ "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "Rename", mode = "n" },
 	})
 
 	local lspconfig = require("lspconfig")
@@ -83,10 +84,6 @@ function M.config()
 	}
 
 	vim.diagnostic.config(default_diagnostic_config)
-
-	for _, sign in ipairs(vim.tbl_get(vim.diagnostic.config(), "signs", "values") or {}) do
-		vim.fn.sign_define(sign.name, { texthl = sign.name, text = sign.text, numhl = sign.name })
-	end
 
 	vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
 	vim.lsp.handlers["textDocument/signatureHelp"] =

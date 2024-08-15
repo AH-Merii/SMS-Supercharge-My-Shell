@@ -4,11 +4,17 @@ local opts = { noremap = true, silent = false }
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
-keymap("n", "<C-Space>", "<cmd>WhichKey \\<space><cr>", opts)
-keymap("n", "<C-i>", "<C-i>", opts)
+-- Paste from yank register below in NORMAL and VISUAL modes
+keymap({'n', 'v'}, '<leader>p', '"0p', { noremap = true, silent = true, desc = "Paste from yank register below" })
 
--- Remap CTRL+I (Jump backwards in jumplist for windows terminal support)
--- keymap('n', '<C-S-o>', '<cmd>lua vim.cmd([[normal! \\<C-i>]])<CR>', opts)
+-- Paste from yank register above in NORMAL and VISUAL modes
+keymap({'n', 'v'}, '<leader>P', '"0P', { noremap = true, silent = true, desc = "Paste from yank register above" })
+
+-- WhichKey shortcut
+keymap("n", "<C-Space>", "<cmd>WhichKey \\<space><cr>", opts)
+
+-- Jump forward in jump list (CTRL-I)
+keymap("n", "<C-i>", "<C-i>", opts)
 
 -- Better window navigation
 keymap("n", "<m-h>", "<C-w>h", opts)
@@ -20,6 +26,7 @@ keymap("n", "<m-l>", "<C-w>l", opts)
 keymap("n", "<C-h>", "0", opts)
 keymap("n", "<C-l>", "$", opts)
 
+-- Center after search
 keymap("n", "n", "nzz", opts)
 keymap("n", "N", "Nzz", opts)
 keymap("n", "*", "*zz", opts)
@@ -31,18 +38,17 @@ keymap("n", "g#", "g#zz", opts)
 keymap("v", "<", "<gv", opts)
 keymap("v", ">", ">gv", opts)
 
-keymap("x", "p", [["_dP]])
+-- Paste without yanking in visual mode
+keymap("x", "p", [["_dP]], opts)
 
-vim.api.nvim_set_keymap(
-	"n",
-	"<A-d>",
-	'"_d',
-	{ noremap = true, silent = true, desc = "Delete word using black hole register" }
-)
+-- Delete using black hole register
+keymap("n", "<A-d>", '"_d', { noremap = true, silent = true })
 
-vim.cmd([[:amenu 10.100 mousemenu.Goto\ Definition <cmd>lua vim.lsp.buf.definition()<CR>]])
-vim.cmd([[:amenu 10.110 mousemenu.References <cmd>lua vim.lsp.buf.references()<CR>]])
-
+-- Show right-click popup menu
 keymap("n", "<RightMouse>", "<cmd>:popup mousemenu<CR>", opts)
 
-keymap("n", "<leader>c", "<cmd>set invlist<CR>", { noremap = true, silent = false , desc="Toggle Hidden Chars"})
+-- Toggle Hidden Chars
+keymap("n", "<leader>c", "<cmd>set invlist<CR>", { noremap = true, silent = false, desc = "Toggle Hidden Chars" })
+
+-- Change using black hole register
+keymap("n", "<A-c>", '"_c', { noremap = true, silent = true })

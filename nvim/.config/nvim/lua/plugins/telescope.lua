@@ -35,26 +35,24 @@ function M.config()
 	end
 
 	-- Setting up the which-key bindings
-	wk.register({
-		["<leader>bb"] = { "<cmd>Telescope buffers<cr>", "Find" },
-		["<leader>fb"] = { "<cmd>Telescope git_branches<cr>", "Checkout branch" },
-		["<leader>fc"] = { "<cmd>Telescope colorscheme<cr>", "Colorscheme" },
-		["<leader>ff"] = { find_files, "Find files" },
-		["<leader>fp"] = { "<cmd>lua require('telescope').extensions.projects.projects()<cr>", "Projects" },
-		["<leader>ft"] = { live_grep, "Find Text" },
-		["<leader>fh"] = { "<cmd>Telescope help_tags<cr>", "Help" },
-		["<leader>fl"] = { "<cmd>Telescope resume<cr>", "Last Search" },
-		["<leader>fr"] = { "<cmd>Telescope oldfiles<cr>", "Recent File" },
-		["<leader>fd"] = { "<cmd>Telescope diagnostics<cr>", "Diagnostics" },
-		["<leader>fk"] = { "<cmd>Telescope keymaps<cr>", "Keymaps" },
-		["<leader>fC"] = { "<cmd>Telescope commands<cr>", "Commands" },
-		["<leader>fH"] = { "<cmd>Telescope highlights<cr>", "Highlights" },
-		["<C-h>"] = { toggle_hidden_files, "Toggle Hidden Files in Telescope" },
+	wk.add({
+		{ "<leader>f", group = "Find" }, -- group
+		{ "<leader>fB", "<cmd>Telescope buffers<cr>", desc = "Find" },
+		{ "<leader>fb", "<cmd>Telescope git_branches<cr>", desc = "Checkout branch" },
+		{ "<leader>fc", "<cmd>Telescope colorscheme<cr>", desc = "Colorscheme" },
+		{ "<leader>ff", find_files, desc = "Find files" },
+		{ "<leader>fp", "<cmd>lua require('telescope').extensions.projects.projects()<cr>", desc = "Projects" },
+		{ "<leader>ft", live_grep, desc = "Find Text" },
+		{ "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Help" },
+		{ "<leader>fn", "<cmd>Telescope noice<cr>", desc = "Noice" },
+		{ "<leader>fl", "<cmd>Telescope resume<cr>", desc = "Last Search" },
+		{ "<leader>fr", "<cmd>Telescope oldfiles<cr>", desc = "Recent File" },
+		{ "<leader>fd", "<cmd>Telescope diagnostics<cr>", desc = "Diagnostics" },
+		{ "<leader>fk", "<cmd>Telescope keymaps<cr>", desc = "Keymaps" },
+		{ "<leader>fC", "<cmd>Telescope commands<cr>", desc = "Commands" },
+		{ "<leader>fH", "<cmd>Telescope highlights<cr>", desc = "Highlights" },
+		{ "<C-h>", toggle_hidden_files, desc = "Toggle Hidden Files in Telescope", mode = "i" },
 	})
-
-	wk.register({
-		["<C-h>"] = { toggle_hidden_files, "Toggle Hidden Files in Telescope" },
-	}, { mode = "i" }) -- for Insert mode
 
 	local icons = require("user.icons")
 	local actions = require("telescope.actions")

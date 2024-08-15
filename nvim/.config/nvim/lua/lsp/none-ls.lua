@@ -21,10 +21,10 @@ function M.config()
 			formatting.isort,
       diagnostics.hadolint,
 			diagnostics.flake8,
-			-- diagnostics.pylint.with({
-			-- 	prefer_local = ".venv/bin",
-			-- 	timeout = 30000,
-			-- }),
+			diagnostics.pylint.with({
+				prefer_local = ".venv/bin",
+				timeout = 30000,
+			}),
 		},
 	})
 end

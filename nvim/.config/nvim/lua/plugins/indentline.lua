@@ -29,25 +29,6 @@ function M.config()
 		show_current_context = true,
 	})
 
-	-- indent = { char = icons.ui.LineMiddle },
-	-- whitespace = {
-	--   remove_blankline_trail = true,
-	-- },
-	--
-	-- exclude = {
-	--   filetypes = {
-	--     "help",
-	--     "startify",
-	--     "dashboard",
-	--     "lazy",
-	--     "neogitstatus",
-	--     "NvimTree",
-	--     "Trouble",
-	--     "text",
-	--   },
-	--   buftypes = { "terminal", "nofile" },
-	-- },
-	-- scope = { enabled = false },
 end
 
 return M
