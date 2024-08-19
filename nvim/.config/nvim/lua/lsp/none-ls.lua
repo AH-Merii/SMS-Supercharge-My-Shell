@@ -2,25 +2,25 @@ local M = {
 	"nvimtools/none-ls.nvim",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
+		"nvimtools/none-ls-extras.nvim",  -- Add the extras plugin
 	},
 }
 
 function M.config()
-	local null_ls = require("null-ls")
+	local nls = require("null-ls")
 
-	local formatting = null_ls.builtins.formatting
-	local diagnostics = null_ls.builtins.diagnostics
-	local completion = null_ls.builtins.completion
+	local formatting = nls.builtins.formatting
+	local diagnostics = nls.builtins.diagnostics
 
-	null_ls.setup({
-		debug = false,
+	nls.setup({
+		debug = true,
 		sources = {
 			formatting.stylua,
 			formatting.prettier,
 			formatting.black,
 			formatting.isort,
-      diagnostics.hadolint,
-			diagnostics.flake8,
+			diagnostics.hadolint,
+			require("none-ls.diagnostics.flake8"),
 			diagnostics.pylint.with({
 				prefer_local = ".venv/bin",
 				timeout = 30000,
@@ -30,3 +30,4 @@ function M.config()
 end
 
 return M
+

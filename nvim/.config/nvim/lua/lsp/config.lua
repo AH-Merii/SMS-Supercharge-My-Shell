@@ -12,12 +12,48 @@ local wk = require("which-key")
 
 local function lsp_keymaps(bufnr)
 	local keymap = vim.api.nvim_buf_set_keymap
-  keymap(bufnr, "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", { desc = "Go to Declaration", noremap=true, silent=true })
-  keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", { desc = "Go to Definition", noremap=true, silent=true })
-  keymap(bufnr, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", { desc = "Hover Documentation", noremap=true, silent=true })
-  keymap(bufnr, "n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", { desc = "Go to Implementation", noremap=true, silent=true })
-  keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", { desc = "Go to References", noremap=true, silent=true })
-  keymap(bufnr, "n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", { desc = "Go to Line Diagnostics", noremap=true, silent=true })
+	keymap(
+		bufnr,
+		"n",
+		"gD",
+		"<cmd>lua vim.lsp.buf.declaration()<CR>",
+		{ desc = "Go to Declaration", noremap = true, silent = true }
+	)
+	keymap(
+		bufnr,
+		"n",
+		"gd",
+		"<cmd>lua vim.lsp.buf.definition()<CR>",
+		{ desc = "Go to Definition", noremap = true, silent = true }
+	)
+	keymap(
+		bufnr,
+		"n",
+		"K",
+		"<cmd>lua vim.lsp.buf.hover()<CR>",
+		{ desc = "Hover Documentation", noremap = true, silent = true }
+	)
+	keymap(
+		bufnr,
+		"n",
+		"gI",
+		"<cmd>lua vim.lsp.buf.implementation()<CR>",
+		{ desc = "Go to Implementation", noremap = true, silent = true }
+	)
+	keymap(
+		bufnr,
+		"n",
+		"gr",
+		"<cmd>lua vim.lsp.buf.references()<CR>",
+		{ desc = "Go to References", noremap = true, silent = true }
+	)
+	keymap(
+		bufnr,
+		"n",
+		"gl",
+		"<cmd>lua vim.diagnostic.open_float()<CR>",
+		{ desc = "Go to Line Diagnostics", noremap = true, silent = true }
+	)
 end
 
 function M.common_capabilities()
@@ -33,6 +69,27 @@ end
 
 M.toggle_inlay_hints = function()
 	vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+end
+
+local function get_python_path()
+	-- Use activated virtualenv if available
+	local venv_path = os.getenv("VIRTUAL_ENV")
+	if venv_path then
+		print("Using activated virtualenv: " .. venv_path .. "/bin/python")
+		return venv_path .. "/bin/python"
+	end
+
+	-- Check for a .venv directory in the project root
+	local cwd = vim.fn.getcwd()
+	local project_venv_path = cwd .. "/.venv/bin/python"
+	if vim.fn.executable(project_venv_path) == 1 then
+		print("Using project .venv: " .. project_venv_path)
+		return project_venv_path
+	end
+
+	-- Fallback to system Python if no virtualenv is activated
+	print("Using system Python: /usr/bin/python3")
+	return "/usr/bin/python3"
 end
 
 function M.config()
@@ -103,6 +160,17 @@ function M.config()
 
 		if server == "lua_ls" then
 			require("neodev").setup({})
+		elseif server == "pyright" then
+			opts.settings = {
+				python = {
+					pythonPath = get_python_path(),
+					analysis = {
+						autoSearchPaths = true,
+						diagnositicMode = "openFilesOnly",
+						useLibraryCodeForTypes = true,
+					},
+				},
+			}
 		end
 
 		lspconfig[server].setup(opts)
