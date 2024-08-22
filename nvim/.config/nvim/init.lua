@@ -32,7 +32,7 @@ spec("plugins.oil") -- rename files and remote netrw support
 spec("plugins.mini-surround") -- add support for surrounding text
 spec("plugins.mini-ai") -- better use of a (around) and i (inside)
 spec("plugins.mini-pairs") -- auto close and open pairs of brackets/quotes
-spec("plugins.mini-animate") -- animates cursor
+spec("plugins.neoscroll") -- animates cursor
 spec("plugins.mini-comment") -- adds automated comment support
 spec("extras.dressing") -- add a dressing menu for changing colors
 spec("extras.todo-comments") -- add highlighted to do comments
