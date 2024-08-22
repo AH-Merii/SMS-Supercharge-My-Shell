@@ -35,7 +35,7 @@
   # Global shared hooks directory
   # hooksPath = ~/.githooks
   #
-  editor = helix
+  editor = nvim
   # Don't consider trailing space change as a cause for merge conflicts
   whitespace = -trailing-space
 [diff]
