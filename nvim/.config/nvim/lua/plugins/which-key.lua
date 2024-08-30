@@ -28,6 +28,7 @@ function M.config()
 
 	wk.add({
 		{ "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
+		{ "<leader>w", "<cmd>confirm w<CR>", desc = "Save" },
 		{ "<leader>h", "<cmd>nohlsearch<CR>", desc = "NOHL" },
 		{ "<leader>;", "<cmd>tabnew | terminal<CR>", desc = "Term" },
 		{ "<leader>v", "<cmd>vsplit<CR>", desc = "Split" },
