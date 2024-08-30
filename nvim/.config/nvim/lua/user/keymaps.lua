@@ -5,10 +5,10 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 -- Paste from yank register below in NORMAL and VISUAL modes
-keymap({'n', 'v'}, '<leader>p', '"0p', { noremap = true, silent = true, desc = "Paste from yank register below" })
+keymap({ "n", "v" }, "<leader>p", '"0p', { noremap = true, silent = true, desc = "Paste from yank register below" })
 
 -- Paste from yank register above in NORMAL and VISUAL modes
-keymap({'n', 'v'}, '<leader>P', '"0P', { noremap = true, silent = true, desc = "Paste from yank register above" })
+keymap({ "n", "v" }, "<leader>P", '"0P', { noremap = true, silent = true, desc = "Paste from yank register above" })
 
 -- WhichKey shortcut
 keymap("n", "<C-Space>", "<cmd>WhichKey \\<space><cr>", opts)
