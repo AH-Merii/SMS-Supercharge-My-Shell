@@ -31,3 +31,4 @@ programs
 scripts
 ^\.zcompdump$
 ^/scripts/helper-funcs\.sh$
+systemd
