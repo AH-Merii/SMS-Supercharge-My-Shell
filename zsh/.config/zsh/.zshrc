@@ -31,3 +31,6 @@ eval "$(enable-fzf-tab)"
 eval "$(pyenv init -)"
 eval "$(zoxide init zsh)"
 
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+  Hyprland
+fi
