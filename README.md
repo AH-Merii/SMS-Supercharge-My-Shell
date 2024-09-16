@@ -96,45 +96,31 @@ stow zsh # creates symlink for only zsh configs
 
 ### Systemd Services
 
-In addition to managing your dotfiles, this setup allows you to manage custom `systemd` services in a structured and version-controlled manner. These services are stored in the `systemd` directory, and you can use `stow` to symlink them to the appropriate location under `/etc/systemd/system`.
-
-#### What It Does:
-
-This setup makes it easy to manage custom `systemd` services (such as `nvidia-pm.service` for enabling Nvidia persistent mode) by organizing them into directories and using `stow` to symlink them to their correct system locations. This approach helps keep your services version-controlled and modular, just like your dotfiles.
+In addition to managing your dotfiles, this setup allows you to manage custom `systemd` services. These services are stored in the `services/systemd` directory, and to activate them, you can simply copy them to `/etc/systemd/system`. A better approach is to create a dedicated directory like `/etc/systemd/system/custom-services` to keep track of which services are custom.
 
 #### How It Works:
 
-1. **Store your custom services** under `systemd/etc/systemd/system/custom-services/`.
-   - Example structure: `systemd/etc/systemd/system/custom-services/nvidia/nvidia-pm.service`
-2. **Use `stow` to symlink these services** to the system-wide `systemd` directory (`/etc/systemd/system/`) so that they can be managed by `systemd`.
-
-#### Using `stow` with `systemd` Services:
-
-Unlike stowing dotfiles, stowing `systemd` services requires `sudo` privileges because you need to create symlinks in `/etc/systemd/system`. Additionally, you need to specify the target directory as `/` so that `stow` places the services correctly under `/etc/systemd/system/`.
-
-##### Example:
-
-To stow all your `systemd` services, run the following command from the root of your repository:
-
-```bash
-sudo stow -t / systemd
-```
+1. **Store your custom services** under `services/systemd/`.
+   - Example structure: `services/systemd/nvidia-pm.service`
+2. **Copy the services** to `/etc/systemd/system/custom-services/`:
+   ```bash
+   sudo mkdir -p /etc/systemd/system/custom-services
+   sudo cp services/systemd/* /etc/systemd/system/custom-services/
+   ```
 
 #### Enabling and Starting Services:
 
-After symlinking the service files, you'll need to reload `systemd` to recognize them:
+After copying the service files, you'll need to reload `systemd` to recognize them:
 
 ```bash
 sudo systemctl daemon-reload
 ```
 
-The **cool part** about this setup is that you can control which services are active. Even though all services are symlinked, you still need to **enable the specific services** you want to use. So, you can easily stow all services but only enable those you need.
-
-To enable and start a service:
+You can now enable and start the service:
 
 ```bash
-sudo systemctl enable nvidia-pm.service
-sudo systemctl start nvidia-pm.service
+sudo systemctl enable custom-services/nvidia-pm.service
+sudo systemctl start custom-services/nvidia-pm.service
 ```
 
-This way, you can manage multiple services and only activate the ones you require at any given time.
+This way, you can easily keep track of all your custom services and only activate the ones you need.
