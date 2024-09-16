@@ -2,7 +2,7 @@ require("user.launch")
 require("user.options")
 require("user.keymaps")
 require("user.autocmds")
-require("user.wsl-clipboard")
+--require("user.wsl-clipboard")
 spec("plugins.which-key") -- label shortcuts and add previews
 spec("lsp.config") -- language server support configuration
 spec("lsp.mason") -- manage formatters, linters, and other language servers
@@ -23,7 +23,7 @@ spec("plugins.breadcrumbs") -- navigation bar top -> required for nvim navic
 spec("plugins.harpoon") -- save specific files for quick navigation
 spec("plugins.illuminate") -- highlight text under cursor
 spec("plugins.neotest") -- add neotest
-spec("plugins.flash") -- better navigation/selection 
+spec("plugins.flash") -- better navigation/selection
 spec("plugins.dashboard") -- add a startup dashboard
 spec("plugins.project") -- add project manager
 spec("plugins.bqf") -- better quickfix
@@ -42,6 +42,6 @@ spec("extras.modicator") -- change cursor color based on current vim mode
 spec("extras.noice") -- add notifications and improve ui
 --language specific configurations
 require("languages.python.editor")
-require("user.unkeymaps") -- remove conflicting keymaps
+--require("user.unkeymaps") -- remove conflicting keymaps
 --require("languages.lua.snippets")
 require("user.lazy")
