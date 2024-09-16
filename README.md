@@ -102,9 +102,8 @@ In addition to managing your dotfiles, this setup allows you to manage custom `s
 
 1. **Store your custom services** under `services/systemd/`.
    - Example structure: `services/systemd/nvidia-pm.service`
-2. **Copy the services** to `/etc/systemd/system/custom-services/`:
+2. **Copy the services** to `/etc/systemd/system/`:
    ```bash
-   sudo mkdir -p /etc/systemd/system/custom-services
    sudo cp services/systemd/* /etc/systemd/system/custom-services/
    ```
 
@@ -119,8 +118,8 @@ sudo systemctl daemon-reload
 You can now enable and start the service:
 
 ```bash
-sudo systemctl enable custom-services/nvidia-pm.service
-sudo systemctl start custom-services/nvidia-pm.service
+sudo systemctl enable nvidia-pm.service
+sudo systemctl start nvidia-pm.service
 ```
 
 This way, you can easily keep track of all your custom services and only activate the ones you need.
