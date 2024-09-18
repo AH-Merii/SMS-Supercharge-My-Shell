@@ -2,7 +2,7 @@ local M = {
 	"nvimtools/none-ls.nvim",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
-		"nvimtools/none-ls-extras.nvim",  -- Add the extras plugin
+		"nvimtools/none-ls-extras.nvim", -- Add the extras plugin
 	},
 }
 
@@ -17,8 +17,9 @@ function M.config()
 		sources = {
 			formatting.stylua,
 			formatting.prettier,
-			formatting.black,
-			formatting.isort,
+			-- formatting.black,
+			formatting.ruff,
+			-- formatting.isort,
 			diagnostics.hadolint,
 			require("none-ls.diagnostics.flake8"),
 			diagnostics.pylint.with({
@@ -30,4 +31,3 @@ function M.config()
 end
 
 return M
-
