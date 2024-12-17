@@ -27,6 +27,7 @@
   uncommit = reset --soft HEAD~1
   # Remove file(s) from Git but not from disk
   untrack = rm --cache --
+	remain = !git co main && git pull && git co - && git rebase main
 [core]
   # Don't paginate output by default
 	pager = delta --line-numbers --dark
