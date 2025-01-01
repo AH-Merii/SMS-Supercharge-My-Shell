@@ -52,3 +52,6 @@ keymap("n", "<leader>c", "<cmd>set invlist<CR>", { noremap = true, silent = fals
 
 -- Change using black hole register
 keymap("n", "<A-c>", '"_c', { noremap = true, silent = true })
+
+-- Run commands and source files without restarting neovim
+keymap("n", "<space><space>x", "<cmd>source %<CR>", vim.tbl_extend("force", opts, { desc = "Source current file" }))
