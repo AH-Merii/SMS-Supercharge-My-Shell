@@ -150,3 +150,6 @@
 	directory = *
 [delta]
 	side-by-side = true
+[filter "remove_gitconfig_user"]
+	clean = "sed '/^\\[user\\]/,/^\\[.*\\]/ { /^[^[]/d; /^\\[user\\]/d }'"
+	smudge = cat
