@@ -8,19 +8,19 @@ vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
 -- Set up specific behaviors for certain file types (like netrw, help, git, etc.)
 vim.api.nvim_create_autocmd({ "FileType" }, {
 	pattern = {
-		"netrw",            -- File explorer
-		"Jaq",              -- Jaq plugin
-		"qf",               -- Quickfix list
-		"git",              -- Git-related buffers
-		"help",             -- Help documentation
-		"man",              -- Man pages
-		"lspinfo",          -- LSP information
-		"oil",              -- Oil plugin
-		"spectre_panel",    -- Spectre plugin
-		"lir",              -- Lir plugin
-		"DressingSelect",   -- Dressing select UI
-		"tsplayground",     -- Treesitter playground
-		"",                 -- Catch-all empty pattern
+		"netrw", -- File explorer
+		"Jaq", -- Jaq plugin
+		"qf", -- Quickfix list
+		"git", -- Git-related buffers
+		"help", -- Help documentation
+		"man", -- Man pages
+		"lspinfo", -- LSP information
+		"oil", -- Oil plugin
+		"spectre_panel", -- Spectre plugin
+		"lir", -- Lir plugin
+		"DressingSelect", -- Dressing select UI
+		"tsplayground", -- Treesitter playground
+		"", -- Catch-all empty pattern
 	},
 	callback = function()
 		-- Map 'q' to close the buffer and prevent it from being listed in buffer list
@@ -66,9 +66,6 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	callback = function()
 		vim.lsp.buf.format({
 			async = false,
-			filter = function(client)
-				return client.name == "efm" or client.name == "null-ls"
-			end,
 		})
 	end,
 })
@@ -77,7 +74,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 vim.api.nvim_create_autocmd({ "FileType" }, {
 	pattern = { "gitcommit", "markdown", "NeogitCommitMessage" },
 	callback = function()
-		vim.opt_local.wrap = true  -- Enable line wrap
+		vim.opt_local.wrap = true -- Enable line wrap
 		vim.opt_local.spell = true -- Enable spell check
 	end,
 })
@@ -95,4 +92,3 @@ vim.api.nvim_create_autocmd({ "CursorHold" }, {
 		end
 	end,
 })
-
