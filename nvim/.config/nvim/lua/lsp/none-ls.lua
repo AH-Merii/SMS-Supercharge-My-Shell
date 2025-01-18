@@ -18,7 +18,7 @@ function M.config()
 			formatting.stylua,
 			formatting.prettier,
 			-- formatting.black,
-			formatting.ruff,
+			-- formatting.ruff,
 			-- formatting.isort,
 			diagnostics.hadolint,
 			require("none-ls.diagnostics.flake8"),

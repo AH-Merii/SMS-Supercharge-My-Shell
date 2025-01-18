@@ -1,19 +1,19 @@
 return {
-	"lua_ls",
-	"cssls",
-	"html",
-	"ts_ls",
-	-- "pyright",
-	"ruff_lsp",
-	"bashls",
-	"jsonls",
-	"yamlls",
-	"marksman",
-	"rust_analyzer",
-	"dockerls",
-	"docker_compose_language_service",
-	"cmake",
-	"clangd",
-	"terraformls",
-	"gopls",
+  "lua_ls",                          -- Lua
+  "cssls",                           -- CSS
+  "html",                            -- HTML
+  "ts_ls",                           -- TypeScript
+  "ruff",                            -- Python linter/formatter
+  "basedpyright",                    -- Python language server
+  "bashls",                          -- Bash
+  "jsonls",                          -- JSON
+  "yamlls",                          -- YAML
+  "marksman",                        -- Markdown
+  "rust_analyzer",                   -- Rust
+  "dockerls",                        -- Docker
+  "docker_compose_language_service", -- Docker Compose
+  "clangd",                          -- C/C++
+  "terraformls",                     -- Terraform
+  "gopls",                           -- Go
 }
+
