@@ -1,16 +1,17 @@
 require("user.launch")
 require("user.options")
-require("user.wsl-options") -- configure wsl specific options
+require("user.wsl-options")      -- configure wsl specific options
 require("user.keymaps")
-require("user.autocmds")
-require("user.usercmds").setup()
-spec("plugins.which-key")  -- label shortcuts and add previews
-spec("lsp.config")         -- language server support configuration
-spec("lsp.mason")          -- install/manage formatters, linters, and other language servers
-spec("lsp.nvim-lint")      -- configure linters and languages
-spec("plugins.catppuccin") -- theme
-spec("plugins.lualine")    -- status
-spec("plugins.luasnip")    -- snippet support
+require("user.autocmds").setup() -- setup autocommands
+require("user.usercmds").setup() -- setup custom user commands
+spec("plugins.which-key")        -- label shortcuts and add previews
+spec("lsp.config")               -- language server support configuration
+spec("lsp.mason")                -- install/manage formatters, linters, and other language servers
+spec("lsp.nvim-lint")            -- configure linters and languages
+spec("dap.nvim-dap")             -- setup debug adapter
+spec("plugins.catppuccin")       -- theme
+spec("plugins.lualine")          -- status
+spec("plugins.luasnip")          -- snippet support
 spec("plugins.treesitter")
 spec("plugins.treesitter-textobjects")
 spec("plugins.schemastore")   -- json formatting support
@@ -44,23 +45,10 @@ require("languages.python.editor")
 require("user.unkeymaps")
 --require("languages.lua.snippets")
 require("user.lazy")
---TODO: Check if vim.lsp.buf.<whatever-action-it-is-supposed-to-do> is supported by lsp if it is then attach the keymap
---TODO: Refactor lsp.config more
-
 --TODO: Use conform.nvim for code formatting
---> ruff sort imports -> already works
---> ruff formatt -> already works
+--TODO: find a way to toggle formatters on and off
 --> github actions
 --> dockerfiles
 --> bash
 
---TODO: Use nvim-lint for linting
---> pylint
---> hadolint
---> actionlint
---> bash
---> checkmake
-
---TODO: find a way to toggle linters on and off
---> Start by trying to have something semi-automatic like the spec protocol
---> Maybe some kind of interface
+--TODO: configure python DAP
