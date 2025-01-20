@@ -2,7 +2,6 @@ return {
   "lua_ls",                          -- Lua
   "cssls",                           -- CSS
   "html",                            -- HTML
-  "ts_ls",                           -- TypeScript
   "ruff",                            -- Python linter/formatter
   "basedpyright",                    -- Python language server
   "bashls",                          -- Bash
@@ -14,6 +13,4 @@ return {
   "docker_compose_language_service", -- Docker Compose
   "clangd",                          -- C/C++
   "terraformls",                     -- Terraform
-  "gopls",                           -- Go
 }
-
