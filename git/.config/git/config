@@ -27,6 +27,7 @@
   uncommit = reset --soft HEAD~1
   # Remove file(s) from Git but not from disk
   untrack = rm --cache --
+	remain = !git co main && git pull && git co - && git rebase main
 [core]
   # Don't paginate output by default
 	pager = delta --line-numbers --dark
@@ -35,7 +36,7 @@
   # Global shared hooks directory
   # hooksPath = ~/.githooks
   #
-  editor = hx
+  editor = nvim
   # Don't consider trailing space change as a cause for merge conflicts
   whitespace = -trailing-space
 [diff]
@@ -108,7 +109,7 @@
   rebase = merges
 [push]
   # Default push should only push the current branch to its push target, regardless of its remote name
-  default = upstream
+	default = current
   # When pushing, also push tags whose commit-ishs are now reachable upstream
   followTags = true
 # [rebase]
@@ -149,3 +150,6 @@
 	directory = *
 [delta]
 	side-by-side = true
+[filter "remove_gitconfig_user"]
+	clean = "sed '/^\\[user\\]/,/^\\[.*\\]/ { /^[^[]/d; /^\\[user\\]/d }'"
+	smudge = cat

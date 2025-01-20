@@ -2,11 +2,10 @@
 # .zplugins - antidote plugins file
 #
 
-# Pre-reqs
+# prereqs
 mattmc3/zephyr path:plugins/zfunctions
 
 # Zephyr
-mattmc3/zephyr path:plugins/clipboard
 mattmc3/zephyr path:plugins/color
 mattmc3/zephyr path:plugins/editor
 mattmc3/zephyr path:plugins/history
@@ -25,8 +24,6 @@ zap-zsh/exa
 zap-zsh/fzf
 
 # final
-zsh-users/zsh-completions kind:fpath path:src
-mattmc3/zephyr path:plugins/completion
 mattmc3/zephyr path:plugins/confd
 
 # deferred plugins

@@ -73,6 +73,8 @@ install_paru_if_not_found() {
     #### Check for paru package manager ####
     if [ ! -f /usr/bin/paru ]; then  
         echo -en "$CNT - Configuring paru."
+	# install prerequisites for paru
+	sudo pacman -S binutils base-devel
     
         # Clone the paru repository
         git clone https://aur.archlinux.org/paru.git &>> $INSTLOG

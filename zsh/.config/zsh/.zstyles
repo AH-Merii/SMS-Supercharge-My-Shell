@@ -15,5 +15,5 @@ zstyle ':prezto:module:history' histfile "${XDG_DATA_HOME:-$HOME/.local/share}/z
 #
 
 # Set this to whatever you want to use to edit a command
-zstyle :zle:edit-command-line editor hx
+zstyle :zle:edit-command-line editor nvim
 

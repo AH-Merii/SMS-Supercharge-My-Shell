@@ -1,0 +1,11 @@
+[Unit]
+Description=Enable Nvidia Persistent Mode
+After=multi-user.target graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/nvidia-smi -pm 1
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

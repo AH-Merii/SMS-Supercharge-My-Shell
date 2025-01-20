@@ -3,9 +3,9 @@
 eval "$(antidot init)"
 
 # editor
-export EDITOR=helix
-export SUDOEDITOR=helix
-export VISUAL=helix
+export EDITOR=nvim
+export SUDOEDITOR=nvim
+export VISUAL=nvim
 
 # binaries
 
@@ -24,7 +24,7 @@ export XDG_CONFIG_HOME=~/.config
 export XDG_CACHE_HOME=~/.cache
 export XDG_DATA_HOME=~/.local/share
 export XDG_STATE_HOME=~/.local/state
-export XDG_RUNTIME_DIR=~/.xdg
+export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export XDG_PROJECTS_DIR=~/Projects
 
 # Store zsh history
@@ -32,7 +32,6 @@ export HISTFILE=$XDG_DATA_HOME/zsh/zsh_history
 
 # XDG DATA
 export PYENV_ROOT="$XDG_DATA_HOME"/pyenv 
-export MAMBA_ROOT_PREFIX="$XDG_DATA_HOME"/micromamba
 
 # XDG CACHE
 export TEXMFVAR="$XDG_CACHE_HOME"/texlive/texmf-var
@@ -60,6 +59,10 @@ export FZF_CTRL_R_OPTS="
   --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
   --color header:italic
   --header 'Press CTRL-Y to copy command into clipboard'"
+
+# API KEYS - DO NOT COMMIT
+# export SRC_ENDPOINT='https://sourcegraph.com'
+# export SRC_ACCESS_TOKEN=$(pass sourcegraph/tokens/cody | head -n 1)
 
 # lf icons
 export LF_ICONS="\

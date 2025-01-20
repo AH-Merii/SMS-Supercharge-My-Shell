@@ -14,19 +14,17 @@ alias_check grep rg
 
 # shortcuts
 alias_check b  popd
-alias_check hx helix
-alias_check conda micromamba
 
 # zsh easy access
 alias_check szrc "source $ZDOTDIR/.zshrc"
-alias_check ezrc "helix $ZDOTDIR/.zshrc"
+alias_check ezrc "nvim $ZDOTDIR/.zshrc"
 alias_check czrc "cat $ZDOTDIR/.zshrc"
 alias_check szenv "source $HOME/.zshenv"
-alias_check ezenv "helix $HOME/.zshenv"
+alias_check ezenv "nvim $HOME/.zshenv"
 alias_check czenv "cat $HOME/.zshenv"
 
 # open all relevent supercharge-my-shell files
-alias_check esms "helix $HOME/.zshenv $ZDOTDIR/{.zshrc,.zsh_plugins.txt,conf.d/aliases.zsh}"
+alias_check esms "nvim $HOME/.zshenv $ZDOTDIR/{.zshrc,.zsh_plugins.txt,conf.d/aliases.zsh}"
 
 # lazygit
 alias_check lg lazygit
