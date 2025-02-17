@@ -1,0 +1,12 @@
+if [[ ! -o interactive ]]; then
+    return
+fi
+
+_pyenv() {
+  local words completions
+  words=("${(@f)$(pyenv commands)}")
+  _describe 'pyenv commands' words
+}
+
+compdef _pyenv pyenv
+

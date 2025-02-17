@@ -46,6 +46,12 @@ export ANTIDOTE_HOME=$REPO_HOME
 # Do the initialization when the script is sourced (i.e. Initialize instantly) (zsh-vi-mode plugin)
 ZVM_INIT_MODE=sourcing
 
+# mattmc3/zephyr/zfunctions plugin
+ZFUNCDIR=${ZDOTDIR:-$HOME/.config/zsh}/functions
+
+# AWS CLI Autocompletions
+export AWS_CLI_AUTO_PROMPT="on-partial"
+
 # fzf configuration
 export FZF_CTRL_T_COMMAND="fd --hidden --follow --type f --exclude '.git'"
 export FZF_CTRL_T_OPTS="

@@ -1,0 +1,6 @@
+#compdef aws
+
+# Set up AWS CLI completion using aws_completer.
+# Adjust the path below if aws_completer is installed somewhere else.
+complete -o nospace -C "$(which aws_completer)" aws
+

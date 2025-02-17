@@ -10,9 +10,8 @@ setopt extendedglob
 # Add completions directory to zsh completions directories
 fpath=($ZDOTDIR/completions $fpath)
 
-#TODO: Create a script that sources completions and loads them to completions directory
-#TODO: Create a command that when run automatically updates the completions directory
-#TODO: Add the completions command to the setup.sh script
+# Some completions only support bash completions
+autoload -U +X bashcompinit && bashcompinit
 
 # zstyles
 [[ -r $ZDOTDIR/.zstyles ]] && . $ZDOTDIR/.zstyles
@@ -24,6 +23,9 @@ fpath=($ZDOTDIR/completions $fpath)
 source $ANTIDOTE_HOME/mattmc3/antidote/antidote.zsh
 antidote load
 
+# load AWS CLI completions only if they are available
+command -v aws_completer &>/dev/null && complete -o nospace -C "$(command -v aws_completer)" aws
+
 # check if powerlevel10k configuration exists, if not, run powerlevel10k
 [[ -f $ZDOTDIR/.p10k.zsh ]] && source $ZDOTDIR/.p10k.zsh || p10k configure
 
@@ -31,7 +33,6 @@ antidote load
 eval "$(enable-fzf-tab)"
 eval "$(pyenv init -)"
 eval "$(zoxide init zsh)"
-
 
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
   Hyprland

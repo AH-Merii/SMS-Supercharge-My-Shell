@@ -1,0 +1,40 @@
+local completions_dir=${ZDOTDIR:-$HOME/.config/zsh}/completions
+mkdir -p "$completions_dir"
+
+# Helper function with optional output redirection.
+# Fourth parameter (optional) is a flag: "true" (default) means we redirect output.
+generate_completion() {
+    local cmd="$1"
+    local completion_cmd="$2"
+    local output_file="$3"
+    local redirect="${4:-true}"
+
+    if command -v "$cmd" &> /dev/null; then
+        echo "Updating completion for $cmd..."
+        if [ "$redirect" = "true" ]; then
+            eval "$completion_cmd" > "$completions_dir/$output_file"
+        else
+            eval "$completion_cmd"
+        fi
+    else
+        echo "Warning: $cmd is not installed. Skipping completion."
+    fi
+}
+
+# Generate completions for each tool.
+generate_completion "antidot" "antidot completion zsh" "_antidot"
+generate_completion "uvx" "uvx --generate-shell-completion zsh" "_uvx"
+generate_completion "uv" "uv --generate-shell-completion zsh" "_uv"
+generate_completion "docker" "docker completion zsh" "_docker"
+# For podman, the command already writes to the file with -f so disable redirection.
+generate_completion "podman" "podman completion -f $completions_dir/_podman zsh" "_podman" false
+
+# Ensure completions directory is in fpath.
+if [[ ! "$fpath" =~ "$completions_dir" ]]; then
+    fpath+=("$completions_dir")
+fi
+
+# Reload completions.
+autoload -Uz compinit && compinit
+
+echo "Completions update complete!"
