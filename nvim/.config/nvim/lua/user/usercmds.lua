@@ -21,6 +21,12 @@ function M.setup()
     end,
     { desc = "Reload Neovim configuration" }
   )
+
+  -- Shows current file path
+  vim.api.nvim_create_user_command("ShowFilePath", function()
+    local file_path = vim.fn.expand("%:p")
+    print("Current file path: " .. file_path)
+  end, {})
 end
 
 return M

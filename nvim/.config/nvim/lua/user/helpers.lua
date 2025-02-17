@@ -39,4 +39,3 @@ function M.toggle_debug()
 end
 
 return M
-
