@@ -10,13 +10,9 @@ export VISUAL=nvim
 # binaries
 
 export PATH=$HOME/.local/bin:$PATH
-export PATH=$HOME/.cargo/bin:$PATH
 export PATH=$HOME/.local/share/go/bin:$PATH
 
 ### declutter home directory ###
-
-# Set zsh config directory
-export ZDOTDIR=$HOME/.config/zsh
 
 # Set XDG base dirs.
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
@@ -26,6 +22,9 @@ export XDG_DATA_HOME=~/.local/share
 export XDG_STATE_HOME=~/.local/state
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export XDG_PROJECTS_DIR=~/Projects
+
+# Set zsh config directory
+export ZDOTDIR=$HOME/.config/zsh
 
 # Store zsh history
 export HISTFILE=$XDG_DATA_HOME/zsh/zsh_history

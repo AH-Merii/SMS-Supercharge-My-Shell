@@ -7,9 +7,12 @@ setopt nonomatch
 # Disable extended globbing if it causes compatibility issues
 setopt extendedglob
 
-# Load the completion system
-autoload -Uz compinit
-compinit
+# Add completions directory to zsh completions directories
+fpath=($ZDOTDIR/completions $fpath)
+
+#TODO: Create a script that sources completions and loads them to completions directory
+#TODO: Create a command that when run automatically updates the completions directory
+#TODO: Add the completions command to the setup.sh script
 
 # zstyles
 [[ -r $ZDOTDIR/.zstyles ]] && . $ZDOTDIR/.zstyles
@@ -24,12 +27,11 @@ antidote load
 # check if powerlevel10k configuration exists, if not, run powerlevel10k
 [[ -f $ZDOTDIR/.p10k.zsh ]] && source $ZDOTDIR/.p10k.zsh || p10k configure
 
-source $ZDOTDIR/completions/zoxide.sh
-source $ZDOTDIR/completions/aws_zsh_completer.sh
 
 eval "$(enable-fzf-tab)"
 eval "$(pyenv init -)"
 eval "$(zoxide init zsh)"
+
 
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
   Hyprland
