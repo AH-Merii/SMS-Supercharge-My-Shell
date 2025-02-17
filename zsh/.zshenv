@@ -43,6 +43,9 @@ export GNUPGHOME=$XDG_DATA_HOME/gnupg
 export REPO_HOME=$XDG_CACHE_HOME/repos
 export ANTIDOTE_HOME=$REPO_HOME
 
+# Do the initialization when the script is sourced (i.e. Initialize instantly) (zsh-vi-mode plugin)
+ZVM_INIT_MODE=sourcing
+
 # fzf configuration
 export FZF_CTRL_T_COMMAND="fd --hidden --follow --type f --exclude '.git'"
 export FZF_CTRL_T_OPTS="

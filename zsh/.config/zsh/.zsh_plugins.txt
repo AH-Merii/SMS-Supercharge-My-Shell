@@ -5,11 +5,15 @@
 # prereqs
 mattmc3/zephyr path:plugins/zfunctions
 
+
+# editor
+mattmc3/zephyr path:plugins/editor
+jeffreytse/zsh-vi-mode
+
 # Zephyr
 mattmc3/zephyr path:plugins/completion
 mattmc3/zephyr path:plugins/compstyle
 mattmc3/zephyr path:plugins/color
-mattmc3/zephyr path:plugins/editor
 mattmc3/zephyr path:plugins/history
 
 # other
@@ -17,7 +21,6 @@ Aloxaf/fzf-tab
 MichaelAquilina/zsh-you-should-use
 hlissner/zsh-autopair
 jirutka/zsh-shift-select
-jeffreytse/zsh-vi-mode
 
 # prompts
 romkatv/powerlevel10k
