@@ -11,7 +11,7 @@ function M.config()
   lint.linters_by_ft = {
     markdown   = { 'vale' },
     -- python     = { 'pylint' },
-    terraform  = { 'tflint' },
+    terraform  = { 'tflint', 'tfsec' },
     dockerfile = { 'hadolint' },
     json       = { 'jsonlint' },
     text       = { "vale" },
