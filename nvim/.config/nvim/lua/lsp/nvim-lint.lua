@@ -14,6 +14,7 @@ function M.config()
     terraform  = { 'tflint', 'tfsec' },
     dockerfile = { 'hadolint' },
     json       = { 'jsonlint' },
+    bash       = { 'shellcheck' },
     text       = { "vale" },
     makefile   = { "checkmake" },
     javascript = { "eslint" },

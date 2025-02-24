@@ -8,6 +8,7 @@ spec("plugins.which-key")        -- label shortcuts and add previews
 spec("lsp.config")               -- language server support configuration
 spec("lsp.mason")                -- install/manage formatters, linters, and other language servers
 spec("lsp.nvim-lint")            -- configure linters and languages
+spec("lsp.conform")
 spec("dap.nvim-dap")             -- setup debug adapter
 spec("plugins.catppuccin")       -- theme
 spec("plugins.lualine")          -- status
