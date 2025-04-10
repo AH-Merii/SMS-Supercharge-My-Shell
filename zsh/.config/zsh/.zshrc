@@ -29,11 +29,13 @@ command -v aws_completer &>/dev/null && complete -o nospace -C "$(command -v aws
 # check if powerlevel10k configuration exists, if not, run powerlevel10k
 [[ -f $ZDOTDIR/.p10k.zsh ]] && source $ZDOTDIR/.p10k.zsh || p10k configure
 
-
 eval "$(enable-fzf-tab)"
-eval "$(pyenv init -)"
-eval "$(zoxide init zsh)"
+command -v pyenv > /dev/null && eval "$(pyenv init -)"
+command -v zoxide > /dev/null && eval "$(zoxide init zsh)"
+command -v antidot > /dev/null && eval "$(antidot init)" && antidot clean
 
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+# Automatically starts Hyprland on boot if running directly from tty1 (first virtual console),
+# not in an X11 environment, Hyprland is installed, and Hyprland is not already running.
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ] && command -v Hyprland > /dev/null && ! pgrep -x Hyprland > /dev/null; then
   Hyprland
 fi
