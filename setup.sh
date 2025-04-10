@@ -1,71 +1,65 @@
 #!/bin/bash
 
-# source helper functions
-source ./scripts/helper-funcs.sh && echo "$CNT - Sourced helper functions"
+# Source helper functions
+source scripts/helper-funcs.sh && echo "$CNT - Sourced helper functions"
 
-# tools to install
-tool_stage=(
+# Create a fresh log file
+echo "Installation Log - $(date)" > $INSTLOG
+
+# Tools to install via Homebrew
+brew_packages=(
+    # Development tools
+    gcc
     neovim
-    base-devel
-    kitty
-    lf
     lazygit
     bat
     fzf
     eza
     git-delta
     tmux
+    csvlens
     ripgrep
     stow
     curl
     wget
     jq
-    xclip
+    htop
     bottom
     unzip
-    pass
     openssh
     zoxide
-)
-
-# miscellaneous
-misc_stage=(
+    
+    # misc
     zsh
     pyenv
-    python-pipx
+    pipx
+    pixi
     uv
     go
     rust
-    npm
-    python-pip
-    zsh-antidote
-    antidot-bin
-    zsh-theme-powerlevel10k
-    ttf-firacode-nerd
-    inter-font
-    wl-clipboard
+    node
+    antidote
+    doron-cohen/tap/antidot
+    # wl-clipboard
+    xclip
+    
+    # Fonts and Visual
+    # font-fira-code-nerd-font
+    # font-inter
+    
+    # Terminal emulators
+    # kitty
 )
 
-#software for nvidia GPU only
-nvidia_drivers_stage=(
-    linux-headers 
-    nvidia-dkms 
-    nvidia-settings 
-    libva 
-    libva-nvidia-driver-git
-)
-
-# nvidia_cudnn_stage=()
-
-# clear the screen
+# Clear the screen
 clear
 
-# let the user know that we will use sudo
+# Let the user know that we will use sudo
 echo -e "$CNT - This script will run some commands that require sudo. You will be prompted to enter your password.
 If you are worried about entering your password then you may want to review the content of the script."
 sleep 1
 
-# give the user an option to exit out
+# Give the user an option to exit out
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to continue with the install (y,n) ' CONTINST
 if [[ $CONTINST == "Y" || $CONTINST == "y" ]]; then
     echo -e "$CNT - Setup starting..."
@@ -75,66 +69,70 @@ else
     exit
 fi
 
-# checks for paru, and installs it if it is not found
-install_paru_if_not_found
+# Install Homebrew dependencies and Homebrew itself
+install_brew_dependencies
+install_brew_if_not_found
 
-### Install all of the above pacakges ####
+# Enable Homebrew font casks
+# echo -e "$CNT - Enabling Homebrew font casks..."
+# brew tap homebrew/cask-fonts &>> $INSTLOG
+
+# Install packages
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
 if [[ $INST == "Y" || $INST == "y" ]]; then
-
-    # dev tool Stage - dev tools
-    echo -e "$CNT - Installing dev tools, this may take a while..."
-    for SOFTWR in ${tool_stage[@]}; do
-        install_software_paru $SOFTWR 
-    done
-
-    # misc Stage - Supercharging Shell
-    echo -e "$CNT - Supercharging your shell, this may take a while..."
-    for SOFTWR in ${misc_stage[@]}; do
-        install_software_paru $SOFTWR 
+    # Install all brew packages
+    echo -e "$CNT - Installing packages, this may take a while..."
+    for PACKAGE in "${brew_packages[@]}"; do
+        # Check if it's a font package
+        if [[ $PACKAGE == font-* ]]; then
+            install_font_cask $PACKAGE
+        else
+            install_brew_package $PACKAGE
+        fi
     done
     
+    # Cleanup
+    echo -e "$CNT - Cleaning up Homebrew installation..."
+    brew cleanup &>> $INSTLOG
 fi
 
-### Install all of the nvidia drivers and dependencies ####
-read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install Nvidia Drivers? \033[31m[WARNING]\033[0m Skip this step if you are using WSL! (y,n)' INST
-if [[ $INST == "Y" || $INST == "y" ]]; then
-    # nvidia drivers Stage
-    echo -e "$CNT - Nvidia Drivers Stage - Installing Nvidia Drivers, this may take a while..."
-    for SOFTWR in ${nvidia_drivers_stage[@]}; do
-        install_software_paru $SOFTWR 
-    done
-fi
-### Copy Config Files ###
+# Copy Config Files
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to copy config files? (y,n) ' CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
-    echo -e "$CNT - Creating config files symobic links using stow..."
-
-    # create symlinks to dotfiles using stow
+    echo -e "$CNT - Creating config files symbolic links using stow..."
+    # Create symlinks to dotfiles using stow
     stow */ --verbose -t ~ && echo -e "$CNT - Linked config files." &>> $INSTLOG
-
-    # export environment variables from .zshenv
+    # Export environment variables from .zshenv
     [ -f ~/.zshenv ] && source ~/.zshenv && echo -e "$CNT - Sourced .zshenv" &>> $INSTLOG
-
 fi
 
-### Copy Config Files ###
+
+# Clean home directory dotfiles to follow XDG standard
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to run antidot (declutter your home directory)? (y,n) ' CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
 
     echo -e "$CNT - Decluttering home directory..."
     yes | antidot update &>> $INSTLOG
     yes | antidot clean &>> $INSTLOG
-    yes | antidot init &>> $INSTLOG
 
 fi
 
-# Change default shell to zsh
-chsh -s $(which /bin/zsh)
+# Change default shell to zsh if installed
+if command -v zsh &> /dev/null; then
+    ZSH_PATH=$(which zsh)
+    if [[ "$SHELL" != "$ZSH_PATH" ]]; then
+        echo -e "$CNT - Changing default shell to ZSH..."
+        sudo chsh -s "$ZSH_PATH" $USER &>> $INSTLOG
+        echo -e "$COK - Default shell changed to ZSH."
+    else
+        echo -e "$COK - ZSH is already your default shell."
+    fi
+else
+    echo -e "$CWR - ZSH is not installed, skipping shell change."
+fi
 
 # Load zsh autocompletions
 load_completions
 
-# setup complete
+# Setup complete
 echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m\n\033[95mPLEASE RESTART YOUR TERMINAL TO COMPLETE SETUP\033[0m"
-
