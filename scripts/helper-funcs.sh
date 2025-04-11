@@ -108,7 +108,7 @@ install_homebrew_dependencies() {
 
 # Function to install Homebrew if not found
 install_homebrew() {
-  if ! command -v brew &>/dev/null; then
+  if [[ ! -x "${BREW_PREFIX}/bin/brew" ]]; then
     echo -en "$CNT - Installing Homebrew..."
 
     echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &>>"$INSTLOG" &
