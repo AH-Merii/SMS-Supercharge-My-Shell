@@ -157,7 +157,7 @@ install_homebrew_package() {
     echo -en "$CNT - Now installing $1"
     brew install "${1}" &>>${INSTLOG} &
     local install_pid=$!
-    show_progress "$install_pid" "${COK} - ${1} was installed."
+    show_progress "$install_pid" " - ${1} was installed."
   fi
 }
 
