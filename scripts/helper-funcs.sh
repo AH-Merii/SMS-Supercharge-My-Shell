@@ -42,7 +42,7 @@ show_progress() {
 
   # Default types
   local notification_type="${3:-$COK}" # Success color/style
-  local clear_type="${4:-$CCA}"        # Line clearing style
+  local clear_type="${4:-$CER}"        # Line clearing style
 
   # Spinner while process is running
   while kill -0 "${pid}" 2>/dev/null; do
@@ -79,19 +79,19 @@ install_homebrew_dependencies() {
   echo -en "$CNT - Installing Homebrew dependencies"
   case $DISTRO in
   "ubuntu" | "debian" | "pop" | "elementary" | "linuxmint")
-    echo -e " for Debian/Ubuntu based system..."
+    echo -en " for Debian/Ubuntu based system..."
     sudo apt-get update &>>$INSTLOG &&
       sudo apt-get install -y build-essential procps curl file git &>>$INSTLOG &
     local install_pid=$!
     ;;
   "fedora" | "rhel" | "centos" | "almalinux" | "rocky")
-    echo -e " for Fedora/Red Hat based system..."
+    echo -en " for Fedora/Red Hat based system..."
     sudo yum groupinstall -y 'Development Tools' &>>$INSTLOG &&
       sudo yum install -y procps-ng curl file git &>>$INSTLOG &
     local install_pid=$!
     ;;
   "arch" | "manjaro" | "endeavouros")
-    echo -e " for Arch based system..."
+    echo -en " for Arch based system..."
     sudo pacman -Sy --needed --noconfirm base-devel procps-ng curl file git &>>$INSTLOG &
     local install_pid=$!
     ;;
