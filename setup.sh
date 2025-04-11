@@ -74,7 +74,6 @@ install_brew_dependencies
 install_brew_if_not_found
 
 # Install packages
-# HACK hardcoding the cursor position as it does not always show and work
 sleep 1 && read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
 
 if [[ $INST == "Y" || $INST == "y" ]]; then
@@ -94,22 +93,10 @@ WARN_USER=$(color_text "$WARNING_C" " any existing duplicate config files will b
 echo -en "$CAC - Would you like to copy config files? ${WARN_USER} (y,n) " && read -r CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
     # Create symlinks to dotfiles using stow
-    stow --adopt */ --verbose -t ~ &>>"${INSTLOG}" && echo -e "${CCA}${COK} - Dotfiles Linked!"
+    stow_overwrite
 
-    # Export environment variables from .zshenv
-    echo -en "$CCA$CNT - Sourcing .zshenv" && sleep 0.5 && [ -f ~/.zshenv ] && . ~/.zshenv &>>"${INSTLOG}" && echo -e "$CCL$COK - Sourced .zshenv"
+    echo -en "$CCA$CNT - Sourcing .zshenv" && sleep 0.5 && [ -f ~/.zshenv ] && . ~/.zshenv &>>"${INSTLOG}" && echo -e "$CCL$COK - Sourced .zshenv" # Export environment variables from .zshenv
     echo -en "$CNT - Sourcing .zshrc" && sleep 0.5 && [ -f "${ZDOTDIR}/.zshrc" ] && . "${ZDOTDIR}/.zshrc" &>>"${INSTLOG}" && echo -e "$CCL$COK - Sourced .zshrc"
-fi
-
-# Clean home directory dotfiles to follow XDG standard
-echo -en "${CAC} - Would you like to run antidot (declutter your home directory)? (y,n) " && read -r CFG
-if [[ $CFG == "Y" || $CFG == "y" ]]; then
-
-    echo -e "$CNT - Decluttering home directory..."
-    yes | antidot update &>>"${INSTLOG}" &&
-        yes | antidot clean &>>"${INSTLOG}"
-    echo -e "$CCA$COK - Home directory is now squeaky clean"
-
 fi
 
 # Change default shell to zsh if installed
@@ -125,6 +112,19 @@ if command -v zsh && echo -e "command not found" &>/dev/null; then
 else
     echo -e "$CWR - ZSH is not installed, skipping shell change."
 fi
+
+# Clean home directory dotfiles to follow XDG standard
+echo -en "${CAC} - Would you like to run antidot (declutter your home directory)? (y,n) " && read -r CFG
+if [[ $CFG == "Y" || $CFG == "y" ]]; then
+
+    echo -e "$CNT - Decluttering home directory..."
+    yes | antidot update &>>"${INSTLOG}" &&
+        yes | antidot clean &>>"${INSTLOG}"
+    echo -e "$CCA$COK - Home directory is now squeaky clean"
+
+fi
+
+
 
 # Load zsh autocompletions
 echo -en "$CNT - Updating & loading zsh completions" && sleep 0.5 && load_completions && echo -e "${CCL}${COK} - Completions loaded." || echo -e "${CCA}$CWR Unable to load completions."

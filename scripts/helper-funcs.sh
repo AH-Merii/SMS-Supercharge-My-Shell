@@ -94,17 +94,15 @@ install_brew_dependencies() {
     echo -en "$CNT - Installing Homebrew dependencies"
     case $DISTRO in
     "ubuntu" | "debian" | "pop" | "elementary" | "linuxmint")
-        echo -en " for Debian/Ubuntu based system..."
-        sudo apt-get update &>>$INSTLOG &
-        local update_pid=$!
-        sudo apt-get install -y build-essential procps curl file git &>>$INSTLOG &
+        echo -e " for Debian/Ubuntu based system..."
+        sudo apt-get update &>>$INSTLOG &&
+            sudo apt-get install -y build-essential procps curl file git &>>$INSTLOG &
         local install_pid=$!
         ;;
     "fedora" | "rhel" | "centos" | "almalinux" | "rocky")
         echo -e " for Fedora/Red Hat based system..."
-        sudo yum groupinstall -y 'Development Tools' &>>$INSTLOG &
-        local update_pid=$!
-        sudo yum install -y procps-ng curl file git &>>$INSTLOG &
+        sudo yum groupinstall -y 'Development Tools' &>>$INSTLOG &&
+            sudo yum install -y procps-ng curl file git &>>$INSTLOG &
         local install_pid=$!
         ;;
     "arch" | "manjaro" | "endeavouros")
@@ -120,9 +118,7 @@ install_brew_dependencies() {
         ;;
     esac
 
-    # show_progress to display the completion message after each of the background task finishes, only show if defined
-    [[ -n "${update_pid}" ]] && show_progress "${update_pid}" "Package list updated successfully" "$CNT" "$CCL"
-    [[ -n "${install_pid}" ]] && show_progress "${install_pid}" "All Homebrew dependencies installed successfully"
+    show_progress "${install_pid}" "All Homebrew dependencies installed successfully"
     return 0
 }
 
@@ -164,6 +160,48 @@ install_brew_if_not_found() {
     fi
 }
 
+install_homebrew() {
+    if ! command -v brew &>/dev/null; then
+        echo -en "$CNT - Installing Homebrew..."
+
+        echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &>>"$INSTLOG" &
+        local install_pid=$!
+        # Show progress until the installation finishes
+        sleep 1 && show_progress $install_pid "Successfully installed Homebrew"
+    else
+        sleep 1 && echo -e "$CCA$COK - Homebrew already installed."
+    fi
+
+    # Evaluate Homebrew in current shell
+    if [[ -d "$BREW_PREFIX" ]]; then
+        eval "$("$BREW_PREFIX/bin/brew" shellenv)"
+    fi
+}
+
+# Function to add Homebrew to PATH in specified config files
+add_homebrew_to_path() {
+    local config_files=("$@")
+
+    # Default to ~/.zshenv and ~/.bashrc if no arguments provided
+    if [ ${#config_files[@]} -eq 0 ]; then
+        config_files=("$HOME/.zshenv" "$HOME/.bashrc")
+    fi
+
+    for config_file in "${config_files[@]}"; do
+        if [[ -f "$config_file" ]] && ! grep -q "$HOMEBREW_EVAL" "$config_file"; then
+            # Add Homebrew Path at the beginning of the file
+            echo "$HOMEBREW_EVAL" | cat - "$config_file" >temp && mv temp "$config_file" &&
+                sleep 0.5 && echo -e "$COK - Added Homebrew to $config_file"
+        else
+            if [[ -f "$config_file" ]]; then
+                sleep 0.5 && echo -e "$COK - Homebrew already in $config_file"
+            else
+                sleep 0.5 && echo -e "$CWR - Config file $config_file does not exist"
+            fi
+        fi
+    done
+}
+
 # Function to install packages using Homebrew
 install_brew_package() {
     if brew list "${1}" &>/dev/null; then
@@ -184,11 +222,10 @@ install_brew_package() {
 
 stow_overwrite() {
     local target_dir="${2:-$HOME}"
-    local packages="${1:-*/}"
 
     # Get a list of all files that would be stowed
     local files
-    files=$(find "${packages}" -type f | sed "s|^[^/]*/||")
+    files=$(find . -type f | sed "s|^[^/]*/||")
 
     echo -e "$CNT - Creating config files symbolic links using stow..." && sleep 1
     # Remove any existing files in the target directory
@@ -210,7 +247,5 @@ stow_overwrite() {
     done
 
     # Now run stow
-    stow "${packages}" -t "${target_dir}" && echo -e "${COK} - Dotfiles Linked!"
-
-    echo "Done!"
+    stow */ -t "${target_dir}" &>>"${INSTLOG}" && echo -e "${COK} - Dotfiles Linked!"
 }
