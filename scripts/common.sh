@@ -11,17 +11,17 @@ WARNING_C="\e[1;35m"
 ACTION_C="\e[1;33m"
 
 # Helper Actions
-CCL="\r\e[2K\r"      # Clears entire current line
-CCA="\r\e[1A\e[2K\r" # Move up 1 line, then clear that line
+CCL="\e[2K\r"      # Clears entire current line
+CCA="\e[1A\e[2K\r" # Move up 1 line, then clear that line
 RESET_C="\e[0m"
 
 # Colored Info
-CNT="\r[${NOTE_C}NOTE${RESET_C}]"
-COK="\r[${OK_C}OK${RESET_C}]"
-CER="\r[${ERROR_C}ERROR${RESET_C}]"
-CAT="\r[${ATTENTION_C}ATTENTION${RESET_C}]"
-CWR="\r[${WARNING_C}WARNING${RESET_C}]"
-CAC="\r[${ACTION_C}ACTION${RESET_C}]"
+CNT="[${NOTE_C}NOTE${RESET_C}]"
+COK="[${OK_C}OK${RESET_C}]"
+CER="[${ERROR_C}ERROR${RESET_C}]"
+CAT="[${ATTENTION_C}ATTENTION${RESET_C}]"
+CWR="[${WARNING_C}WARNING${RESET_C}]"
+CAC="[${ACTION_C}ACTION${RESET_C}]"
 
 # ASCII Icons
 CROSS="\u274C"

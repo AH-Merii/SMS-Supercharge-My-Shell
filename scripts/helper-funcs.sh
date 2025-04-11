@@ -42,7 +42,7 @@ show_progress() {
 
   # Default types
   local notification_type="${3:-$COK}" # Success color/style
-  local clear_type="${4:-$CER}"        # Line clearing style
+  local clear_type="${4:-$CCL}"        # Line clearing style
 
   # Spinner while process is running
   while kill -0 "${pid}" 2>/dev/null; do
