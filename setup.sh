@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Source helper functions
-source scripts/helper-funcs.sh && echo "$CNT - Sourced helper functions"
+source scripts/helper-funcs.sh && echo -e "$CNT - Sourced helper functions"
 
 # Create a fresh log file
-echo "Installation Log - $(date)" > $INSTLOG
+echo -e "Installation Log - $(date)" >"${INSTLOG}"
 
 # Tools to install via Homebrew
 brew_packages=(
@@ -28,7 +28,7 @@ brew_packages=(
     unzip
     openssh
     zoxide
-    
+
     # misc
     zsh
     pyenv
@@ -42,11 +42,11 @@ brew_packages=(
     doron-cohen/tap/antidot
     # wl-clipboard
     xclip
-    
+
     # Fonts and Visual
     # font-fira-code-nerd-font
     # font-inter
-    
+
     # Terminal emulators
     # kitty
 )
@@ -55,12 +55,12 @@ brew_packages=(
 clear
 
 # Let the user know that we will use sudo
-echo -e "$CNT - This script will run some commands that require sudo. You will be prompted to enter your password.
-If you are worried about entering your password then you may want to review the content of the script."
+echo -en "$CWR - " && color_text "${WARNING_C}" "This script will run some commands that require sudo. You will be prompted to enter your password."
+echo -en "$CNT - " && color_text "${NOTE_C}" "If you are worried about entering your password then you may want to review the content of the script."
 sleep 1
 
 # Give the user an option to exit out
-read -rep $'[\e[1;33mACTION\e[0m] - Would you like to continue with the install (y,n) ' CONTINST
+echo -en "${CAC} - Would you like to continue with the install (y,n) " && read -r CONTINST
 if [[ $CONTINST == "Y" || $CONTINST == "y" ]]; then
     echo -e "$CNT - Setup starting..."
     sudo touch /tmp/setup.tmp
@@ -73,56 +73,51 @@ fi
 install_brew_dependencies
 install_brew_if_not_found
 
-# Enable Homebrew font casks
-# echo -e "$CNT - Enabling Homebrew font casks..."
-# brew tap homebrew/cask-fonts &>> $INSTLOG
-
 # Install packages
-read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
+# HACK hardcoding the cursor position as it does not always show and work
+sleep 1 && read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
+
 if [[ $INST == "Y" || $INST == "y" ]]; then
     # Install all brew packages
     echo -e "$CNT - Installing packages, this may take a while..."
     for PACKAGE in "${brew_packages[@]}"; do
-        # Check if it's a font package
-        if [[ $PACKAGE == font-* ]]; then
-            install_font_cask $PACKAGE
-        else
-            install_brew_package $PACKAGE
-        fi
+        install_brew_package "${PACKAGE}"
     done
-    
+
     # Cleanup
-    echo -e "$CNT - Cleaning up Homebrew installation..."
-    brew cleanup &>> $INSTLOG
+    echo -e "$CNT - Cleaning up Homebrew installation..." && sleep 1
+    brew cleanup &>>"${INSTLOG}" && echo -e "$CCA$COK - Homebrew installation cleaned"
 fi
 
 # Copy Config Files
-read -rep $'[\e[1;33mACTION\e[0m] - Would you like to copy config files? (y,n) ' CFG
+WARN_USER=$(color_text "$WARNING_C" " any existing duplicate config files will be overwritten!")
+echo -en "$CAC - Would you like to copy config files? ${WARN_USER} (y,n) " && read -r CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
-    echo -e "$CNT - Creating config files symbolic links using stow..."
     # Create symlinks to dotfiles using stow
-    stow */ --verbose -t ~ && echo -e "$CNT - Linked config files." &>> $INSTLOG
+    stow --adopt */ --verbose -t ~ &>>"${INSTLOG}" && echo -e "${CCA}${COK} - Dotfiles Linked!"
+
     # Export environment variables from .zshenv
-    [ -f ~/.zshenv ] && source ~/.zshenv && echo -e "$CNT - Sourced .zshenv" &>> $INSTLOG
+    echo -en "$CCA$CNT - Sourcing .zshenv" && sleep 0.5 && [ -f ~/.zshenv ] && . ~/.zshenv &>>"${INSTLOG}" && echo -e "$CCL$COK - Sourced .zshenv"
+    echo -en "$CNT - Sourcing .zshrc" && sleep 0.5 && [ -f "${ZDOTDIR}/.zshrc" ] && . "${ZDOTDIR}/.zshrc" &>>"${INSTLOG}" && echo -e "$CCL$COK - Sourced .zshrc"
 fi
 
-
 # Clean home directory dotfiles to follow XDG standard
-read -rep $'[\e[1;33mACTION\e[0m] - Would you like to run antidot (declutter your home directory)? (y,n) ' CFG
+echo -en "${CAC} - Would you like to run antidot (declutter your home directory)? (y,n) " && read -r CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
 
     echo -e "$CNT - Decluttering home directory..."
-    yes | antidot update &>> $INSTLOG
-    yes | antidot clean &>> $INSTLOG
+    yes | antidot update &>>"${INSTLOG}" &&
+        yes | antidot clean &>>"${INSTLOG}"
+    echo -e "$CCA$COK - Home directory is now squeaky clean"
 
 fi
 
 # Change default shell to zsh if installed
-if command -v zsh &> /dev/null; then
+if command -v zsh && echo -e "command not found" &>/dev/null; then
     ZSH_PATH=$(which zsh)
     if [[ "$SHELL" != "$ZSH_PATH" ]]; then
-        echo -e "$CNT - Changing default shell to ZSH..."
-        sudo chsh -s "$ZSH_PATH" $USER &>> $INSTLOG
+        echo -en "$CNT - Changing default shell to ZSH..."
+        sudo chsh -s "$ZSH_PATH" "${USER}" &>>"${INSTLOG}"
         echo -e "$COK - Default shell changed to ZSH."
     else
         echo -e "$COK - ZSH is already your default shell."
@@ -132,7 +127,7 @@ else
 fi
 
 # Load zsh autocompletions
-load_completions
+echo -en "$CNT - Updating & loading zsh completions" && sleep 0.5 && load_completions && echo -e "${CCL}${COK} - Completions loaded." || echo -e "${CCA}$CWR Unable to load completions."
 
 # Setup complete
 echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m\n\033[95mPLEASE RESTART YOUR TERMINAL TO COMPLETE SETUP\033[0m"
