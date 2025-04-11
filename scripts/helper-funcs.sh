@@ -71,7 +71,7 @@ maybe_eval() {
 }
 
 # Function to install Homebrew dependencies based on the detected distro
-install_brew_dependencies() {
+install_homebrew_dependencies() {
   DISTRO=$(detect_distro)
   echo -e "$CNT - Detected Linux distribution: $DISTRO"
 
@@ -150,7 +150,7 @@ add_homebrew_path_to_configs() {
 }
 
 # Function to install packages using Homebrew
-install_brew_package() {
+install_homebrew_package() {
   if brew list "${1}" &>/dev/null; then
     echo -e "$COK - $1 is already installed."
   else

@@ -15,14 +15,20 @@ sleep 1
 echo -en "${CAC} - Would you like to continue with the install (y,n) " && read -r CONTINST
 if [[ $CONTINST == "Y" || $CONTINST == "y" ]]; then
   echo -e "$CNT - Setup starting..."
+  if sudo -v; then
+    echo -e "${CCL}${COK} - Login Succeeded"
+  else
+    echo -e "${CCA}${CER} - Failed to Login"
+    exit 1
+  fi
 else
   echo -e "$CNT - This script will now exit, no changes were made to your system."
   exit
 fi
 
 # Install Homebrew dependencies and Homebrew itself
-install_brew_dependencies
-install_brew_if_not_found
+install_homebrew_dependencies &&
+  install_homebrew
 
 # Install packages
 sleep 1 && read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
@@ -31,7 +37,7 @@ if [[ $INST == "Y" || $INST == "y" ]]; then
   # Install all brew packages
   echo -e "$CNT - Installing packages, this may take a while..."
   for PACKAGE in "${BREW_PACKAGES[@]}"; do
-    install_brew_package "${PACKAGE}"
+    install_homebrew_package "${PACKAGE}"
   done
 
   # Cleanup

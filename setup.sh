@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Source helper functions and common vars
-source scripts/helper-funcs.sh && echo -e "$CNT - Sourced helper functions" || exit 1
 source scripts/common.sh && echo -e "$CNT - Sourced common vars" || exit 1
+source scripts/helper-funcs.sh && echo -e "$CNT - Sourced helper functions" || exit 1
 
 clear
 
