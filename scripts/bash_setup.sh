@@ -11,7 +11,7 @@ echo -en "$CWR - " && color_text "${WARNING_C}" "This script will run some comma
 echo -en "$CNT - " && color_text "${NOTE_C}" "If you are worried about entering your password then you may want to review the content of the script."
 sleep 1
 
-# Give the user an option to exit out
+# Give the user an option to return out
 echo -en "${CAC} - Would you like to continue with the install (y,n) " && read -r CONTINST
 if [[ $CONTINST == "Y" || $CONTINST == "y" ]]; then
   echo -e "$CNT - Setup starting..."
@@ -19,11 +19,11 @@ if [[ $CONTINST == "Y" || $CONTINST == "y" ]]; then
     echo -e "${CCL}${COK} - Login Succeeded"
   else
     echo -e "${CCA}${CER} - Failed to Login"
-    exit 1
+    return 1
   fi
 else
   echo -e "$CNT - This script will now exit, no changes were made to your system."
-  exit
+  exit 1
 fi
 
 # Install Homebrew dependencies and Homebrew itself
@@ -58,12 +58,12 @@ if [[ $CFG == "Y" || $CFG == "y" ]]; then
     sleep 0.5
 
     if [[ -f "${ZSHENV}" ]]; then
-      source "${ZSHENV}" &>>"${INSTLOG}" &&
-        echo -e "${CCL}${COK} - Sourced .zshenv" ||
-        echo -e " - ${CER} - Failed to source .zshenv ${CROSS}" && exit 1
+      (source "${ZSHENV}" &>>"${INSTLOG}" &&
+        echo -e "${CCL}${COK} - Sourced .zshenv") ||
+        (echo -e " - ${CER} - Failed to source .zshenv ${CROSS}" && return 1)
     else
       echo -e "${CCL}${CWR} - $ZSHENV not found! Unable to complete setup. Check $INSTLOG for more details"
-      exit 1
+      return 1
     fi
 
     # === Source .zshrc ===
@@ -72,16 +72,16 @@ if [[ $CFG == "Y" || $CFG == "y" ]]; then
     sleep 0.5
 
     if [[ -f "${ZSHRC}" ]]; then
-      source "${ZSHRC}" &>>"${INSTLOG}" &&
-        echo -e "${CCL}${COK} - Sourced .zshrc" ||
-        echo -e " - ${CER} - Failed to source .zshrc ${CROSS}" && exit 1
+      (source "${ZSHRC}" &>>"${INSTLOG}" &&
+        echo -e "${CCL}${COK} - Sourced .zshrc") ||
+        (echo -e " - ${CER} - Failed to source .zshrc ${CROSS}" && return 1)
     else
       echo -e "${CCL}${CWR} - $ZSHRC not found! Unable to complete setup. Check $INSTLOG for more details"
-      exit 1
+      return 1
     fi
   else
     echo -e "${CCL}${CER} - Error encountered when creating symlinks to dotfiles. Check $INSTLOG for more details"
-    exit 1
+    return 1
   fi
 fi
 
