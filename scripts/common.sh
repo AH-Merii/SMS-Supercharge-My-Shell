@@ -1,6 +1,7 @@
 # Path to brew shellenv
 BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 HOMEBREW_EVAL="eval \$($BREW_PREFIX/bin/brew shellenv)"
+INSTLOG="install.log"
 
 # Color Codes
 NOTE_C="\e[1;36m"

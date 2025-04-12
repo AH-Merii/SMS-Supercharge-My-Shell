@@ -31,7 +31,7 @@ install_homebrew_dependencies &&
   install_homebrew
 
 # Install packages
-sleep 1 && read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
+read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
 
 if [[ $INST == "Y" || $INST == "y" ]]; then
   # Install all brew packages
@@ -50,31 +50,39 @@ WARN_USER=$(color_text "$WARNING_C" " any existing duplicate config files may be
 echo -en "$CAC - Would you like to copy config files? ${WARN_USER} (y,n) " && read -r CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
   # Create symlinks to dotfiles using stow
-  stow_all
+  if stow_all_configs_to_home_dir; then
 
-  # === Source .zshenv ===
-  ZSHENV="${HOME}/.zshenv"
-  echo -en "${CNT} - Sourcing .zshenv"
-  sleep 0.5
+    # === Source .zshenv ===
+    ZSHENV="${HOME}/.zshenv"
+    echo -en "${CNT} - Sourcing .zshenv"
+    sleep 0.5
 
-  if [[ -f "${ZSHENV}" ]]; then
-    source "${ZSHENV}" &>>"${INSTLOG}" &&
-      echo -e "${CCL}${COK} - Sourced .zshenv" ||
-      echo -e "${CCA}${CER} - Failed to source .zshenv ${CROSS}"
+    if [[ -f "${ZSHENV}" ]]; then
+      source "${ZSHENV}" &>>"${INSTLOG}" &&
+        echo -e "${CCL}${COK} - Sourced .zshenv" ||
+        echo -e " - ${CER} - Failed to source .zshenv ${CROSS}" && exit 1
+    else
+      echo -e "${CCL}${CWR} - $ZSHENV not found! Unable to complete setup. Check $INSTLOG for more details"
+      exit 1
+    fi
+
+    # === Source .zshrc ===
+    ZSHRC="${ZDOTDIR:-${HOME}}/.zshrc"
+    echo -en "${CNT} - Sourcing .zshrc"
+    sleep 0.5
+
+    if [[ -f "${ZSHRC}" ]]; then
+      source "${ZSHRC}" &>>"${INSTLOG}" &&
+        echo -e "${CCL}${COK} - Sourced .zshrc" ||
+        echo -e " - ${CER} - Failed to source .zshrc ${CROSS}" && exit 1
+    else
+      echo -e "${CCL}${CWR} - $ZSHRC not found! Unable to complete setup. Check $INSTLOG for more details"
+      exit 1
+    fi
   else
-    echo -e "${CCA}${CWR} - .zshenv not found, skipping"
-  fi
-
-  # === Source .zshrc ===
-  ZSHRC="${ZDOTDIR:-${HOME}}/.zshrc"
-  echo -en "${CNT} - Sourcing .zshrc"
-  sleep 0.5
-
-  if [[ -f "${ZSHRC}" ]]; then
-    source "${ZSHRC}" &>>"${INSTLOG}" &&
-      echo -e "${CCL}${COK} - Sourced .zshrc" ||
-      echo -e "${CCA}${CER} - Failed to source .zshrc ${CROSS}"
-  else
-    echo -e "${CCA}${CWR} - .zshrc not found at ${ZSHRC}, skipping"
+    echo -e "${CCL}${CER} - Error encountered when creating symlinks to dotfiles. Check $INSTLOG for more details"
+    exit 1
   fi
 fi
+
+return 0

@@ -9,8 +9,6 @@ color_text() {
   echo -e "${color}${text}${RESET_C}"
 }
 
-INSTLOG="install.log"
-
 # Function to detect the Linux distribution
 detect_distro() {
   if [ -f /etc/os-release ]; then
@@ -58,9 +56,9 @@ show_progress() {
   local exit_status=$?
 
   if [[ $exit_status ]]; then
-    echo -e "${clear_type}${notification_type} $message"
+    echo -e "${clear_type}${notification_type} - $message"
   else
-    echo -e "${CER} ${CROSS} (failed with code $exit_status) ${CROSS}"
+    echo -e " - ${CER} ${CROSS} (failed with code $exit_status) ${CROSS}"
   fi
 }
 
@@ -80,19 +78,19 @@ install_homebrew_dependencies() {
   case $DISTRO in
   "ubuntu" | "debian" | "pop" | "elementary" | "linuxmint")
     echo -en " for Debian/Ubuntu based system..."
-    sudo apt-get update &>>$INSTLOG &&
-      sudo apt-get install -y build-essential procps curl file git &>>$INSTLOG &
+    sudo apt-get update &>>"$INSTLOG" &&
+      sudo apt-get install -y build-essential procps curl file git &>>"$INSTLOG" &
     local install_pid=$!
     ;;
   "fedora" | "rhel" | "centos" | "almalinux" | "rocky")
     echo -en " for Fedora/Red Hat based system..."
-    sudo yum groupinstall -y 'Development Tools' &>>$INSTLOG &&
-      sudo yum install -y procps-ng curl file git &>>$INSTLOG &
+    sudo yum groupinstall -y 'Development Tools' &>>"$INSTLOG" &&
+      sudo yum install -y procps-ng curl file git &>>"$INSTLOG" &
     local install_pid=$!
     ;;
   "arch" | "manjaro" | "endeavouros")
     echo -en " for Arch based system..."
-    sudo pacman -Sy --needed --noconfirm base-devel procps-ng curl file git &>>$INSTLOG &
+    sudo pacman -Sy --needed --noconfirm base-devel procps-ng curl file git &>>"$INSTLOG" &
     local install_pid=$!
     ;;
   *)
@@ -155,12 +153,12 @@ install_homebrew_package() {
     echo -e "$COK - $1 is already installed."
   else
     echo -en "$CNT - Now installing $1"
-    brew install "${1}" &>>${INSTLOG} &
+    brew install "${1}" &>>"${INSTLOG}" &
     local install_pid=$!
-    show_progress "$install_pid" " - ${1} was installed."
+    show_progress "$install_pid" "${1} was installed."
   fi
 }
 
 stow_all_configs_to_home_dir() {
-  stow */ -t ~ &>>"${INSTLOG}" && echo -e "${COK} - Dotfiles Linked!" || echo "${ER} There was a problem linking your Dotfiles, check install.log for more info. ${CROSS}"
+  stow */ -t ~ &>>"${INSTLOG}" && echo -e "${COK} - Dotfiles Linked!" || echo "${ER} There was a problem linking your Dotfiles, check $INSTLOG"
 }

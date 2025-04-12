@@ -25,6 +25,6 @@ if [[ $CFG == "Y" || $CFG == "y" ]]; then
   yes | antidot update &>>"${INSTLOG}" &&
     yes | antidot clean &>>"${INSTLOG}" &&
     echo -e "$CCA$COK - Home directory is now squeaky clean." ||
-    echo -e "$CCA$CWR - Problem encountered decluttering home diretory, check install.log for more info."
+    echo -e "$CCA$CWR - Problem encountered decluttering home diretory, check $INSTLOG for more info."
 
 fi

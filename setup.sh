@@ -18,7 +18,7 @@ if source scripts/bash_setup.sh; then
     if declare -f load_completions &>/dev/null; then
       echo -en "$CNT - Updating & loading zsh completions"
       sleep 0.5
-      load_completions && echo -e "${CCL}${COK} - Completions loaded." || echo -e "${CCA}${CWR} Unable to load completions."
+      load_completions && echo -e "${CCL}${COK} - Completions loaded." || echo -e "${CCL}${CWR} Unable to load completions."
     else
       echo -e "${CCA}${CWR} - Function load_completions not available, skipping..."
     fi
@@ -26,11 +26,11 @@ if source scripts/bash_setup.sh; then
     # Setup complete
     echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m\n\033[95mPLEASE RESTART YOUR TERMINAL TO COMPLETE SETUP\033[0m"
   else
-    echo -e "${CER} - zsh_setup failed. Exiting setup."
+    echo -e "${CER} - zsh_setup failed. Exiting setup. Check $INSTLOG for more info"
     exit 1
   fi
 
 else
-  echo -e "${CER} - bash_setup failed. Exiting setup."
+  echo -e "${CER} - bash_setup failed. Exiting setup. Check $INSTLOG for more info"
   exit 1
 fi
