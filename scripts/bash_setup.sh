@@ -45,9 +45,7 @@ if [[ $INST == "Y" || $INST == "y" ]]; then
     install_homebrew_package "${PACKAGE}"
   done
 
-  # Cleanup
-  echo -e "$CNT - Cleaning up Homebrew installation..."
-  brew cleanup &>>"${INSTLOG}" && echo -e "$CCA$COK - Homebrew installation cleaned"
+  cleanup_homebrew_installation
 fi
 
 # Copy Config Files

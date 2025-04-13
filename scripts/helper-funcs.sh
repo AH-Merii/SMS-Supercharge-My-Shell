@@ -36,7 +36,7 @@ show_progress() {
   local pid=$1
   local message="$2"
   local delay=0.1
-  local spinstr='|/-\'
+  local spinstr='▖▘▝▗'
 
   # Default types
   local notification_type="${3:-$COK}" # Success color/style
@@ -150,6 +150,13 @@ install_homebrew_package() {
     local install_pid=$!
     show_progress "$install_pid" "${1} was installed."
   fi
+}
+
+cleanup_homebrew_installation() {
+  echo -en "$CNT - Cleaning up Homebrew installation..."
+  brew cleanup &>>"${INSTLOG}" &
+  install_pid=$!
+  show_progress "${install_pid}" "Homebrew installation cleaned"
 }
 
 stow_all_configs_to_home_dir() {
