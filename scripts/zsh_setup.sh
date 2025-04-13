@@ -28,14 +28,14 @@ add_homebrew_path_to_config
 if command -v zsh &>/dev/null; then
   ZSH_PATH=$(which zsh)
   if [[ "$SHELL" != "$ZSH_PATH" ]]; then
-    echo -en "$CNT - Changing default shell to ZSH..."
+    echo -e "$CNT - Changing default shell to ZSH..."
     sudo chsh -s "$ZSH_PATH" "${USER}" &>>"${INSTLOG}"
-    echo -e "${CCL}${COK} - Default shell changed to ZSH."
+    echo -e "${CCA}${COK} - Default shell changed to ZSH."
   else
-    echo -e "${CCL}${COK} - ZSH is already your default shell."
+    echo -e "${CCA}${COK} - ZSH is already your default shell."
   fi
 else
-  echo -e "${CCL}${CWR} - ZSH is not installed, skipping shell change."
+  echo -e "${CCA}${CWR} - ZSH is not installed, skipping shell change."
 fi
 
 # Clean home directory dotfiles to follow XDG standard

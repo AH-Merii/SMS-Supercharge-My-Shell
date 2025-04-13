@@ -1,6 +1,8 @@
-#!/bin/bash
+# Get absolute path to the directory this script is in
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source common.sh && echo -e "$CNT - Sourced common vars"
+# Source relative files using full path
+source "${SCRIPT_DIR}/common.sh"
 
 # Helper function to color text
 color_text() {
@@ -161,8 +163,7 @@ cleanup_homebrew_installation() {
 
 stow_all_configs_to_home_dir() {
   for dir in */; do
-    echo -e "${CNT} - Checking conflicts in ${dir}..."
-    conflicts=$(stow -nvt ~ "$dir" 2>&1 | grep 'existing target is neither a link nor a directory')
+    conflicts=$(stow -nvt ~ "$dir" 2>&1 | grep 'neither a link nor a directory')
 
     if [[ -n $conflicts ]]; then
       echo "$conflicts" | while read -r line; do
@@ -170,15 +171,15 @@ stow_all_configs_to_home_dir() {
         echo -e "${CWR} - Conflict detected: $filepath already exists."
         while true; do
           local prompt="${CAC} - Would you like to (o)verwrite or (a)dopt? [o/a]: "
-          read -r -e -p "$prompt" choice
+          read -r -e -p "${prompt}" choice
           case "$choice" in
           [Oo]*)
-            echo -e "${CCA}${CNT} - Overwrote $filepath..." && sleep 1
+            echo -e "${CCA}${CCA}${COK} - Overwrote $filepath..." && sleep 1
             rm -rf "$filepath"
             break
             ;;
           [Aa]*)
-            echo -e "${CCA}${CNT} - Adopted existing $filepath." && sleep 1
+            echo -e "${CCA}${CCA}${COK} - Adopted existing $filepath." && sleep 1
             break
             ;;
           *)

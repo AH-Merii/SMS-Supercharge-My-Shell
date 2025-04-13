@@ -49,7 +49,7 @@ if [[ $INST == "Y" || $INST == "y" ]]; then
 fi
 
 # Copy Config Files
-WARN_USER=$(color_text "$WARNING_C" " any existing duplicate config files may be overwritten!")
+WARN_USER=$(color_text "$WARNING_C" "Any existing duplicate config files may be overwritten!")
 echo -en "$CAC - Would you like to copy config files? ${WARN_USER} (y,n) " && read -r CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
   stow_all_configs_to_home_dir || return 1

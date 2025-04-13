@@ -30,5 +30,5 @@ install
 programs
 scripts
 ^\.zcompdump$
-^/scripts/helper-funcs\.sh$
+^/scripts/
 systemd
