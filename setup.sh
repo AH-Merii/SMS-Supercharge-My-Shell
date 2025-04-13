@@ -7,7 +7,8 @@ source scripts/helper-funcs.sh && echo -e "$CNT - Sourced helper functions" || e
 
 clear
 
-# Run bash setup, then zsh setup, then completions ΓÇö only if the previous succeeded
+# shellcheck disable=SC2317
+# Run bash setup, then zsh setup, then completions only if the previous succeeded
 if source scripts/bash_setup.sh; then
   echo -e "$COK - Bash setup succeeded."
 

@@ -1,3 +1,4 @@
+#! /bin/bash
 source helper-funcs.sh
 
 # Create a fresh log file
@@ -50,39 +51,10 @@ WARN_USER=$(color_text "$WARNING_C" " any existing duplicate config files may be
 echo -en "$CAC - Would you like to copy config files? ${WARN_USER} (y,n) " && read -r CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
   # Create symlinks to dotfiles using stow
-  if stow_all_configs_to_home_dir; then
-
-    # === Source .zshenv ===
-    ZSHENV="${HOME}/.zshenv"
-    echo -en "${CNT} - Sourcing .zshenv"
-    sleep 0.5
-
-    if [[ -f "${ZSHENV}" ]]; then
-      (source "${ZSHENV}" &>>"${INSTLOG}" &&
-        echo -e "${CCL}${COK} - Sourced .zshenv") ||
-        (echo -e " - ${CER} - Failed to source .zshenv ${CROSS}" && return 1)
-    else
-      echo -e "${CCL}${CWR} - $ZSHENV not found! Unable to complete setup. Check $INSTLOG for more details"
-      return 1
-    fi
-
-    # === Source .zshrc ===
-    ZSHRC="${ZDOTDIR:-${HOME}}/.zshrc"
-    echo -en "${CNT} - Sourcing .zshrc"
-    sleep 0.5
-
-    if [[ -f "${ZSHRC}" ]]; then
-      (source "${ZSHRC}" &>>"${INSTLOG}" &&
-        echo -e "${CCL}${COK} - Sourced .zshrc") ||
-        (echo -e " - ${CER} - Failed to source .zshrc ${CROSS}" && return 1)
-    else
-      echo -e "${CCL}${CWR} - $ZSHRC not found! Unable to complete setup. Check $INSTLOG for more details"
-      return 1
-    fi
-  else
-    echo -e "${CCL}${CER} - Error encountered when creating symlinks to dotfiles. Check $INSTLOG for more details"
-    return 1
-  fi
+  ([[ $(stow_all_configs_to_home_dir) ]] &&
+    echo -e "${CCL}${COK} Dotfiles Linked!") ||
+    (echo -e "${CCL}${CER} - Error encountered when creating symlinks to dotfiles. Check $INSTLOG for more details" &&
+      return 1)
 fi
 
 return 0

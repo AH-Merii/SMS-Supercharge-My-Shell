@@ -124,29 +124,22 @@ install_homebrew() {
 }
 
 # Function to add Homebrew to PATH in specified config files
-add_homebrew_path_to_configs() {
-  local config_files=("$@")
+add_homebrew_path_to_config() {
+  local config_file="${1:-$HOME/.zshenv}"
 
-  # Default to ~/.zshenv and ~/.bashrc if no arguments provided
-  if [ ${#config_files[@]} -eq 0 ]; then
-    config_files=("$HOME/.zshenv" "$HOME/.bashrc")
+  if [[ -f "$config_file" ]] && ! grep -q "$HOMEBREW_EVAL" "$config_file"; then
+    echo "$HOMEBREW_EVAL" | cat - "$config_file" >temp && mv temp "$config_file" &&
+      sleep 0.5 && echo -e "$COK - Added Homebrew to $config_file"
+  else
+    if [[ -f "$config_file" ]]; then
+      sleep 0.5 && echo -e "$COK - Homebrew already in $config_file"
+    else
+      sleep 0.5 && echo -e "$CWR - Config file $config_file does not exist"
+    fi
   fi
 
-  for config_file in "${config_files[@]}"; do
-    if [[ -f "$config_file" ]] && ! grep -q "$HOMEBREW_EVAL" "$config_file"; then
-      # Add Homebrew Path at the beginning of the file
-      echo "$HOMEBREW_EVAL" | cat - "$config_file" >temp && mv temp "$config_file" &&
-        sleep 0.5 && echo -e "$COK - Added Homebrew to $config_file"
-    else
-      if [[ -f "$config_file" ]]; then
-        sleep 0.5 && echo -e "$COK - Homebrew already in $config_file"
-      else
-        sleep 0.5 && echo -e "$CWR - Config file $config_file does not exist"
-      fi
-    fi
-  done
+  return 0
 }
-
 # Function to install packages using Homebrew
 install_homebrew_package() {
   if brew list "${1}" &>/dev/null; then
