@@ -36,7 +36,7 @@ show_progress() {
   local pid=$1
   local message="$2"
   local delay=0.1
-  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local spinstr='.oO0@0Oo.'
 
   # Default types
   local notification_type="${3:-$COK}" # Success color/style
@@ -160,10 +160,39 @@ cleanup_homebrew_installation() {
 }
 
 stow_all_configs_to_home_dir() {
-  if stow */ -t ~ &>>"${INSTLOG}"; then
-    echo -e "${CCL}${COK} - Dotfiles Linked!"
-  else
-    echo -e "${CCL}${CER} There was a problem linking your Dotfiles, check $INSTLOG"
-    return 1
-  fi
+  for dir in */; do
+    echo -e "${CNT} - Checking conflicts in ${dir}..."
+    conflicts=$(stow -nvt ~ "$dir" 2>&1 | grep 'existing target is neither a link nor a directory')
+
+    if [[ -n $conflicts ]]; then
+      echo "$conflicts" | while read -r line; do
+        filepath=$(echo "$line" | awk -F': ' '{print $2}')
+        echo -e "${CWR} - Conflict detected: $filepath already exists."
+        while true; do
+          local prompt="${CAC} - Would you like to (o)verwrite or (a)dopt? [o/a]: "
+          read -r -e -p "$prompt" choice
+          case "$choice" in
+          [Oo]*)
+            echo -e "${CCA}${CNT} - Overwrote $filepath..." && sleep 1
+            rm -rf "$filepath"
+            break
+            ;;
+          [Aa]*)
+            echo -e "${CCA}${CNT} - Adopted existing $filepath." && sleep 1
+            break
+            ;;
+          *)
+            echo -e "${CCA}${CAC} - Please enter either 'o' to overwrite or 'a' to adopt."
+            ;;
+          esac
+        done
+      done
+    fi
+
+    # Final stow call with --adopt, which only affects adopted files
+    if ! stow --adopt -vt ~ "$dir" &>>"${INSTLOG}"; then
+      echo -e "${CER} Problem linking $dir, check $INSTLOG"
+      return 1
+    fi
+  done
 }
