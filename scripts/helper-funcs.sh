@@ -36,7 +36,7 @@ show_progress() {
   local pid=$1
   local message="$2"
   local delay=0.1
-  local spinstr='▖▘▝▗'
+  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
 
   # Default types
   local notification_type="${3:-$COK}" # Success color/style
