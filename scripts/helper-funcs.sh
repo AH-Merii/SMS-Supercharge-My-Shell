@@ -153,5 +153,10 @@ install_homebrew_package() {
 }
 
 stow_all_configs_to_home_dir() {
-  stow */ -t ~ &>>"${INSTLOG}" && echo -e "${COK} - Dotfiles Linked!" || echo "${ER} There was a problem linking your Dotfiles, check $INSTLOG"
+  if stow */ -t ~ &>>"${INSTLOG}"; then
+    echo -e "${COK} - Dotfiles Linked!"
+  else
+    echo "${ER} There was a problem linking your Dotfiles, check $INSTLOG"
+    return 1
+  fi
 }

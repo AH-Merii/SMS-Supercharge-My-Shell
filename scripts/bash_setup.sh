@@ -54,12 +54,8 @@ fi
 WARN_USER=$(color_text "$WARNING_C" " any existing duplicate config files may be overwritten!")
 echo -en "$CAC - Would you like to copy config files? ${WARN_USER} (y,n) " && read -r CFG
 if [[ $CFG == "Y" || $CFG == "y" ]]; then
-  if stow_all_configs_to_home_dir; then
-    echo -e "${CCL}${COK} Dotfiles Linked!"
-  else
-    echo -e "${CCL}${CER} - Error encountered when creating symlinks to dotfiles. Check $INSTLOG for more details"
-    return 1
-  fi
+  stow_all_configs_to_home_dir || return 1
+  return 0
+else
+  return 1
 fi
-
-return 0
