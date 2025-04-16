@@ -113,8 +113,10 @@ stow_all_configs_to_home_dir() {
           read -r choice </dev/tty
           case "$choice" in
           [Oo]*)
-            echo -e "${CCA}${CCA}${COK} - Overwrote $filepath..." && sleep 1
-            rm -rf "$filepath"
+            rm -rf "$filepath" &&
+              echo -e "${CCA}${CCA}${COK} - Overwrote $filepath..." ||
+              echo -e "${CCA}${CCA}${CWR} - Unable to overwrite ${filepath}, Adopting existing instead"
+            sleep 1
             break
             ;;
           [Aa]*)
