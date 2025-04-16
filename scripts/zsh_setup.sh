@@ -22,36 +22,9 @@ else
   return 1
 fi
 
-add_homebrew_path_to_config
+add_homebrew_path_to_config || return 1
 
-# Change default shell to zsh if installed
-if command -v zsh &>/dev/null; then
-  ZSH_PATH=$(which zsh)
-  if [[ "$SHELL" != "$ZSH_PATH" ]]; then
-    echo -e "$CNT - Changing default shell to ZSH..."
-    sudo chsh -s "$ZSH_PATH" "${USER}" &>>"${INSTLOG}"
-    echo -e "${CCA}${COK} - Default shell changed to ZSH."
-  else
-    echo -e "${CCA}${COK} - ZSH is already your default shell."
-  fi
-else
-  echo -e "${CCA}${CWR} - ZSH is not installed, skipping shell change."
-fi
+change_default_shell_to_zsh || return 1
 
-# Clean home directory dotfiles to follow XDG standard
-echo -en "${CAC} - Would you like to run antidot (declutter your home directory)? (y,n) " && read -r CFG
-if [[ $CFG == "Y" || $CFG == "y" ]]; then
-  echo -e "$CNT - Decluttering home directory..."
-
-  if yes | antidot update &>>"${INSTLOG}" && yes | antidot clean &>>"${INSTLOG}"; then
-    echo -e "$CCA$COK - Home directory is now squeaky clean."
-  else
-    echo -e "$CCA$CWR - Problem encountered decluttering home directory, check $INSTLOG for more info."
-    return 1
-  fi
-
-else
-  return 1
-fi
-
+clean_dotfiles_from_homedir || return 1
 return 0

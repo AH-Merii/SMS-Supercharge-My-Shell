@@ -1,3 +1,4 @@
+eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 # editor
 export EDITOR=nvim
 export SUDOEDITOR=nvim

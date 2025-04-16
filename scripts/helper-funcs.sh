@@ -167,11 +167,11 @@ stow_all_configs_to_home_dir() {
 
     if [[ -n $conflicts ]]; then
       echo "$conflicts" | while read -r line; do
-        filepath=$(echo "$line" | awk -F': ' '{print $2}')
-        echo -e "${CWR} - Conflict detected: $filepath already exists."
+        filepath=$(echo "$line" | awk -F' ' '{print $4}')
+        echo -e "${CWR} - Conflict detected: $(color_text "${WARNING_C}" "${filepath}") already exists."
         while true; do
-          local prompt="${CAC} - Would you like to (o)verwrite or (a)dopt? [o/a]: "
-          read -r -e -p "${prompt}" choice
+          echo -en "${CAC} - Would you like to (o)verwrite or (a)dopt? [o/a]: "
+          read -r choice </dev/tty
           case "$choice" in
           [Oo]*)
             echo -e "${CCA}${CCA}${COK} - Overwrote $filepath..." && sleep 1
@@ -183,7 +183,7 @@ stow_all_configs_to_home_dir() {
             break
             ;;
           *)
-            echo -e "${CCA}${CAC} - Please enter either 'o' to overwrite or 'a' to adopt."
+            echo -e "${CAC} - Please enter either 'o' to overwrite or 'a' to adopt."
             ;;
           esac
         done
@@ -192,8 +192,94 @@ stow_all_configs_to_home_dir() {
 
     # Final stow call with --adopt, which only affects adopted files
     if ! stow --adopt -vt ~ "$dir" &>>"${INSTLOG}"; then
-      echo -e "${CER} Problem linking $dir, check $INSTLOG"
+      echo -e "${CER} - Problem linking $dir, check $INSTLOG"
+      return 1
+    fi
+
+    if ! stow -vt ~ "$dir" &>>"${INSTLOG}"; then
+      echo -e "${CER} - Problem linking $dir, check $INSTLOG"
       return 1
     fi
   done
+  echo -e "${COK} - Dotfiles Linked!"
+}
+
+ensure_shell_in_etc_shells() {
+  local shell_path="$1"
+
+  if [[ -z "$shell_path" || ! -x "$shell_path" ]]; then
+    echo -e "${CER} - Invalid or non-executable shell path: $shell_path"
+    return 1
+  fi
+
+  if grep -Fxq "$shell_path" /etc/shells &>>"${INSTLOG}"; then
+    echo -e "${CCA}${COK} - $shell_path is already listed in /etc/shells"
+  else
+    echo -e "${CCA}${CNT} - Adding ${shell_path} to /etc/shells... " && sleep 1
+    if echo "$shell_path" | sudo tee -a /etc/shells &>>"${INSTLOG}"; then
+      echo -e "${CCA}${COK} - ${shell_path} added to /etc/shells."
+    else
+      echo -e "${CCA}${CER} - Unable to add ${shell_path} to /etc/shells."
+      return 1
+    fi
+  fi
+}
+
+change_default_shell_to_zsh() {
+  local zsh_path
+  zsh_path="$(command -v zsh)"
+
+  ensure_shell_in_etc_shells "${zsh_path}" || return 1
+
+  # Change the user's default shell if not already set
+  if getent passwd "$USER" | cut -d: -f7 | grep -q "zsh"; then
+    echo -e "${CNT} - Changing default shell to ZSH... " && sleep 1
+    if usermod --shell "${zsh_path}" "$USER" &>>"$INSTLOG"; then
+      echo -e "${CCA}${COK} - ZSH is now your default shell."
+    else
+      echo -e "${CCA}${CER} - Unable to set ZSH as your default shell."
+      return 1
+    fi
+  else
+    echo -e "${CCA}${COK} - ZSH is already your default shell."
+  fi
+
+  return 0
+}
+
+clean_dotfiles_from_homedir() {
+  echo -en "${CAC} - Would you like to run Antidot (declutter your home directory)? (y,n) " && read -r ANTIDOT
+
+  if [[ ${ANTIDOT} == "Y" || ${ANTIDOT} == "y" ]]; then
+    echo -e "${CCA}${CNT} - Decluttering home directory..."
+
+    if antidot update &>>"${INSTLOG}"; then
+      echo -e "${CCA}${COK} - Antidot rules updated successfully." && sleep 1
+      if antidot clean; then
+        if grep -F 'eval "$(antidot init)"' "${ZDOTDIR}/.zshrc" &>>"${INSTLOG}"; then
+          echo -e "${COK} - eval antidot init already present in .zshrc"
+        else
+          echo 'eval "$(antidot init)"' >>"$ZDOTDIR/.zshrc"
+          echo -e "${COK} - Added antidot configuration to .zsrhc"
+        fi
+
+        if eval "$(antidot init)" &>>"${INSTLOG}"; then
+          echo -e "${COK} - Home directory is now squeaky clean."
+        else
+          echo -e "${COK} - Failed to evaluate antidot init"
+          return 1
+        fi
+      else
+        echo -e "${CWR} - Antidot 'clean' failed. Check ${INSTLOG} for more info."
+        return 1
+      fi
+    else
+      echo -e "${CCA}${CWR} - Antidot 'update' failed. Skipping clean. Check ${INSTLOG} for more info."
+      return 1
+    fi
+
+  else
+    echo -e "${CCA}${CWR} - Skipping antidot cleanup."
+    return 0
+  fi
 }
