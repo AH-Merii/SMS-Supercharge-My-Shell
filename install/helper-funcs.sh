@@ -1,36 +1,11 @@
-# Get absolute path to the directory this script is in
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 # Source relative files using full path
-source "${SCRIPT_DIR}/common.sh"
+source common.sh
 
 # Helper function to color text
 color_text() {
   local color="$1"
   local text="$2"
   echo -e "${color}${text}${RESET_C}"
-}
-
-# Function to detect the Linux distribution
-detect_distro() {
-  if [ -f /etc/os-release ]; then
-    # shellcheck source=/etc/os-release
-    . /etc/os-release
-    DISTRO=$ID
-  elif type lsb_release >/dev/null 2>&1; then
-    DISTRO=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
-  elif [ -f /etc/lsb-release ]; then
-    # shellcheck source=/etc/lsb-release
-    . /etc/lsb-release
-    DISTRO=$(echo "$DISTRIB_ID" | tr '[:upper:]' '[:lower:]')
-  elif [ -f /etc/arch-release ]; then
-    DISTRO="arch"
-  elif [ -f /etc/fedora-release ]; then
-    DISTRO="fedora"
-  else
-    DISTRO="unknown"
-  fi
-  echo "$DISTRO"
 }
 
 # Function that would show a progress bar to the user
@@ -68,42 +43,6 @@ show_progress() {
 maybe_eval() {
   command -v "$1" >/dev/null || return
   eval "$("$@")"
-}
-
-# Function to install Homebrew dependencies based on the detected distro
-install_homebrew_dependencies() {
-  DISTRO=$(detect_distro)
-  echo -e "$CNT - Detected Linux distribution: $DISTRO"
-
-  # Check if dependencies are already installed
-  echo -en "$CNT - Installing Homebrew dependencies"
-  case $DISTRO in
-  "ubuntu" | "debian" | "pop" | "elementary" | "linuxmint")
-    echo -en " for Debian/Ubuntu based system..."
-    sudo apt-get update &>>"$INSTLOG" &&
-      sudo apt-get install -y build-essential procps curl file git &>>"$INSTLOG" &
-    local install_pid=$!
-    ;;
-  "fedora" | "rhel" | "centos" | "almalinux" | "rocky")
-    echo -en " for Fedora/Red Hat based system..."
-    sudo yum groupinstall -y 'Development Tools' &>>"$INSTLOG" &&
-      sudo yum install -y procps-ng curl file git &>>"$INSTLOG" &
-    local install_pid=$!
-    ;;
-  "arch" | "manjaro" | "endeavouros")
-    echo -en " for Arch based system..."
-    sudo pacman -Sy --needed --noconfirm base-devel procps-ng curl file git &>>"$INSTLOG" &
-    local install_pid=$!
-    ;;
-  *)
-    echo -e "${CCA}${CER} - Unsupported Linux distribution: ${DISTRO}"
-    echo -e "${CAT} - Please install the following packages manually: build tools, procps, curl, file, git"
-    exit 1
-    ;;
-  esac
-
-  show_progress "${install_pid}" "All Homebrew dependencies installed successfully"
-  return 0
 }
 
 # Function to install Homebrew if not found

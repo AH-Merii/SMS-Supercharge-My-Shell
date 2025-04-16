@@ -27,6 +27,10 @@ CAC="[${ACTION_C}ACTION${RESET_C}]"
 # ASCII Icons
 CROSS="\u274C"
 
+SYSTEM_PACKAGES=(
+  git
+)
+
 # Tools to install via Homebrew
 BREW_PACKAGES=(
   # Development tools

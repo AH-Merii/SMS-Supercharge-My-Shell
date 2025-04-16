@@ -1,9 +1,6 @@
-# Get absolute path to the directory this script is in
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 # Source relative files using full path
-source "${SCRIPT_DIR}/common.sh"
-source "${SCRIPT_DIR}/helper-funcs.sh"
+source common.sh
+source helper-funcs.sh
 
 # Create a fresh log file
 echo -e "Installation Log - $(date)" >"${INSTLOG}"
@@ -16,24 +13,8 @@ echo -en "$CWR - " && color_text "${WARNING_C}" "This script will run some comma
 echo -en "$CNT - " && color_text "${NOTE_C}" "If you are worried about entering your password then you may want to review the content of the script."
 sleep 1
 
-# Give the user an option to return out
-echo -en "${CAC} - Would you like to continue with the install (y,n) " && read -r CONTINST
-if [[ $CONTINST == "Y" || $CONTINST == "y" ]]; then
-  echo -e "$CNT - Setup starting..."
-  if sudo -v; then
-    echo -e "${CCL}${COK} - Login Succeeded"
-  else
-    echo -e "${CCA}${CER} - Failed to Login"
-    return 1
-  fi
-else
-  echo -e "$CNT - This script will now exit, no changes were made to your system."
-  exit 1
-fi
-
 # Install Homebrew dependencies and Homebrew itself
-install_homebrew_dependencies &&
-  install_homebrew
+install_homebrew
 
 # Install packages
 read -rep $'[\e[1;33mACTION\e[0m] - Would you like to install the packages? (y,n) ' INST
