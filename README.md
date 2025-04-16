@@ -31,7 +31,6 @@ The setup adds the following modern unix tools and creates aliases for their GNU
 The setup adds the following tools to terminal gui tools:
 
 - [`lazygit`](https://github.com/jesseduffield/lazygit) - _A simple terminal UI for git commands, written in Go with the gocui library._
-- [`lf`](https://github.com/gokcehan/lf) - _A terminal file manager_
 - [`fzf`](https://github.com/junegunn/fzf) - _A general purpose command-line fuzzy finder._
 - [`powerlevel10k`](https://github.com/romkatv/powerlevel10k) - _A minimal, blazing-fast, and highly customizable prompt for any shell_
 - [`neovim`](https://neovim.io/) - _Vim-fork focused on extensibility and usability_ ---> An alternative to Vim
@@ -69,21 +68,15 @@ This setup also includes all the shortcuts for selecting text that you would use
 
 ### Prerequisites
 
-- [Arch Linux](https://archlinux.org/) or any [Arch-based distro](https://wiki.archlinux.org/title/Arch-based_distributions)
 - [NerdFonts](https://www.nerdfonts.com/font-downloads) compatible font
 
-````
 ### Setup Script
-To automatically setup the development environment simply navigate to the root directory of the repo, and run:
+To install the dotfiles you can run the following command in your terminal:
 ```bash
-./setup.sh
-````
+bash <(curl -s https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/refs/heads/main/install/install.sh)
+```
 
 ### Dotfiles
-
-If you would simply like to copy the dotfiles, then while you are in `setup.sh` simply skip the other steps when prompted and only run the step related to the configs.
-
-**_OR_**
 Run `stow` to symlink everything or just select what you want
 
 ```bash

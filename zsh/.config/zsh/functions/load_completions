@@ -26,6 +26,7 @@ generate_completion "antidot" "antidot completion zsh" "_antidot"
 generate_completion "uvx" "uvx --generate-shell-completion zsh" "_uvx"
 generate_completion "uv" "uv --generate-shell-completion zsh" "_uv"
 generate_completion "docker" "docker completion zsh" "_docker"
+generate_completion "pixi" "pixi completion zsh" "_zsh"
 # For podman, the command already writes to the file with -f so disable redirection.
 generate_completion "podman" "podman completion -f $completions_dir/_podman zsh" "_podman" false
 
