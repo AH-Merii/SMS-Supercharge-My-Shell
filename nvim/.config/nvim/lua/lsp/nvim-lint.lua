@@ -28,25 +28,25 @@ function M.config()
     return activated_linters
   end
 
+  local helpers = require('user.helpers')
   --- Toggles a specific linter on or off for the current file type.
   --- @param linter_name string: The name of the linter to toggle.
   function M.toggle_linter(linter_name)
-    local helpers = require('user.helpers')
     local ft = vim.bo.filetype
 
     if not lint.linters_by_ft[ft] then
-      helpers.notify("No linters configured for file type: " .. ft, vim.log.levels.WARN)
+      helpers.notify({ msg = "No linters configured for file type: " .. ft, level = vim.log.levels.WARN })
       return
     end
 
     -- Check if the linter is already active, toggle it off
     if vim.tbl_contains(lint.linters_by_ft[ft], linter_name) then
       helpers.remove_value(lint.linters_by_ft[ft], linter_name)
-      helpers.notify("Disabled linter: " .. linter_name .. " for file type: " .. ft, vim.log.levels.INFO)
+      helpers.notify({ msg = "Disabled linter: " .. linter_name .. " for file type: " .. ft, level = vim.log.levels.INFO })
     else
       -- Add the linter if it's not already in the list
       table.insert(lint.linters_by_ft[ft], linter_name)
-      helpers.notify("Enabled linter: " .. linter_name .. " for file type: " .. ft, vim.log.levels.INFO)
+      helpers.notify({ msg = "Enabled linter: " .. linter_name .. " for file type: " .. ft, level = vim.log.levels.INFO })
     end
 
     -- Reset diagnostics and re-run linting
@@ -63,7 +63,7 @@ function M.config()
       if linter_name and linter_name ~= "" then
         M.toggle_linter(linter_name)
       else
-        require('user.helpers').notify("Please provide a linter name", vim.log.levels.ERROR)
+        helpers.notify({ msg = "Please provide a linter name", level = vim.log.levels.ERROR })
       end
     end,
     {

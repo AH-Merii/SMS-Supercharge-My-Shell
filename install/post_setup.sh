@@ -14,7 +14,7 @@ main() {
   # check if you are authenticated with github if not authenticate github
   run_command --input-message "Checking GitHub Authentication" \
     --success-message "GitHub already authenticated" \
-    -c "gh auth status" >/dev/null 2>&1
+    -c "gh auth status"
   local github_auth_status=$?
 
   if [[ "${github_auth_status}" -ne 0 ]]; then

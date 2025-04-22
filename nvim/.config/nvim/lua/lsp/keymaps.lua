@@ -5,14 +5,14 @@ local helpers = require("user.helpers") -- Use centralized helpers for notificat
 
 --- Configuration for LSP function keymaps.
 M.lsp_function_to_keymap_config = {
-  definition     = { "n", "gd", "Go to Definition", vim.lsp.buf.definition },
-  declaration    = { "n", "gD", "Go to Declaration", vim.lsp.buf.declaration },
-  hover          = { "n", "K", "Hover Documentation", vim.lsp.buf.hover },
-  implementation = { "n", "gI", "Go to Implementation", vim.lsp.buf.implementation },
-  references     = { "n", "gr", "Go to References", vim.lsp.buf.references },
-  rename         = { "n", "<leader>lr", "Rename", vim.lsp.buf.rename },
-  code_action    = { { "n", "v" }, "<leader>la", "Code Action", vim.lsp.buf.code_action },
-  format         = { "n", "<leader>lf", "Format", function() vim.lsp.buf.format({ async = true }) end },
+  -- definition     = { "n", "gd", "Go to Definition", vim.lsp.buf.definition },
+  -- declaration    = { "n", "gD", "Go to Declaration", vim.lsp.buf.declaration },
+  hover       = { "n", "K", "Hover Documentation", vim.lsp.buf.hover },
+  -- implementation = { "n", "gI", "Go to Implementation", vim.lsp.buf.implementation },
+  -- references     = { "n", "gr", "Go to References", vim.lsp.buf.references },
+  rename      = { "n", "<leader>lr", "Rename", vim.lsp.buf.rename },
+  code_action = { { "n", "v" }, "<leader>la", "Code Action", vim.lsp.buf.code_action },
+  format      = { "n", "<leader>lf", "Format", function() vim.lsp.buf.format({ async = true }) end },
 }
 
 --- Maps LSP functions to their respective server capabilities.
@@ -50,18 +50,18 @@ function M.check_all_clients(feature, bufnr)
   local clients = vim.lsp.get_clients({ bufnr = bufnr })
 
   if #clients == 0 then
-    helpers.notify("No LSP clients attached to buffer: " .. bufnr, vim.log.levels.WARN)
+    helpers.notify({ msg = "No LSP clients attached to buffer: " .. bufnr, level = vim.log.levels.WARN })
     return false
   end
 
   for _, client in ipairs(clients) do
     if client.server_capabilities[feature] then
-      helpers.notify("Feature " .. feature .. " provided by: " .. client.name, vim.log.levels.DEBUG, true)
+      helpers.notify({ msg = "Feature " .. feature .. " provided by: " .. client.name, level = vim.log.levels.DEBUG, debug = true })
       return true -- Exit early if one client supports the feature.
     end
   end
 
-  helpers.notify("No clients support " .. feature .. ".", vim.log.levels.WARN, true)
+  helpers.notify({ msg = "No clients support " .. feature .. ".", level = vim.log.levels.WARN, debug = true })
   return false
 end
 
@@ -74,7 +74,7 @@ function M.set_dynamic_lsp_keymaps(bufnr)
     local feature = M.lsp_function_to_provider[lsp_function]
 
     if not feature then
-      helpers.notify("No provider mapping for function: " .. lsp_function, vim.log.levels.ERROR)
+      helpers.notify({ msg = "No provider mapping for function: " .. lsp_function, level = vim.log.levels.ERROR })
     else
       -- Check if any LSP client attached to the buffer supports this feature.
       local has_feature = M.check_all_clients(feature, bufnr)
@@ -91,9 +91,19 @@ function M.set_dynamic_lsp_keymaps(bufnr)
             buffer = bufnr,          -- Scope the keymap to the current buffer.
           }
         )
-        helpers.notify("Set keymap: " .. keymap_config[2] .. " for " .. lsp_function, vim.log.levels.DEBUG, true)
+        helpers.notify({
+          msg = "Set keymap: " .. keymap_config[2] .. " for " .. lsp_function,
+          level = vim.log.levels
+              .DEBUG,
+          debug = true
+        })
       else
-        helpers.notify("Skipping keymap for " .. lsp_function .. ": feature not supported.", vim.log.levels.DEBUG, true)
+        helpers.notify({
+          msg = "Skipping keymap for " .. lsp_function .. ": feature not supported.",
+          level = vim.log
+              .levels.DEBUG,
+          debug = true
+        })
       end
     end
   end
@@ -112,8 +122,7 @@ function M.set_all_lsp_keymaps(bufnr)
     silent = true,
     buffer = bufnr,
   })
-  helpers.notify("Set keymap: gl for Line Diagnostics", vim.log.levels.DEBUG, true)
+  helpers.notify({ msg = "Set keymap: gl for Line Diagnostics", level = vim.log.levels.DEBUG, debug = true })
 end
 
 return M
-

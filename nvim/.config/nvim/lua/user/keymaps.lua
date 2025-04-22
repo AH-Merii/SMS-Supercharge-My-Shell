@@ -1,5 +1,6 @@
 local keymap = vim.keymap.set
 local opts = { noremap = true, silent = false }
+local helpers = require("user.helpers")
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -17,10 +18,10 @@ keymap("n", "<C-Space>", "<cmd>WhichKey \\<space><cr>", opts)
 keymap("n", "<C-i>", "<C-i>", opts)
 
 -- Better window navigation
-keymap("n", "<m-h>", "<C-w>h", opts)
-keymap("n", "<m-j>", "<C-w>j", opts)
-keymap("n", "<m-k>", "<C-w>k", opts)
-keymap("n", "<m-l>", "<C-w>l", opts)
+keymap("n", "<m-h>", "<C-w>h", vim.tbl_extend("force", opts, { desc = "Move to window on the right" }))
+keymap("n", "<m-j>", "<C-w>j", vim.tbl_extend("force", opts, { desc = "Move to window below" }))
+keymap("n", "<m-k>", "<C-w>k", vim.tbl_extend("force", opts, { desc = "Move to window above" }))
+keymap("n", "<m-l>", "<C-w>l", vim.tbl_extend("force", opts, { desc = "Move to window on the left" }))
 
 -- Better line navigation
 keymap("n", "<C-h>", "0", opts)
@@ -54,4 +55,10 @@ keymap("n", "<leader>c", "<cmd>set invlist<CR>", { noremap = true, silent = fals
 keymap("n", "<A-c>", '"_c', { noremap = true, silent = true })
 
 -- Run commands and source files without restarting neovim
-keymap("n", "<space><space>x", "<cmd>source %<CR>", vim.tbl_extend("force", opts, { desc = "Source current file" }))
+keymap("n", "<space>X", function()
+  vim.cmd("source %")
+  helpers.notify({
+    msg = "Sourced current file: " .. vim.fn.expand("%:p"),
+    level = vim.log.levels.INFO,
+  })
+end, vim.tbl_extend("force", opts, { desc = "Source current file" }))

@@ -264,6 +264,8 @@ run_with_progress() {
 #     -c "./run_tests.sh"
 
 run_command() {
+  # TODO: Add option for exit type, sometimes you may want to continue your program even on failiure, maybe use a warning?
+  # TODO: Add option to print on new line or erase previous etc..
   local input_message
   local success_message
   local notification_type
@@ -304,9 +306,6 @@ run_command() {
       ;;
     esac
   done
-
-  echo command str "${command_str}"
-  echo input message "${input_message}"
 
   if [[ ! -v input_message || ! -v command_str ]]; then
     echo "Usage: run_command --input-message <msg> [--success-message <msg>] [--notification-type <type>] [--show-output] [--redirect-to <file>] -c <command>" >&2

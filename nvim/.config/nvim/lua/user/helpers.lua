@@ -8,14 +8,16 @@ M.debug_mode = false
 
 --- Utility function for notifications.
 --- Provides a centralized way to handle notifications with optional debug logging.
---- @param msg string: The message to display.
---- @param level number|nil: The log level (e.g., vim.log.levels.INFO, WARN, ERROR). Defaults to `INFO`.
---- @param debug boolean|nil: If true, the message is only shown when `debug_mode` is enabled.
-function M.notify(msg, level, debug)
+--- @param opts { msg: string, level?: number, debug?: boolean }
+function M.notify(opts)
+  local msg = opts.msg
+  local level = opts.level or vim.log.levels.INFO
+  local debug = opts.debug
+
   if debug and not M.debug_mode then
-    return -- Suppress debug messages when debug mode is disabled.
+    return
   end
-  vim.notify(msg, level or vim.log.levels.INFO)
+  vim.notify(msg, level)
 end
 
 --- Removes the first occurrence of a value from a table.
@@ -35,7 +37,10 @@ end
 --- Updates the `debug_mode` flag and notifies the user of the current state.
 function M.toggle_debug()
   M.debug_mode = not M.debug_mode
-  M.notify("Debug mode " .. (M.debug_mode and "enabled" or "disabled"), vim.log.levels.INFO)
+  M.notify({
+    msg = "Debug mode " .. (M.debug_mode and "enabled" or "disabled"),
+    level = vim.log.levels.INFO,
+  })
 end
 
 return M
