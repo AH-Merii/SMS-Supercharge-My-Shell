@@ -26,6 +26,7 @@ CAC="[${ACTION_C}ACTION${RESET_C}]"
 
 # ASCII Icons
 CROSS="\u274C"
+CHECK="\u2705"
 
 SYSTEM_PACKAGES=(
   git
@@ -53,6 +54,8 @@ BREW_PACKAGES=(
   unzip
   openssh
   zoxide
+  gh
+  vale
 
   # misc
   zsh
