@@ -30,6 +30,8 @@ function M.config()
 		{ "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
 		{ "<leader>w", "<cmd>confirm w<CR>", desc = "Save" },
 		{ "<leader>h", "<cmd>nohlsearch<CR>", desc = "NOHL" },
+		{ "<leader>W", "<cmd>noautocmd w<CR>", desc = "Save w/o format" },
+		{ "<leader>Q", "<cmd>noautocmd wq<CR>", desc = "Save & Quit w/o format" },
 		{ "<leader>;", "<cmd>tabnew | terminal<CR>", desc = "Term" },
 		{ "<leader>v", "<cmd>vsplit<CR>", desc = "Split" },
 
