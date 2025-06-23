@@ -1,45 +1,53 @@
-local M = {
-	"folke/which-key.nvim",
-	event = "VeryLazy",
-	init = function()
-		vim.o.timeout = false
-		-- vim.o.timeoutlen = 100
-	end,
+return {
+  "folke/which-key.nvim",
+  event = "VeryLazy",
+  opts = {
+    preset = "helix",
+    delay = 300,
+    icons = {
+      rules = false,
+      breadcrumb = " ", -- symbol used in the command line area that shows your active key combo
+      separator = "󱦰  ", -- symbol used between a key and it's label
+      group = "󰹍 ", -- symbol prepended to a group
+    },
+    plugins = {
+      spelling = {
+        enabled = false,
+      },
+    },
+    win = {
+      height = {
+        max = math.huge,
+      },
+    },
+    spec = {
+      {
+        mode = { "n", "v" },
+        { "<leader>f", group = "Find" },
+        { "<leader>G", group = "Git" },
+        { "<leader>g", group = "Gitsigns" },
+        { "<leader>R", group = "Replace" },
+        { "<leader>l", group = "LSP" },
+        { "<leader>c", group = "LSP (Trouble)" },
+        { "<leader>t", group = "Test" },
+        { "<leader>D", group = "Debugger" },
+        { "<leader>s", group = "Search" },
+        { "<leader>x", group = "diagnostics/quickfix (Trouble)" },
+        { "<leader>u", group = "Toggle Features" },
+        { "<leader>W", group = "Workspace" },
+        { "[",         group = "prev" },
+        { "]",         group = "next" },
+        { "g",         group = "goto" },
+      },
+    },
+  },
+  keys = {
+    {
+      "<leader>?",
+      function()
+        require("which-key").show({ global = false })
+      end,
+      desc = "Buffer Local Keymaps (which-key)",
+    },
+  },
 }
-
-function M.config()
-	local wk = require("which-key")
-
-	wk.setup({
-		plugins = {
-			marks = true,
-			registers = true,
-			spelling = {
-				enabled = true,
-				suggestions = 20,
-			},
-		},
-		window = { -- Updated from `win` to `window` as per deprecation notice
-			border = "rounded",
-			position = "bottom",
-			padding = { 2, 2, 2, 2 },
-		},
-	})
-
-	wk.add({
-		{ "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
-		{ "<leader>w", "<cmd>confirm w<CR>", desc = "Save" },
-		{ "<leader>h", "<cmd>nohlsearch<CR>", desc = "NOHL" },
-		{ "<leader>;", "<cmd>tabnew | terminal<CR>", desc = "Term" },
-		{ "<leader>v", "<cmd>vsplit<CR>", desc = "Split" },
-
-		{ "<leader>d", group = "Debug" },
-		{ "<leader>g", group = "Git" },
-		{ "<leader>t", group = "Test" },
-	}, {
-		mode = "n", -- NORMAL mode
-		prefix = "<leader>",
-	})
-end
-
-return M
