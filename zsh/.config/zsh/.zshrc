@@ -32,10 +32,11 @@ command -v aws_completer &>/dev/null && complete -o nospace -C "$(command -v aws
 eval "$(enable-fzf-tab)"
 command -v pyenv >/dev/null && eval "$(pyenv init -)"
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
-command -v antidot >/dev/null && eval "$(antidot init)" && antidot clean
 
 # Automatically starts Hyprland on boot if running directly from tty1 (first virtual console),
 # not in an X11 environment, Hyprland is installed, and Hyprland is not already running.
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ] && command -v Hyprland >/dev/null && ! pgrep -x Hyprland >/dev/null; then
   Hyprland
 fi
+
+. "$HOME/.local/share/../bin/env"
