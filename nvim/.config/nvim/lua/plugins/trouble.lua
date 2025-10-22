@@ -41,7 +41,7 @@ return {
     },
     {
       "<leader>cl",
-      "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+      "<cmd>Trouble lsp toggle focus=false win.position=down<cr>",
       desc = "LSP Definitions / references / ... (Trouble)",
     },
     {
