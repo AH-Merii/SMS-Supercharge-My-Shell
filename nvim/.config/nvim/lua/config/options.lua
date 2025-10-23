@@ -43,7 +43,7 @@ vim.opt.listchars = {
   extends = "»",
   precedes = "«",
   nbsp = "󰛗",
-  lead = "_"
+  lead = "."
 }
 vim.cmd([[
 highlight NonText guifg=#cccccc ctermfg=lightgray

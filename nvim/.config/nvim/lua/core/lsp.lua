@@ -7,7 +7,7 @@ vim.lsp.enable({
   "rust-analyzer",
   "intelephense",
   "pyrefly",
-  "bash-language-server",
+  "bash-language-server"
 })
 
 
