@@ -5,7 +5,6 @@ require("core.lsp")
 require("config.options")
 require("config.keymaps")
 require("config.autocmds").setup()
-require("config.mason-verify")
-require("config.health-check")
+require("config.config-at-a-glance-helpers")
 
 require("core.lazy")
