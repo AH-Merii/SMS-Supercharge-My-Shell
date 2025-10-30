@@ -105,14 +105,12 @@ return {
         { "<leader>fr", icon = { icon = "", color = "yellow" } },
 
         -- git
-        { "<leader>gb", icon = { icon = "󰩔", color = "yellow" } },
         { "<leader>gB", icon = { icon = "", color = "grey" } },
         { "<leader>gl", icon = { icon = "", color = "orange" } },
         { "<leader>gL", icon = { icon = "", color = "yellow" } },
         { "<leader>gf", icon = { icon = "", color = "blue" } },
         { "<leader>gs", icon = { icon = "󰊢", color = "cyan" } },
         { "<leader>gS", icon = { icon = "󰀼", color = "grey" } },
-        { "<leader>gd", icon = { icon = "󰦓", color = "cyan" } },
         { "<leader>gD", icon = { icon = "", color = "cyan" } },
 
         -- Grep-in
