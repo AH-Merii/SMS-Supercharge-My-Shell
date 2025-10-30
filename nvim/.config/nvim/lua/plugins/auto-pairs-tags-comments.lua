@@ -164,18 +164,6 @@ return {
         end,
       })
 
-      --------------------------------------------------------------------------
-      -- Auto center current line when inserting <CR> inside {}
-      --------------------------------------------------------------------------
-      require("nvim-autopairs").get_rule("{"):replace_map_cr(function()
-        local res = "<c-g>u<CR><CMD>normal! ====<CR><up><end><CR>"
-        local line = vim.fn.winline()
-        local height = vim.api.nvim_win_get_height(0)
-        if line < height / 3 or height * 2 / 3 < line then
-          res = res .. "x<ESC>zzs"
-        end
-        return res
-      end)
     end,
   },
   -- Autotags

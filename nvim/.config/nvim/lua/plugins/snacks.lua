@@ -194,7 +194,6 @@ return {
           dd(...)
         end
 
-        -- Define a helper to safely add gitsigns toggle
         local function setup_gitsigns_toggle()
           local ok, gs = pcall(require, "gitsigns")
           local okc, gsc = pcall(require, "gitsigns.config")
