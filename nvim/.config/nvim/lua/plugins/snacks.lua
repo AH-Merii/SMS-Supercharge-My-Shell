@@ -59,7 +59,7 @@ return {
     { "<leader>sR", function() Snacks.picker.resume() end,                desc = "Resume Last Search" },
     { "<leader>su", function() Snacks.picker.undo() end,                  desc = "Undo History" },
     { "<leader>sC", function() Snacks.picker.colorschemes() end,          desc = "Colorschemes" },
-    { "<leader>ss",  function() Snacks.scratch.select() end,               desc = "Scratch Buffers" },
+    { "<leader>ss", function() Snacks.scratch.select() end,               desc = "Scratch Buffers" },
 
 
     -- 󰒕  LSP: Language features (symbols, definitions, references)
@@ -75,13 +75,13 @@ return {
 
     -- Misc
     { "<leader>n",  function() Snacks.picker.notifications() end,         desc = "Notification History" },
-    { "<C-W>z", function() Snacks.zen() end,                          desc = "Toggle Zen Mode" },
-    { "<C-W>Z", function() Snacks.zen.zoom() end,                     desc = "Toggle Zoom" },
+    { "<C-W>z",     function() Snacks.zen() end,                          desc = "Toggle Zen Mode" },
+    { "<C-W>Z",     function() Snacks.zen.zoom() end,                     desc = "Toggle Zoom" },
     { "<leader>.",  function() Snacks.scratch() end,                      desc = "Toggle Scratch Buffer" },
     { "<leader>lR", function() Snacks.rename.rename_file() end,           desc = "Rename File" },
     { "<leader>GB", function() Snacks.gitbrowse() end,                    desc = "Open in Git Browser" },
-    { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Reference (word)" },
-    { "[[", function() Snacks.words.jump(-vim.v.count1) end, desc = "Reference (word)" },
+    { "]]",         function() Snacks.words.jump(vim.v.count1) end,       desc = "Reference (word)" },
+    { "[[",         function() Snacks.words.jump(-vim.v.count1) end,      desc = "Reference (word)" },
   },
   config = function(_, opts)
     require("snacks").setup(opts)
@@ -174,7 +174,6 @@ return {
     end
   end,
   init = function()
-
     local autocmd = vim.api.nvim_create_autocmd
     local augroup = vim.api.nvim_create_augroup
     local user_group = augroup("SnacksUserAutocmds", { clear = true })
@@ -195,6 +194,27 @@ return {
           dd(...)
         end
 
+        -- Define a helper to safely add gitsigns toggle
+        local function setup_gitsigns_toggle()
+          local ok, gs = pcall(require, "gitsigns")
+          local okc, gsc = pcall(require, "gitsigns.config")
+          if ok and okc then
+            Snacks.toggle.new({
+              name = "Git Signs Column",
+              get = function() return gsc.config.signcolumn end,
+              set = function(state)
+                gs.toggle_signs(state)
+              end,
+            }):map("<leader>TG")
+          else
+            vim.notify(
+              "gitsigns.nvim not found. Skipping gitsigns column toggle option.",
+              vim.log.levels.WARN,
+              { title = "Snacks Config" }
+            )
+          end
+        end
+
         -- Create some toggle mappings
         Snacks.toggle.option("spell", { name = "Spelling" }):map("<leader>Ts")
         Snacks.toggle.option("wrap", { name = "Wrap" }):map("<leader>Tw")
@@ -209,17 +229,7 @@ return {
         Snacks.toggle.dim():map("<leader>TD")
         Snacks.toggle.option("list", { name = "Show Hidden Chars" }):map("TH")
 
-        local ok, gs = pcall(require, "gitsigns")
-        local okc, gsc = pcall(require, "gitsigns.config")
-        if ok and okc then
-          Snacks.toggle.new({ name = "Git Signs Column", get = function() return gsc.config.signcolumn end, set = function(state) gs.toggle_signs(state) end }):map("<leader>TG")
-        else
-          vim.notify(
-            "gitsigns.nvim not found. Skipping gitsigns column toggle option.",
-            vim.log.levels.WARN,
-            { title = "Snacks Config" }
-          )
-        end
+        setup_gitsigns_toggle()
       end,
     })
   end,
