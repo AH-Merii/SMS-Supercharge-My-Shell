@@ -210,7 +210,18 @@ return {
         Snacks.toggle.indent():map("<leader>Tg")
         Snacks.toggle.dim():map("<leader>TD")
         Snacks.toggle.option("list", { name = "Show Hidden Chars" }):map("TH")
-        Snacks.toggle.new({ name = "Git Signs Column", get = function() return require("gitsigns.config").config.signcolumn end, set = function(state) require("gitsigns").toggle_signs(state) end }):map("<leader>TG")
+
+        local ok, gs = pcall(require, "gitsigns")
+        local okc, gsc = pcall(require, "gitsigns.config")
+        if ok and okc then
+          Snacks.toggle.new({ name = "Git Signs Column", get = function() return gsc.config.signcolumn end, set = function(state) gs.toggle_signs(state) end }):map("<leader>TG")
+        else
+          vim.notify(
+            "gitsigns.nvim not found. Skipping gitsigns column toggle option.",
+            vim.log.levels.WARN,
+            { title = "Snacks Config" }
+          )
+        end
       end,
     })
   end,

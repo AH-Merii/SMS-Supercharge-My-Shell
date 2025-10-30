@@ -3,23 +3,22 @@ return {
     "lewis6991/gitsigns.nvim",
     lazy = false,
     config = function()
-      -- local icons = require('config.icons')
       require("gitsigns").setup({
         signs = {
-          add = { text = "┃" },
-          change = { text = "┃" },
-          delete = { text = "_" },
-          topdelete = { text = "‾" },
-          changedelete = { text = "~" },
-          untracked = { text = "┆" },
+          add = { text = "" }, -- `nf-oct-plus` from Octicons
+          change = { text = "" }, -- `nf-oct-sync` from Octicons
+          delete = { text = "" }, -- `nf-oct-trashcan` from Octicons
+          topdelete = { text = "" },
+          changedelete = { text = "󰦒" },
+          untracked = { text = "" },
         },
         signs_staged = {
-          add = { text = "┃" },
-          change = { text = "┃" },
-          delete = { text = "_" },
-          topdelete = { text = "‾" },
-          changedelete = { text = "~" },
-          untracked = { text = "┆" },
+          add = { text = "󰐖" },
+          change = { text = "" },
+          delete = { text = "󰍵" },
+          topdelete = { text = "󰍵" },
+          changedelete = { text = "󰦓" },
+          untracked = { text = "󰄲" },
         },
         signcolumn = true,
         numhl = false,
@@ -50,42 +49,29 @@ return {
           col = 1,
         },
         -- yadm = { enable = false },
-
-        on_attach = function(bufnr)
-          vim.keymap.set(
-            "n",
-            "<leader>H",
-            require("gitsigns").preview_hunk,
-            { buffer = bufnr, desc = "Preview git hunk" }
-          )
-
-          vim.keymap.set("n", "]]", require("gitsigns").next_hunk, { buffer = bufnr, desc = "Next git hunk" })
-
-          vim.keymap.set("n", "[[", require("gitsigns").prev_hunk, { buffer = bufnr, desc = "Previous git hunk" })
-        end,
       })
     end,
     keys = {
       {
-        "<leader>Gk",
+        "[g",
         function()
           require("gitsigns").prev_hunk({ navigation_message = false })
         end,
         desc = "Prev Hunk",
       },
       {
-        "<leader>Gl",
+        "<leader>gb",
         function()
           require("gitsigns").blame_line()
         end,
         desc = "Blame",
       },
       {
-        "<leader>Gp",
+        "<leader>gd",
         function()
           require("gitsigns").preview_hunk()
         end,
-        desc = "Preview Hunk",
+        desc = "Diff (Preview)",
       },
       {
         "<leader>Gr",
@@ -102,7 +88,7 @@ return {
         desc = "Reset Buffer",
       },
       {
-        "<leader>Gj",
+        "]g",
         function()
           require("gitsigns").next_hunk({ navigation_message = false })
         end,
@@ -122,28 +108,12 @@ return {
         end,
         desc = "Undo Stage Hunk",
       },
-      -- {
-      --   "<leader>Go", require("telescope.builtin").git_status,
-      --   desc = "Open changed file"
-      -- },
-      -- {
-      --   "<leader>Gb", require("telescope.builtin").git_branches,
-      --   desc = "Checkout branch"
-      -- },
-      -- {
-      --   "<leader>Gc", require("telescope.builtin").git_commits,
-      --   desc = "Checkout commit"
-      -- },
-      -- {
-      --   "<leader>GC", require("telescope.builtin").git_bcommits,
-      --   desc = "Checkout commit(for current file)"
-      -- },
       {
         "<leader>Gd",
         function()
           vim.cmd("Gitsigns diffthis HEAD")
         end,
-        desc = "Git Diff HEAD",
+        desc = "Diff",
       },
     },
   },
@@ -152,9 +122,6 @@ return {
     event = "VeryLazy",
     cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewToggleFiles", "DiffviewFocusFiles" },
   },
-  -- Git related plugins
-  "tpope/vim-fugitive",
-  "tpope/vim-rhubarb",
 
   -- not git, but it's okay
   {
