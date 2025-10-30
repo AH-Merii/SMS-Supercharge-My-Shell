@@ -1,8 +1,7 @@
--- lua/config/lsp-extras.lua
 local M = {}
 
 -- ============================================================================
--- Helpers (DRY)
+-- Helpers
 -- ============================================================================
 
 local function get_clients(bufnr)
@@ -29,6 +28,31 @@ local function count_diagnostics(bufnr)
   return counts, #diagnostics
 end
 
+---@param bufnr integer?
+---@param header string?
+---@return string[]
+local function build_diagnostics_summary(bufnr, header)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  header = header or "󰒡 Diagnostics Summary:"
+
+  local lines = {}
+  local counts, total = count_diagnostics(bufnr)
+  local sev = vim.diagnostic.severity
+
+  if total > 0 then
+    table.insert(lines, header)
+    table.insert(lines, "   󰅚 Errors:   " .. counts[sev.ERROR])
+    table.insert(lines, "   󰀪 Warnings: " .. counts[sev.WARN])
+    table.insert(lines, "   󰋽 Info:     " .. counts[sev.INFO])
+    table.insert(lines, "   󰌶 Hints:    " .. counts[sev.HINT])
+    table.insert(lines, "    Total:    " .. total)
+  else
+    table.insert(lines, "󰄬 No diagnostics")
+  end
+
+  return lines
+end
+
 local function get_key_features(caps)
   local features = {}
   if caps.completionProvider then table.insert(features, "completion") end
@@ -41,149 +65,151 @@ local function get_key_features(caps)
   return features
 end
 
-local function print_client_basic_info(i, client)
-  print(string.format("󰌘 Client %d: %s", i, client.name))
-  print("  ID: " .. client.id)
-  print("  Root dir: " .. (client.config.root_dir or "Not set"))
-  print("  Filetypes: " .. table.concat(client.config.filetypes or {}, ", "))
+---@param i integer
+---@param client vim.lsp.Client
+---@return string[]
+local function build_client_basic_info(i, client)
+  local lines = {}
+  table.insert(lines, string.format("󰌘 Client %d: %s", i, client.name))
+  table.insert(lines, "  ID: " .. client.id)
+  table.insert(lines, "  Root dir: " .. (client.config.root_dir or "Not set"))
+  table.insert(lines, "  Filetypes: " .. table.concat(client.config.filetypes or {}, ", "))
+  return lines
 end
 
-local function print_diagnostics_summary(bufnr)
-  local counts, total = count_diagnostics(bufnr)
-  local sev = vim.diagnostic.severity
-
-  if total > 0 then
-    print("󰒡 Diagnostics Summary:")
-    print("  󰅚 Errors: " .. counts[sev.ERROR])
-    print("  󰀪 Warnings: " .. counts[sev.WARN])
-    print("  󰋽 Info: " .. counts[sev.INFO])
-    print("  󰌶 Hints: " .. counts[sev.HINT])
-    print("  Total: " .. total)
-  else
-    print("󰄬 No diagnostics")
+---@param lines string[]
+local function echo_lines(lines)
+  for _, line in ipairs(lines) do
+    print(line)
   end
 end
 
 -- ============================================================================
--- Commands
+-- Builders
 -- ============================================================================
 
--- Quick status view - client info + key features
-function M.lsp_status()
+---@return string[]
+function M.build_lsp_status()
   local bufnr = vim.api.nvim_get_current_buf()
   local clients = get_clients(bufnr)
+  local lines = {}
 
   if #clients == 0 then
-    print("󰅚 No LSP clients attached")
-    return
+    table.insert(lines, "󰅚 No LSP clients attached")
+    return lines
   end
 
-  print("󱍔 Status for buffer " .. bufnr .. ":")
-  print("─────────────────────────────────")
+  table.insert(lines, "󱍔 Status for buffer " .. bufnr .. ":")
+  table.insert(lines, "─────────────────────────────────")
 
   for i, client in ipairs(clients) do
-    print(string.format("󰌘 Client %d: %s (ID: %d)", i, client.name, client.id))
-    print("  Root: " .. (client.config.root_dir or "N/A"))
-    print("  Filetypes: " .. table.concat(client.config.filetypes or {}, ", "))
+    table.insert(lines, string.format("󰌘 Client %d: %s (ID: %d)", i, client.name, client.id))
+    table.insert(lines, "  Root: " .. (client.config.root_dir or "N/A"))
+    table.insert(lines, "  Filetypes: " .. table.concat(client.config.filetypes or {}, ", "))
 
     local features = get_key_features(client.server_capabilities)
-    print("  Features: " .. table.concat(features, ", "))
-    print("")
+    table.insert(lines, "  Features: " .. table.concat(features, ", "))
+    table.insert(lines, "")
   end
+
+  return lines
 end
 
--- Comprehensive LSP information
-function M.lsp_info()
+---@return string[]
+function M.build_lsp_info()
   local bufnr = vim.api.nvim_get_current_buf()
   local clients = get_clients(bufnr)
 
-  print("═══════════════════════════════════")
-  print("           LSP INFORMATION          ")
-  print("═══════════════════════════════════")
-  print("")
+  local lines = {}
+  table.insert(lines, "═══════════════════════════════════")
+  table.insert(lines, "           LSP INFORMATION          ")
+  table.insert(lines, "═══════════════════════════════════")
+  table.insert(lines, "")
 
   -- Basic info
-  print("󰈙 Language client log: " .. vim.lsp.get_log_path())
-  print("󰈔 Detected filetype: " .. vim.bo.filetype)
-  print("󰈮 Buffer: " .. bufnr)
-  print("󰈔 Root directory: " .. (vim.fn.getcwd() or "N/A"))
-  print("")
+  table.insert(lines, "󰈙 Language client log: " .. vim.lsp.get_log_path())
+  table.insert(lines, "󰈔 Detected filetype: " .. vim.bo.filetype)
+  table.insert(lines, "󰈮 Buffer: " .. bufnr)
+  table.insert(lines, "󰈔 Root directory: " .. (vim.fn.getcwd() or "N/A"))
+  table.insert(lines, "")
 
   if #clients == 0 then
-    print("󰅚 No LSP clients attached to buffer " .. bufnr)
-    print("")
-    print("Possible reasons:")
-    print("  • No language server installed for " .. vim.bo.filetype)
-    print("  • Language server not configured")
-    print("  • Not in a project root directory")
-    print("  • File type not recognized")
-    return
+    table.insert(lines, "󰅚 No LSP clients attached to buffer " .. bufnr)
+    table.insert(lines, "")
+    table.insert(lines, "Possible reasons:")
+    table.insert(lines, "  • No language server installed for " .. vim.bo.filetype)
+    table.insert(lines, "  • Language server not configured")
+    table.insert(lines, "  • Not in a project root directory")
+    table.insert(lines, "  • File type not recognized")
+    return lines
   end
 
-  print("󰒋 LSP clients attached to buffer " .. bufnr .. ":")
-  print("─────────────────────────────────")
+  table.insert(lines, "󱍔 LSP clients attached to buffer " .. bufnr .. ":")
+  table.insert(lines, "─────────────────────────────────")
 
   for i, client in ipairs(clients) do
-    print_client_basic_info(i, client)
-    print("  Command: " .. table.concat(client.config.cmd or {}, " "))
+    vim.list_extend(lines, build_client_basic_info(i, client))
+    table.insert(lines, "  Command: " .. table.concat(client.config.cmd or {}, " "))
 
     -- Server status
     if client.is_stopped() then
-      print("  Status: 󰅚 Stopped")
+      table.insert(lines, "  Status: 󰅚 Stopped")
     else
-      print("  Status: 󰄬 Running")
+      table.insert(lines, "  Status: 󰄬 Running")
     end
 
     -- Workspace folders
     if client.workspace_folders and #client.workspace_folders > 0 then
-      print("  Workspace folders:")
+      table.insert(lines, "  Workspace folders:")
       for _, folder in ipairs(client.workspace_folders) do
-        print("    • " .. folder.name)
+        table.insert(lines, "    • " .. folder.name)
       end
     end
 
-    -- Attached buffers count
+    -- Attached buffers
     local attached_buffers = {}
     for buf, _ in pairs(client.attached_buffers or {}) do
       table.insert(attached_buffers, buf)
     end
-    print("  Attached buffers: " .. #attached_buffers)
+    table.insert(lines, "  Attached buffers: " .. #attached_buffers)
 
     -- Key capabilities
     local key_features = get_key_features(client.server_capabilities)
     if #key_features > 0 then
-      print("  Key features: " .. table.concat(key_features, ", "))
+      table.insert(lines, "  Key features: " .. table.concat(key_features, ", "))
     end
 
-    print("")
+    table.insert(lines, "")
   end
 
   -- Diagnostics summary
-  print_diagnostics_summary(bufnr)
-  print("")
-  print("Use :LspLog to view detailed logs")
-  print("Use :LspCapabilities for full capability list")
+  vim.list_extend(lines, build_diagnostics_summary(bufnr))
+  table.insert(lines, "")
+  table.insert(lines, "Use :LspLog to view detailed logs")
+  table.insert(lines, "Use :LspCapabilities for full capability list")
+
+  return lines
 end
 
--- Full capability inspection
-function M.lsp_capabilities()
+---@return string[]
+function M.build_lsp_capabilities()
   local bufnr = vim.api.nvim_get_current_buf()
   local clients = get_clients(bufnr)
+  local lines = {}
 
   if #clients == 0 then
-    print("No LSP clients attached")
-    return
+    table.insert(lines, "No LSP clients attached")
+    return lines
   end
 
   for _, client in ipairs(clients) do
-    print("═══════════════════════════════════")
-    print("  Capabilities: " .. client.name)
-    print("═══════════════════════════════════")
-    print("")
+    table.insert(lines, "═══════════════════════════════════")
+    table.insert(lines, "  Capabilities: " .. client.name)
+    table.insert(lines, "═══════════════════════════════════")
+    table.insert(lines, "")
 
     local caps = client.server_capabilities
 
-    -- Grouped by category for better readability
     local categories = {
       ["Navigation"] = {
         { "Go to Definition",      caps.definitionProvider },
@@ -216,85 +242,113 @@ function M.lsp_capabilities()
     }
 
     for category, items in pairs(categories) do
-      print(category .. ":")
+      table.insert(lines, category .. ":")
       for _, item in ipairs(items) do
         local icon = item[2] and "✓" or "✗"
-        print(string.format("  %s %s", icon, item[1]))
+        table.insert(lines, string.format("  %s %s", icon, item[1]))
       end
-      print("")
+      table.insert(lines, "")
     end
   end
+
+  return lines
 end
 
--- Just diagnostics
-function M.lsp_diagnostics()
-  local counts, total = count_diagnostics()
-  local sev = vim.diagnostic.severity
-
-  print("󰒡 Diagnostics for current buffer:")
-  print("  Errors: " .. counts[sev.ERROR])
-  print("  Warnings: " .. counts[sev.WARN])
-  print("  Info: " .. counts[sev.INFO])
-  print("  Hints: " .. counts[sev.HINT])
-  print("  Total: " .. total)
+---@return string[]
+function M.build_lsp_diagnostics()
+  return build_diagnostics_summary(nil, "󰒡 Diagnostics for current buffer:")
 end
 
--- Full tooling status (LSP + formatters + linters + treesitter)
-function M.status()
+---@return string[]
+function M.build_status()
   local bufnr = vim.api.nvim_get_current_buf()
   local ft = vim.bo[bufnr].filetype
 
-  print(string.format("Buffer Status for %s", ft))
-  print("─────────────────────────")
+  local lines = {}
+  table.insert(lines, string.format("Buffer Status for %s", ft))
+  table.insert(lines, "─────────────────────────")
 
   -- LSP
   local clients = get_clients(bufnr)
-  local client_names = vim.tbl_map(function(c) return c.name end, clients)
-  print(string.format("󱍔  LSP: %s", next(client_names) and table.concat(client_names, ", ") or "none"))
+  local client_names = vim.tbl_map(function(c)
+    return c.name
+  end, clients)
+  table.insert(
+    lines,
+    string.format("󱍔  LSP: %s", next(client_names) and table.concat(client_names, ", ") or "none")
+  )
 
   -- Formatters
-  local ok, conform = pcall(require, "conform")
-  if ok then
+  local ok_conform, conform = pcall(require, "conform")
+  if ok_conform then
     local formatters = conform.list_formatters_to_run(bufnr)
-    local names = vim.tbl_map(function(f) return f.name end, formatters)
-    print(string.format("󰁨  Formatters: %s", next(names) and table.concat(names, ", ") or "none"))
+    local names = vim.tbl_map(function(f)
+      return f.name
+    end, formatters)
+    table.insert(
+      lines,
+      string.format("󰁨  Formatters: %s", next(names) and table.concat(names, ", ") or "none")
+    )
   else
-    print("󰁨  Formatters: none")
+    table.insert(lines, "󰁨  Formatters: none")
   end
 
   -- Linters
   local ok_lint, lint = pcall(require, "lint")
   if ok_lint then
     local linters = lint.linters_by_ft[ft] or {}
-    print(string.format("󱉶  Linters: %s", next(linters) and table.concat(linters, ", ") or "none"))
+    table.insert(
+      lines,
+      string.format("󱉶  Linters: %s", next(linters) and table.concat(linters, ", ") or "none")
+    )
   else
-    print("󱉶  Linters: none")
+    table.insert(lines, "󱉶  Linters: none")
   end
-
-  -- Diagnostics
-  local counts = count_diagnostics(bufnr)
-  local sev = vim.diagnostic.severity
-  print(string.format(
-    "  Diagnostics: %d err, %d warn, %d info, %d hint",
-    counts[sev.ERROR],
-    counts[sev.WARN],
-    counts[sev.INFO],
-    counts[sev.HINT]
-  ))
 
   -- Treesitter
   local has_parser = pcall(vim.treesitter.get_parser, bufnr)
-  print(string.format("  Treesitter: %s", has_parser and "enabled" or "none"))
+  table.insert(lines, string.format("  Treesitter: %s", has_parser and "enabled" or "none"))
+  table.insert(lines, "")
+
+  -- Diagnostics block
+  vim.list_extend(lines, build_diagnostics_summary(bufnr))
+
+  return lines
+end
+
+-- ============================================================================
+-- Public user-facing commands
+-- ============================================================================
+
+function M.lsp_status()
+  echo_lines(M.build_lsp_status())
+end
+
+function M.lsp_info()
+  echo_lines(M.build_lsp_info())
+end
+
+function M.lsp_capabilities()
+  echo_lines(M.build_lsp_capabilities())
+end
+
+function M.lsp_diagnostics()
+  echo_lines(M.build_lsp_diagnostics())
+end
+
+function M.status()
+  echo_lines(M.build_status())
 end
 
 -- ============================================================================
 -- Register Commands
 -- ============================================================================
 
-vim.api.nvim_create_user_command('LspStatus', M.lsp_status, { desc = "Quick LSP status" })
-vim.api.nvim_create_user_command('LspInfo', M.lsp_info, { desc = "Comprehensive LSP information" })
-vim.api.nvim_create_user_command('LspCapabilities', M.lsp_capabilities, { desc = "Detailed capability list" })
-vim.api.nvim_create_user_command('LspDiagnostics', M.lsp_diagnostics, { desc = "Diagnostics summary" })
-vim.api.nvim_create_user_command('Status', M.status, { desc = "Full tooling status" })
+vim.api.nvim_create_user_command("LspStatus", M.lsp_status, { desc = "Quick LSP status" })
+vim.api.nvim_create_user_command("LspInfo", M.lsp_info, { desc = "Comprehensive LSP information" })
+vim.api.nvim_create_user_command("LspCapabilities", M.lsp_capabilities, { desc = "Detailed capability list" })
+vim.api.nvim_create_user_command("LspDiagnostics", M.lsp_diagnostics, { desc = "Diagnostics summary" })
+vim.api.nvim_create_user_command("Status", M.status, { desc = "Full tooling status" })
 
 return M
+
