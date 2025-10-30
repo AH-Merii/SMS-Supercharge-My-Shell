@@ -44,9 +44,6 @@ keymap("n", "<C-a>", "ggVG", silent_desc("Select all"))
 -- Clear search highlight
 keymap("n", "<Esc>", ":nohlsearch<CR>", silent_desc("Clear search highlight"))
 
--- Toggle Hidden Chars
-keymap("n", "<S-h>", "<cmd>set invlist<CR>", desc("Toggle hidden chars"))
-
 -- Change using black hole register
 keymap("n", "<A-c>", '"_c', silent_desc("Change to black hole register"))
 
