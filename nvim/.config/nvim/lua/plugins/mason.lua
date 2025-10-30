@@ -1,77 +1,106 @@
 return {
-    {
+  -- LSP servers
+  {
+    "williamboman/mason-lspconfig.nvim",
+    dependencies = {
+      {
         "williamboman/mason.nvim",
-        lazy = false, -- Load immediately to ensure PATH is set
-        cmd = "Mason",
-        keys = { { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" } },
-        build = ":MasonUpdate",
         opts = {
-            ensure_installed = {
-                -- LSP servers (matching your vim.lsp.enable() config)
-                "lua-language-server",
-                "gopls",
-                "zls",
-                "typescript-language-server",
-                "rust-analyzer",
-                "pyrefly",
-                "intelephense", -- PHP LSP
-
-                -- Formatters (for conform.nvim and general use)
-                "stylua",
-                "goimports",
-                -- Note: gofmt comes with Go installation, not managed by Mason
-                "prettier",
-
-                "ruff",
-
-                -- Linters and diagnostics
-                "golangci-lint",
-                "eslint_d",
-                "luacheck", -- Lua linting
-                "tflint", -- terraform linting
-
-                -- Additional useful tools
-                "delve",      -- Go debugger
-                "shfmt",      -- Shell formatter
-                "shellcheck", -- Shell linter
-
-                -- Optional but useful additions
-                "markdownlint", -- Markdown linting
-                "yamllint",     -- YAML linting
-                "jsonlint",     -- JSON linting
+          ui = {
+            icons = {
+              package_installed = "✓",
+              package_pending = "➜",
+              package_uninstalled = "✗",
             },
+          },
         },
-        config = function(_, opts)
-            -- PATH is handled by core.mason-path for consistency
-            require("mason").setup(opts)
-
-            -- Auto-install ensure_installed tools with better error handling
-            local mr = require("mason-registry")
-            local function ensure_installed()
-                for _, tool in ipairs(opts.ensure_installed) do
-                    if mr.has_package(tool) then
-                        local p = mr.get_package(tool)
-                        if not p:is_installed() then
-                            vim.notify("Mason: Installing " .. tool .. "...", vim.log.levels.INFO)
-                            p:install():once("closed", function()
-                                if p:is_installed() then
-                                    vim.notify("Mason: Successfully installed " .. tool, vim.log.levels.INFO)
-                                else
-                                    vim.notify("Mason: Failed to install " .. tool, vim.log.levels.ERROR)
-                                end
-                            end)
-                        end
-                    else
-                        vim.notify("Mason: Package '" .. tool .. "' not found", vim.log.levels.WARN)
-                    end
-                end
-            end
-
-            if mr.refresh then
-                mr.refresh(ensure_installed)
-            else
-                ensure_installed()
-            end
-        end,
+      },
+      "neovim/nvim-lspconfig",
     },
+    opts = {
+      -- LSP servers mason should install for us.
+      -- These names are lspconfig server names, not raw mason package names.
+      ensure_installed = {
+        -- Web / frontend
+        "ts_ls", -- typescript / javascript
+        "html",
+        "cssls",
+        "tailwindcss",
+        "svelte",
+        "emmet_ls",
+        "eslint",
+
+        -- Lua
+        "lua_ls",
+
+        -- GraphQL / Prisma
+        "graphql",
+        "prismals",
+
+        -- Python
+        "pyright",
+
+        -- Go
+        "gopls",
+
+        -- Rust
+        "rust_analyzer",
+
+        -- Zig
+        "zls",
+
+        -- Bash / shell
+        "bashls",
+
+        -- Terraform
+        "terraformls",
+        "tflint", -- tflint actually behaves like a linter, but mason exposes it as an lspconfig server too
+
+        -- YAML / JSON
+        "yamlls",
+        "jsonls",
+
+        -- PHP
+        "intelephense",
+
+        -- (optional) Markdown / prose linting-as-LSP
+        "marksman",
+      },
+    },
+  },
+
+  -- Formatters, linters, debuggers, etc.
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    dependencies = {
+      "williamboman/mason.nvim",
+    },
+    opts = {
+      ensure_installed = {
+        -- Formatting
+        "prettier", -- JS/TS/JSON/Markdown formatter
+        "stylua", -- Lua formatter
+        "goimports", -- Go formatter/imports
+        "shfmt", -- Shell formatter
+
+        -- Linting / analysis / diagnostics
+        "eslint_d", -- Fast eslint
+        "pylint", -- Python linter
+        "ruff", -- Python linter/formatter/organizer
+        "golangci-lint", -- Go linter
+        "shellcheck", -- Shell linter
+        "tflint", -- Terraform linter
+        "yamllint", -- YAML linter
+        "markdownlint", -- Markdown linter
+        "jsonlint", -- JSON linter
+        "luacheck", -- Lua linter
+
+        -- Debuggers / extra tooling
+        "debugpy", -- Python
+        "delve", -- Go
+        "js-debug-adapter", -- TypeScript / JavaScript
+
+      },
+    },
+  },
 }
