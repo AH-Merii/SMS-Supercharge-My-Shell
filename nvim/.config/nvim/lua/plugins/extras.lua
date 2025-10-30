@@ -29,7 +29,6 @@ return {
       { "echasnovski/mini.icons", lazy = true, opts = {} },
     },
     config = function()
-      require("mini.ai").setup({ n_lines = 500 })
       require("mini.surround").setup()
     end,
   },
@@ -64,6 +63,20 @@ return {
       vim.api.nvim_create_autocmd("TermOpen", {
         callback = set_keymaps,
       })
+    end,
+  },
+
+  -- Better folding
+  {
+    "kevinhwang91/nvim-ufo",
+    dependencies = { "kevinhwang91/promise-async" },
+    init = function()
+      -- Recommended base options
+      vim.opt.foldlevel = 99
+      vim.opt.foldlevelstart = 99
+      vim.opt.foldenable = true
+      vim.opt.foldmethod = "expr"
+      vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
     end,
   },
 }
