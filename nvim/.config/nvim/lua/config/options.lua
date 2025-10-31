@@ -2,6 +2,9 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+-- Enable Lazydev for vim globals
+vim.g.lazydev_enabled = true
+
 -- ⚙️ General Settings
 vim.opt.termguicolors = true
 vim.opt.fileencoding = "utf-8"
