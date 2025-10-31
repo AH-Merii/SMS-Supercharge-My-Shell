@@ -2,5 +2,5 @@ std = "luajit"
 
 globals = {
 	"vim",
-	"snacks",
+	"Snacks",
 }

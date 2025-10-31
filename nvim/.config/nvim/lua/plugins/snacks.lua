@@ -57,7 +57,7 @@ return {
     { "<leader>sM", function() Snacks.picker.man() end,                   desc = "Man Pages" },
     { "<leader>sp", function() Snacks.picker.lazy() end,                  desc = "Plugins (Lazy)" },
     { "<leader>sq", function() Snacks.picker.qflist() end,                desc = "Quickfix List" },
-    { "<leader>sR", function() Snacks.picker.resume() end,                desc = "Resume Last Search" },
+    { "<leader>sR", function() Snacks.picker.resume() end, desc = "Resume" },
     { "<leader>su", function() Snacks.picker.undo() end,                  desc = "Undo History" },
     { "<leader>sC", function() Snacks.picker.colorschemes() end,          desc = "Colorschemes" },
     { "<leader>ss", function() Snacks.scratch.select() end,               desc = "Scratch Buffers" },
@@ -67,7 +67,6 @@ return {
     { "gD",         function() Snacks.picker.lsp_declarations() end,      desc = "Declaration" },
     { "gd",         function() Snacks.picker.lsp_definitions() end,       desc = "Definition" },
     { "gI",         function() Snacks.picker.lsp_implementations() end,   desc = "Implementations" },
-    { "<leader>ss", function() snacks.picker.lsp_workspace_symbols() end, desc = "workspace symbols" },
     { "gr",         function() Snacks.picker.lsp_references() end,        desc = "References",             nowait = true },
     -- { "<leader>ss", function() Snacks.picker.lsp_symbols() end, desc = "LSP Symbols" },
     { "gt",         function() Snacks.picker.lsp_type_definitions() end,  desc = "Type Definition" },
@@ -140,9 +139,10 @@ return {
         { "<leader>sR", icon = { icon = "󰑖", color = "orange" } },
         { "<leader>su", icon = { icon = "󰕍", color = "yellow" } },
         { "<leader>sC", icon = { icon = "󰏘", color = "purple" } },
-        --{ "<leader>ss", icon = { icon = "󰠱", color = "grey" } },
         { "<leader>ss", icon = { icon = "󰎕", color = "grey" } },
-        { "<leader>sS", icon = { icon = "󰒕", color = "grey" } },
+        -- hide search for symbols for now
+        --{ "<leader>ss", icon = { icon = "󰠱", color = "grey" } },
+        -- { "<leader>sS", icon = { icon = "󰒕", color = "grey" } },
 
         -- LSP
         { "gd", icon = { icon = "󰊕", color = "purple" } },
@@ -192,7 +192,7 @@ return {
         end
 
         vim._print = function(_, ...)
-          dd(...)
+          _G.dd(...)
         end
 
         local function setup_gitsigns_toggle()
