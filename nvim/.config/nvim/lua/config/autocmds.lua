@@ -6,6 +6,49 @@ function M.setup()
 
   local user_group = augroup("UserAutocmds", { clear = true })
 
+  -- Make sure folds are part of views
+  vim.opt.viewoptions:append("folds")
+
+  -- Save view (including folds) when leaving or writing the buffer
+  autocmd({ "BufWinLeave", "BufWritePost" }, {
+    group = user_group,
+    desc = "Save view (folds, cursor, etc.)",
+    callback = function(event)
+      local buf = event.buf
+
+      -- skip special/unnamed buffers
+      if vim.bo[buf].buftype ~= "" then
+        return
+      end
+      if vim.api.nvim_buf_get_name(buf) == "" then
+        return
+      end
+      pcall(vim.api.nvim_command, "silent! mkview")
+    end,
+  })
+
+  -- Restore view *after* reading the file.
+  -- vim.schedule ensures it runs after UFO / LSP / TS have a chance to initialize.
+  autocmd("BufReadPost", {
+    group = user_group,
+    desc = "Load view (folds, cursor, etc.)",
+    callback = function(event)
+      local buf = event.buf
+
+      if vim.bo[buf].buftype ~= "" then
+        return
+      end
+      if vim.api.nvim_buf_get_name(buf) == "" then
+        return
+      end
+
+      vim.schedule(function()
+        -- If the view file exists, this will restore folds & cursor
+        pcall(vim.api.nvim_command, "silent! loadview")
+      end)
+    end,
+  })
+
   -- Disable automatic comment insertion on new lines
   autocmd("BufEnter", {
     group = user_group,
@@ -27,7 +70,6 @@ function M.setup()
       vim.opt_local.colorcolumn = "80"
     end,
   })
-
 
   -- Highlight on yank
   vim.api.nvim_create_autocmd("TextYankPost", {
@@ -96,7 +138,7 @@ function M.setup()
   -- Enable spell checking and wrapping for text-based files
   autocmd("FileType", {
     group = user_group,
-    pattern = { "gitcommit", "oil","markdown", "text", "tex", "NeogitCommitMessage", "typst" },
+    pattern = { "gitcommit", "oil", "markdown", "text", "tex", "NeogitCommitMessage", "typst" },
     callback = function()
       vim.opt_local.spell = true
       vim.opt_local.spelllang = "en"
@@ -112,7 +154,6 @@ function M.setup()
       vim.bo[event.buf].commentstring = "# %s"
     end,
   })
-
 
   -- LuaSnip integration
   autocmd("CursorHold", {
