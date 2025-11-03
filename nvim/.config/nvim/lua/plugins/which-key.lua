@@ -14,13 +14,13 @@ return {
         enabled = false,
       },
       presets = {
-        operators = false,    -- adds help for operators like d, y, ...
-        motions = false,      -- adds help for motions
+        operators = false, -- adds help for operators like d, y, ...
+        motions = false, -- adds help for motions
         text_objects = false, -- help for text objects triggered after entering an operator
-        windows = true,       -- default bindings on <c-w>
-        nav = false,          -- misc bindings to work with windows
-        z = false,            -- bindings for folds, spelling and others prefixed with z
-        g = false,            -- bindings for prefixed with g
+        windows = true, -- default bindings on <c-w>
+        nav = false, -- misc bindings to work with windows
+        z = false, -- bindings for folds, spelling and others prefixed with z
+        g = false, -- bindings for prefixed with g
       },
     },
     win = {
@@ -39,7 +39,6 @@ return {
         { "<leader>W", group = "Workspace", icon = { icon = "󱃸", color = "cyan" } },
 
         { "g", group = "Goto", icon = { icon = "", color = "cyan" } },
-
       },
       {
         { "<leader>q", desc = "Quit", icon = { icon = "", color = "red" } },
@@ -146,30 +145,30 @@ return {
       -- hide the following keymaps
       {
         -- jump forward
-        { "]L",     hidden = true },
-        { "]T",     hidden = true },
-        { "]D",     hidden = true },
-        { "]A",     hidden = true },
-        { "]Q",     hidden = true },
+        { "]L", hidden = true },
+        { "]T", hidden = true },
+        { "]D", hidden = true },
+        { "]A", hidden = true },
+        { "]Q", hidden = true },
         { "]<C-T>", hidden = true },
         { "]<C-Q>", hidden = true },
         { "]<C-T>", hidden = true },
         { "]<C-L>", hidden = true },
-        { "]%",     hidden = true },
+        { "]%", hidden = true },
 
         -- jump backward
-        { "[L",     hidden = true },
-        { "[T",     hidden = true },
-        { "[D",     hidden = true },
-        { "[A",     hidden = true },
-        { "[Q",     hidden = true },
+        { "[L", hidden = true },
+        { "[T", hidden = true },
+        { "[D", hidden = true },
+        { "[A", hidden = true },
+        { "[Q", hidden = true },
         { "[<C-T>", hidden = true },
         { "[<C-Q>", hidden = true },
         { "[<C-T>", hidden = true },
         { "[<C-L>", hidden = true },
-        { "[%",     hidden = true },
+        { "[%", hidden = true },
       },
-    }
+    },
   },
   keys = {
     {

@@ -55,13 +55,27 @@ end
 
 local function get_key_features(caps)
   local features = {}
-  if caps.completionProvider then table.insert(features, "completion") end
-  if caps.hoverProvider then table.insert(features, "hover") end
-  if caps.definitionProvider then table.insert(features, "definition") end
-  if caps.referencesProvider then table.insert(features, "references") end
-  if caps.renameProvider then table.insert(features, "rename") end
-  if caps.codeActionProvider then table.insert(features, "code_action") end
-  if caps.documentFormattingProvider then table.insert(features, "formatting") end
+  if caps.completionProvider then
+    table.insert(features, "completion")
+  end
+  if caps.hoverProvider then
+    table.insert(features, "hover")
+  end
+  if caps.definitionProvider then
+    table.insert(features, "definition")
+  end
+  if caps.referencesProvider then
+    table.insert(features, "references")
+  end
+  if caps.renameProvider then
+    table.insert(features, "rename")
+  end
+  if caps.codeActionProvider then
+    table.insert(features, "code_action")
+  end
+  if caps.documentFormattingProvider then
+    table.insert(features, "formatting")
+  end
   return features
 end
 
@@ -100,7 +114,10 @@ function M.build_lsp_status()
   end
 
   table.insert(lines, "󱍔 Status for buffer " .. bufnr .. ":")
-  table.insert(lines, "─────────────────────────────────")
+  table.insert(
+    lines,
+    "─────────────────────────────────"
+  )
 
   for i, client in ipairs(clients) do
     table.insert(lines, string.format("󰌘 Client %d: %s (ID: %d)", i, client.name, client.id))
@@ -121,9 +138,15 @@ function M.build_lsp_info()
   local clients = get_clients(bufnr)
 
   local lines = {}
-  table.insert(lines, "═══════════════════════════════════")
+  table.insert(
+    lines,
+    "═══════════════════════════════════"
+  )
   table.insert(lines, "           LSP INFORMATION          ")
-  table.insert(lines, "═══════════════════════════════════")
+  table.insert(
+    lines,
+    "═══════════════════════════════════"
+  )
   table.insert(lines, "")
 
   -- Basic info
@@ -145,7 +168,10 @@ function M.build_lsp_info()
   end
 
   table.insert(lines, "󱍔 LSP clients attached to buffer " .. bufnr .. ":")
-  table.insert(lines, "─────────────────────────────────")
+  table.insert(
+    lines,
+    "─────────────────────────────────"
+  )
 
   for i, client in ipairs(clients) do
     vim.list_extend(lines, build_client_basic_info(i, client))
@@ -203,40 +229,46 @@ function M.build_lsp_capabilities()
   end
 
   for _, client in ipairs(clients) do
-    table.insert(lines, "═══════════════════════════════════")
+    table.insert(
+      lines,
+      "═══════════════════════════════════"
+    )
     table.insert(lines, "  Capabilities: " .. client.name)
-    table.insert(lines, "═══════════════════════════════════")
+    table.insert(
+      lines,
+      "═══════════════════════════════════"
+    )
     table.insert(lines, "")
 
     local caps = client.server_capabilities
 
     local categories = {
       ["Navigation"] = {
-        { "Go to Definition",      caps.definitionProvider },
-        { "Go to Declaration",     caps.declarationProvider },
-        { "Go to Implementation",  caps.implementationProvider },
+        { "Go to Definition", caps.definitionProvider },
+        { "Go to Declaration", caps.declarationProvider },
+        { "Go to Implementation", caps.implementationProvider },
         { "Go to Type Definition", caps.typeDefinitionProvider },
-        { "Find References",       caps.referencesProvider },
+        { "Find References", caps.referencesProvider },
       },
       ["Code Intelligence"] = {
-        { "Completion",         caps.completionProvider },
-        { "Hover",              caps.hoverProvider },
-        { "Signature Help",     caps.signatureHelpProvider },
-        { "Document Symbol",    caps.documentSymbolProvider },
-        { "Workspace Symbol",   caps.workspaceSymbolProvider },
+        { "Completion", caps.completionProvider },
+        { "Hover", caps.hoverProvider },
+        { "Signature Help", caps.signatureHelpProvider },
+        { "Document Symbol", caps.documentSymbolProvider },
+        { "Workspace Symbol", caps.workspaceSymbolProvider },
         { "Document Highlight", caps.documentHighlightProvider },
       },
       ["Editing"] = {
-        { "Rename",      caps.renameProvider },
+        { "Rename", caps.renameProvider },
         { "Code Action", caps.codeActionProvider },
-        { "Code Lens",   caps.codeLensProvider },
+        { "Code Lens", caps.codeLensProvider },
       },
       ["Formatting"] = {
-        { "Document Formatting",       caps.documentFormattingProvider },
+        { "Document Formatting", caps.documentFormattingProvider },
         { "Document Range Formatting", caps.documentRangeFormattingProvider },
       },
       ["Other"] = {
-        { "Folding Range",   caps.foldingRangeProvider },
+        { "Folding Range", caps.foldingRangeProvider },
         { "Selection Range", caps.selectionRangeProvider },
       },
     }
@@ -273,10 +305,7 @@ function M.build_status()
   local client_names = vim.tbl_map(function(c)
     return c.name
   end, clients)
-  table.insert(
-    lines,
-    string.format("󱍔  LSP: %s", next(client_names) and table.concat(client_names, ", ") or "none")
-  )
+  table.insert(lines, string.format("󱍔  LSP: %s", next(client_names) and table.concat(client_names, ", ") or "none"))
 
   -- Formatters
   local ok_conform, conform = pcall(require, "conform")
@@ -285,10 +314,7 @@ function M.build_status()
     local names = vim.tbl_map(function(f)
       return f.name
     end, formatters)
-    table.insert(
-      lines,
-      string.format("󰁨  Formatters: %s", next(names) and table.concat(names, ", ") or "none")
-    )
+    table.insert(lines, string.format("󰁨  Formatters: %s", next(names) and table.concat(names, ", ") or "none"))
   else
     table.insert(lines, "󰁨  Formatters: none")
   end
@@ -297,10 +323,7 @@ function M.build_status()
   local ok_lint, lint = pcall(require, "lint")
   if ok_lint then
     local linters = lint.linters_by_ft[ft] or {}
-    table.insert(
-      lines,
-      string.format("󱉶  Linters: %s", next(linters) and table.concat(linters, ", ") or "none")
-    )
+    table.insert(lines, string.format("󱉶  Linters: %s", next(linters) and table.concat(linters, ", ") or "none"))
   else
     table.insert(lines, "󱉶  Linters: none")
   end
@@ -351,4 +374,3 @@ vim.api.nvim_create_user_command("LspDiagnostics", M.lsp_diagnostics, { desc = "
 vim.api.nvim_create_user_command("Status", M.status, { desc = "Full tooling status" })
 
 return M
-

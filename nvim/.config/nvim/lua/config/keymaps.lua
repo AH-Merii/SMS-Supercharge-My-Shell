@@ -36,7 +36,12 @@ keymap("n", "=", ":resize +5<CR>", silent_desc("Increase height"))
 keymap("n", "_", ":resize -5<CR>", silent_desc("Decrease height"))
 
 -- Split line with X
-keymap("n", "X", ":keeppatterns substitute/\\s*\\%#\\s*/\\r/e <bar> normal! ==^<cr>", silent_desc("Split line at cursor"))
+keymap(
+  "n",
+  "X",
+  ":keeppatterns substitute/\\s*\\%#\\s*/\\r/e <bar> normal! ==^<cr>",
+  silent_desc("Split line at cursor")
+)
 
 -- Select all
 keymap("n", "<C-a>", "ggVG", silent_desc("Select all"))

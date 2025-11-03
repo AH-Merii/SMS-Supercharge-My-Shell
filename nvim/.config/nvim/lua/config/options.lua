@@ -8,11 +8,11 @@ vim.g.lazydev_enabled = true
 -- ⚙️ General Settings
 vim.opt.termguicolors = true
 vim.opt.fileencoding = "utf-8"
-vim.opt.confirm = true             -- Confirm before exiting modified buffer
+vim.opt.confirm = true -- Confirm before exiting modified buffer
 vim.opt.timeoutlen = 1000
-vim.opt.jumpoptions = "view"       -- Replaces BufReadPost autocmd
-vim.opt.autoread = true            -- Auto-reload files
-vim.opt.inccommand = "split"       -- Live preview for substitutions
+vim.opt.jumpoptions = "view" -- Replaces BufReadPost autocmd
+vim.opt.autoread = true -- Auto-reload files
+vim.opt.inccommand = "split" -- Live preview for substitutions
 
 -- 💾 Files, Backup & Undo
 vim.opt.backup = false
@@ -29,24 +29,23 @@ vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.numberwidth = 4
 vim.opt.cmdheight = 1
-vim.opt.laststatus = 3             -- Global statusline
-vim.opt.winborder = "single"       -- Window border style
-vim.opt.showcmdloc = "statusline"  -- Show commands in statusline
+vim.opt.laststatus = 3 -- Global statusline
+vim.opt.showcmdloc = "statusline" -- Show commands in statusline
 vim.opt.pumheight = 10
-vim.opt.pumblend = 10              -- Popup menu transparency
+vim.opt.pumblend = 10 -- Popup menu transparency
 vim.opt.scrolloff = 999
 vim.opt.sidescrolloff = 8
-vim.opt.virtualedit = "block"      -- Block mode cursor positioning
+vim.opt.virtualedit = "block" -- Block mode cursor positioning
 vim.opt.list = true
 vim.opt.listchars = {
   space = "·",
-  tab = "<->",
+  tab = "->",
   trail = "󰄛",
   eol = "¶",
   extends = "»",
   precedes = "«",
   nbsp = "󰛗",
-  lead = "."
+  lead = ".",
 }
 vim.cmd([[
 highlight NonText guifg=#cccccc ctermfg=lightgray

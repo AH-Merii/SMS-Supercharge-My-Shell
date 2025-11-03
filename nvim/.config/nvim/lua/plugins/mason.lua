@@ -99,7 +99,6 @@ return {
         "debugpy", -- Python
         "delve", -- Go
         "js-debug-adapter", -- TypeScript / JavaScript
-
       },
     },
   },

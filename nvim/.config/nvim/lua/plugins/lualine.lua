@@ -10,29 +10,29 @@ return {
       if ok then
         local c = palette.get_palette()
         return {
-          bg      = c.mantle,
-          fg      = c.text,
-          red     = c.red,
-          yellow  = c.yellow,
-          green   = c.green,
-          cyan    = c.teal,
-          blue    = c.blue,
+          bg = c.mantle,
+          fg = c.text,
+          red = c.red,
+          yellow = c.yellow,
+          green = c.green,
+          cyan = c.teal,
+          blue = c.blue,
           magenta = c.mauve,
-          orange  = c.peach,
-          violet  = c.lavender,
+          orange = c.peach,
+          violet = c.lavender,
         }
       else
         return {
-          bg      = "#1e1e2e",
-          fg      = "#cdd6f4",
-          red     = "#f38ba8",
-          yellow  = "#f9e2af",
-          green   = "#a6e3a1",
-          cyan    = "#94e2d5",
-          blue    = "#89b4fa",
+          bg = "#1e1e2e",
+          fg = "#cdd6f4",
+          red = "#f38ba8",
+          yellow = "#f9e2af",
+          green = "#a6e3a1",
+          cyan = "#94e2d5",
+          blue = "#89b4fa",
           magenta = "#cba6f7",
-          orange  = "#fab387",
-          violet  = "#b4befe",
+          orange = "#fab387",
+          violet = "#b4befe",
         }
       end
     end
@@ -60,9 +60,7 @@ return {
       local buf_dir = vim.fn.expand("%:p:h")
 
       -- try to detect git root
-      local git_root = vim.fn.systemlist(
-        "git -C " .. vim.fn.shellescape(buf_dir) .. " rev-parse --show-toplevel"
-      )[1]
+      local git_root = vim.fn.systemlist("git -C " .. vim.fn.shellescape(buf_dir) .. " rev-parse --show-toplevel")[1]
 
       if git_root and git_root ~= "" then
         return git_root
@@ -115,9 +113,9 @@ return {
       end
 
       local hl_project = "%#LualineProjectRoot#"
-      local hl_middle  = "%#LualinePath#"
-      local hl_file    = "%#LualineFilename#"
-      local hl_reset   = "%#LualineNormal#"
+      local hl_middle = "%#LualinePath#"
+      local hl_file = "%#LualineFilename#"
+      local hl_reset = "%#LualineNormal#"
 
       local out = {}
       -- project
@@ -192,7 +190,7 @@ return {
         section_separators = "",
         globalstatus = true,
         theme = {
-          normal   = { c = { fg = colors.fg, bg = colors.bg } },
+          normal = { c = { fg = colors.fg, bg = colors.bg } },
           inactive = { c = { fg = colors.fg, bg = colors.bg } },
         },
       },
@@ -226,16 +224,11 @@ return {
     -- LEFT side
     ---------------------------------------------------------------------------
 
-    -- left "bar"
-    ins_left({
-      function() return "▊" end,
-      color = { fg = colors.blue },
-      padding = { right = 1 },
-    })
-
     -- mode indicator
     ins_left({
-      function() return "" end,
+      function()
+        return ""
+      end,
       color = function()
         local mode_color = {
           n = colors.red,
@@ -275,17 +268,19 @@ return {
       symbols = { error = " ", warn = " ", info = " " },
       diagnostics_color = {
         error = { fg = colors.red },
-        warn  = { fg = colors.yellow },
-        info  = { fg = colors.cyan },
+        warn = { fg = colors.yellow },
+        info = { fg = colors.cyan },
       },
     })
 
     -- spacer to push remaining stuff to the right
     ins_left({
-      function() return "%=" end,
+      function()
+        return "%="
+      end,
     })
 
-    -- LSP clients
+    -- LSP client(s)
     ins_left({
       function()
         local clients = vim.lsp.get_clients({ bufnr = 0 })
@@ -304,7 +299,49 @@ return {
         return table.concat(names, ", ")
       end,
       icon = "󱍔 LSP:",
-      color = { fg = colors.fg, gui = "bold" },
+      color = { fg = colors.yellow, gui = "bold" },
+    })
+
+    -- Formatter(s)
+    ins_left({
+      function()
+        local ok, conform = pcall(require, "conform")
+        if not ok then
+          return ""
+        end
+        local buf = vim.api.nvim_get_current_buf()
+        local formatters = conform.list_formatters_to_run(buf)
+        if not formatters or vim.tbl_isempty(formatters) then
+          return ""
+        end
+        local names = vim.tbl_map(function(f)
+          return f.name
+        end, formatters)
+        return table.concat(names, ", ")
+      end,
+      icon = "󰁨 ",
+      color = { fg = colors.magenta, gui = "bold" },
+    })
+
+    -- Linter(s)
+    ins_left({
+      function()
+        local ok, lint = pcall(require, "lint")
+        if not ok then
+          return ""
+        end
+
+        local buf = vim.api.nvim_get_current_buf()
+        local ft = vim.bo[buf].filetype
+        local configured = lint.linters_by_ft[ft]
+        if not configured or vim.tbl_isempty(configured) then
+          return ""
+        end
+
+        return table.concat(configured, ", ")
+      end,
+      icon = " ",
+      color = { fg = colors.orange, gui = "bold" },
     })
 
     ---------------------------------------------------------------------------
@@ -336,17 +373,11 @@ return {
       "diff",
       symbols = { added = "󰐖 ", modified = "󰦓 ", removed = "󰍵 " },
       diff_color = {
-        added    = { fg = colors.green },
+        added = { fg = colors.green },
         modified = { fg = colors.orange },
-        removed  = { fg = colors.red },
+        removed = { fg = colors.red },
       },
       cond = conditions.hide_in_width,
-    })
-
-    ins_right({
-      function() return "▊" end,
-      color = { fg = colors.blue },
-      padding = { left = 1 },
     })
 
     ---------------------------------------------------------------------------
@@ -355,4 +386,3 @@ return {
     lualine.setup(config)
   end,
 }
-

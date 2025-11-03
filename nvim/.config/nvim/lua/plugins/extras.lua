@@ -6,9 +6,9 @@ return {
   },
 
   -- Heuristically set buffer options
-  {
-    "tpope/vim-sleuth",
-  },
+  -- {
+  -- 	"tpope/vim-sleuth",
+  -- },
 
   {
     "folke/lazydev.nvim",
