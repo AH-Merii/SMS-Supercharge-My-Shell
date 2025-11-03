@@ -1,15 +1,8 @@
-eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 # editor
 export EDITOR=nvim
 export SUDOEDITOR=nvim
 export VISUAL=nvim
-
-# binaries
-export PATH=$HOME/.local/bin:$PATH
-export PATH=$HOME/.local/share/go/bin:$PATH
-
-export PATH=$HOMEBREW_PREFIX/.local/bin:$PATH
-export PATH=$HOMEBREW_PREFIX/.local/share/:$PATH
 
 # Set XDG base dirs.
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
@@ -20,8 +13,16 @@ export XDG_STATE_HOME=~/.local/state
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export XDG_PROJECTS_DIR=~/Projects
 
+# binaries
+export PATH=$HOME/.local/bin:$PATH
+export PATH=$XDG_DATA_HOME/go/bin:$PATH
+
+export PATH=$HOMEBREW_PREFIX/.local/bin:$PATH
+export PATH=$HOMEBREW_PREFIX/.local/share/:$PATH
+export PATH=$XDG_DATA_HOME/nvim/mason/bin:$PATH
+
 # Set zsh config directory
-export ZDOTDIR=$HOME/.config/zsh
+export ZDOTDIR=$XDG_CONFIG_HOME/zsh
 
 # Store zsh history
 export HISTFILE=$XDG_DATA_HOME/zsh/zsh_history
@@ -41,10 +42,10 @@ export REPO_HOME=$XDG_CACHE_HOME/repos
 export ANTIDOTE_HOME=$REPO_HOME
 
 # Do the initialization when the script is sourced (i.e. Initialize instantly) (zsh-vi-mode plugin)
-ZVM_INIT_MODE=sourcing
+export ZVM_INIT_MODE=sourcing
 
 # mattmc3/zephyr/zfunctions plugin
-ZFUNCDIR=${ZDOTDIR:-$HOME/.config/zsh}/functions
+export ZFUNCDIR=${ZDOTDIR:-$HOME/.config/zsh}/functions
 
 # AWS CLI Autocompletions
 export AWS_CLI_AUTO_PROMPT="on-partial"
