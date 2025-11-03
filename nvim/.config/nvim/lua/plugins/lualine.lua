@@ -58,47 +58,39 @@ return {
     ---------------------------------------------------------------------------
     local function get_project_root()
       local buf_dir = vim.fn.expand("%:p:h")
-
-      -- try to detect git root
       local git_root = vim.fn.systemlist("git -C " .. vim.fn.shellescape(buf_dir) .. " rev-parse --show-toplevel")[1]
-
       if git_root and git_root ~= "" then
         return git_root
       end
-
-      -- fallback to Neovim's idea of cwd
       return vim.fn.getcwd()
     end
 
     ---------------------------------------------------------------------------
-    -- Path component with highlight
-    --
-    -- layout:
-    --   <project>/<relative/dirs>/<file>
-    --
-    -- styles:
-    --   project dir   -> magenta, bold
-    --   middle path   -> normal fg
-    --   filename      -> blue, bold
-    --
-    -- note: we build statusline highlight chunks manually using %#Group#text%#
+    -- Adaptive Path component with highlight
     ---------------------------------------------------------------------------
-    local function filepath_component()
+    --- Adaptive filepath component for lualine.
+    --- Shows full path when space allows, then progressively shortens:
+    ---   1. Abbreviate intermediate dirs (a/b/c)
+    ---   2. Shorten project name (my..example)
+    ---   3. Fallback to filename only
+    ---
+    --- @param component_width number? (0–1) fraction of total winwidth to use (default = 0.4)
+    local function filepath_component(component_width)
+      component_width = component_width or 0.4
+
       if vim.fn.bufname("%") == "" then
         return ""
       end
 
       local fullpath = vim.fn.expand("%:p")
       local root = get_project_root()
-
       if not fullpath or not root or fullpath == "" or root == "" then
         return vim.fn.expand("%:t")
       end
 
-      -- path relative to project root
+      local win_width = vim.fn.winwidth(0)
+      local max_budget = math.floor(win_width * component_width)
       local rel = fullpath:gsub("^" .. vim.pesc(root) .. "/?", "")
-
-      -- split relative pieces
       local parts = {}
       for seg in string.gmatch(rel, "[^/]+") do
         table.insert(parts, seg)
@@ -107,7 +99,6 @@ return {
       local project_name = vim.fn.fnamemodify(root, ":t")
       local filename = parts[#parts] or ""
       local middle_path = ""
-
       if #parts > 1 then
         middle_path = table.concat(vim.list_slice(parts, 1, #parts - 1), "/")
       end
@@ -117,59 +108,68 @@ return {
       local hl_file = "%#LualineFilename#"
       local hl_reset = "%#LualineNormal#"
 
-      local out = {}
-      -- project
-      table.insert(out, hl_project .. project_name .. hl_reset)
-
-      -- middle folders
-      if middle_path ~= "" then
-        table.insert(out, "/")
-        table.insert(out, hl_middle .. middle_path .. hl_reset)
+      local function shorten_project_name(name)
+        local words = {}
+        for seg in name:gmatch("[^%-%_]+") do table.insert(words, seg) end
+        if #words == 1 then
+          for seg in name:gmatch("[A-Z][^A-Z]*") do table.insert(words, seg) end
+        end
+        if #words >= 2 then
+          return words[1] .. ".." .. words[#words]
+        end
+        return name
       end
 
-      -- filename
-      if filename ~= "" then
-        table.insert(out, "/")
-        table.insert(out, hl_file .. filename .. hl_reset)
+      local function build_path(proj, mid, file)
+        local out = {}
+        table.insert(out, hl_project .. proj .. hl_reset)
+        if mid ~= "" then
+          table.insert(out, "/" .. hl_middle .. mid .. hl_reset)
+        end
+        if file ~= "" then
+          table.insert(out, "/" .. hl_file .. file .. hl_reset)
+        end
+        return table.concat(out, "")
       end
 
-      return table.concat(out, "")
+      local function path_width(str)
+        return vim.fn.strdisplaywidth((str:gsub("%%#.-#", "")))
+      end
+
+      local display = build_path(project_name, middle_path, filename)
+
+      if path_width(display) > max_budget then
+        local short_parts = {}
+        for _, seg in ipairs(vim.list_slice(parts, 1, #parts - 1)) do
+          table.insert(short_parts, seg:sub(1, 1))
+        end
+        middle_path = table.concat(short_parts, "/")
+        display = build_path(project_name, middle_path, filename)
+      end
+
+      if path_width(display) > max_budget then
+        project_name = shorten_project_name(project_name)
+        display = build_path(project_name, middle_path, filename)
+      end
+
+      if path_width(display) > max_budget then
+        display = hl_file .. filename .. hl_reset
+      end
+
+      return display
     end
 
     ---------------------------------------------------------------------------
     -- Highlight groups for statusline segments
-    -- we re-define them on ColorScheme so they track your theme
     ---------------------------------------------------------------------------
     local function define_highlights()
       local set_hl = function(name, opts)
         vim.api.nvim_set_hl(0, name, opts)
       end
-
-      -- base group for normal segment bg/fg
-      set_hl("LualineNormal", {
-        fg = colors.fg,
-        bg = colors.bg,
-      })
-
-      -- project root: magenta bold
-      set_hl("LualineProjectRoot", {
-        fg = colors.magenta,
-        bg = colors.bg,
-        bold = true,
-      })
-
-      -- middle path: plain fg
-      set_hl("LualinePath", {
-        fg = colors.fg,
-        bg = colors.bg,
-      })
-
-      -- filename: blue bold
-      set_hl("LualineFilename", {
-        fg = colors.blue,
-        bg = colors.bg,
-        bold = true,
-      })
+      set_hl("LualineNormal", { fg = colors.fg, bg = colors.bg })
+      set_hl("LualineProjectRoot", { fg = colors.magenta, bg = colors.bg, bold = true })
+      set_hl("LualinePath", { fg = colors.fg, bg = colors.bg })
+      set_hl("LualineFilename", { fg = colors.blue, bg = colors.bg, bold = true })
     end
 
     define_highlights()
@@ -182,7 +182,7 @@ return {
     })
 
     ---------------------------------------------------------------------------
-    -- lualine setup table
+    -- lualine setup
     ---------------------------------------------------------------------------
     local config = {
       options = {
@@ -215,7 +215,6 @@ return {
     local function ins_left(component)
       table.insert(config.sections.lualine_c, component)
     end
-
     local function ins_right(component)
       table.insert(config.sections.lualine_x, component)
     end
@@ -223,45 +222,26 @@ return {
     ---------------------------------------------------------------------------
     -- LEFT side
     ---------------------------------------------------------------------------
-
-    -- mode indicator
     ins_left({
-      function()
-        return ""
-      end,
+      function() return "" end,
       color = function()
         local mode_color = {
-          n = colors.red,
-          i = colors.green,
-          v = colors.blue,
-          V = colors.blue,
-          c = colors.magenta,
-          s = colors.orange,
-          S = colors.orange,
-          R = colors.violet,
-          t = colors.red,
+          n = colors.red, i = colors.green, v = colors.blue, V = colors.blue,
+          c = colors.magenta, s = colors.orange, S = colors.orange,
+          R = colors.violet, t = colors.red,
         }
         return { fg = mode_color[vim.fn.mode()] or colors.red }
       end,
       padding = { right = 1 },
     })
 
-    -- project-aware path
     ins_left({
-      filepath_component,
+      function() return filepath_component(0.4) end,
       cond = conditions.buffer_not_empty,
     })
 
-    -- cursor position (line:col)
     ins_left({ "location" })
-
-    -- file progress (e.g. 42%)
-    ins_left({
-      "progress",
-      color = { fg = colors.fg, gui = "bold" },
-    })
-
-    -- diagnostics
+    ins_left({ "progress", color = { fg = colors.fg, gui = "bold" } })
     ins_left({
       "diagnostics",
       sources = { "nvim_diagnostic" },
@@ -272,24 +252,13 @@ return {
         info = { fg = colors.cyan },
       },
     })
+    ins_left({ function() return "%=" end })
 
-    -- spacer to push remaining stuff to the right
-    ins_left({
-      function()
-        return "%="
-      end,
-    })
-
-    -- LSP client(s)
     ins_left({
       function()
         local clients = vim.lsp.get_clients({ bufnr = 0 })
-        if not clients or next(clients) == nil then
-          return "No Active LSP"
-        end
-
-        local names_seen = {}
-        local names = {}
+        if not clients or next(clients) == nil then return "No Active LSP" end
+        local names_seen, names = {}, {}
         for _, client in ipairs(clients) do
           if not names_seen[client.name] then
             table.insert(names, client.name)
@@ -302,42 +271,28 @@ return {
       color = { fg = colors.yellow, gui = "bold" },
     })
 
-    -- Formatter(s)
     ins_left({
       function()
         local ok, conform = pcall(require, "conform")
-        if not ok then
-          return ""
-        end
+        if not ok then return "" end
         local buf = vim.api.nvim_get_current_buf()
         local formatters = conform.list_formatters_to_run(buf)
-        if not formatters or vim.tbl_isempty(formatters) then
-          return ""
-        end
-        local names = vim.tbl_map(function(f)
-          return f.name
-        end, formatters)
+        if not formatters or vim.tbl_isempty(formatters) then return "" end
+        local names = vim.tbl_map(function(f) return f.name end, formatters)
         return table.concat(names, ", ")
       end,
       icon = "󰁨 ",
       color = { fg = colors.magenta, gui = "bold" },
     })
 
-    -- Linter(s)
     ins_left({
       function()
         local ok, lint = pcall(require, "lint")
-        if not ok then
-          return ""
-        end
-
+        if not ok then return "" end
         local buf = vim.api.nvim_get_current_buf()
         local ft = vim.bo[buf].filetype
         local configured = lint.linters_by_ft[ft]
-        if not configured or vim.tbl_isempty(configured) then
-          return ""
-        end
-
+        if not configured or vim.tbl_isempty(configured) then return "" end
         return table.concat(configured, ", ")
       end,
       icon = " ",
@@ -347,28 +302,24 @@ return {
     ---------------------------------------------------------------------------
     -- RIGHT side
     ---------------------------------------------------------------------------
-
     ins_right({
       "o:encoding",
       fmt = string.upper,
       cond = conditions.hide_in_width,
       color = { fg = colors.green, gui = "bold" },
     })
-
     ins_right({
       "fileformat",
       fmt = string.upper,
       icons_enabled = false,
       color = { fg = colors.green, gui = "bold" },
     })
-
     ins_right({
       "branch",
       icon = "",
       color = { fg = colors.cyan, gui = "bold" },
       cond = conditions.check_git_workspace,
     })
-
     ins_right({
       "diff",
       symbols = { added = "󰐖 ", modified = "󰦓 ", removed = "󰍵 " },
@@ -386,3 +337,4 @@ return {
     lualine.setup(config)
   end,
 }
+
