@@ -6,8 +6,8 @@ return {
   ---@type snacks.Config
   opts = {
     bigfile = { enabled = true },
-    dashboard = { enabled = false },
-    explorer = { enabled = false },
+    dashboard = { enabled = false }, --
+    explorer = { enabled = false }, --
     indent = { enabled = true },
     input = { enabled = true },
     picker = { enabled = true },
@@ -351,7 +351,7 @@ return {
     {
       "<leader>.",
       function()
-        Snacks.scratch()
+        Snacks.scratch({ ft = "markdown" })
       end,
       desc = "Toggle Scratch Buffer",
     },
@@ -467,11 +467,7 @@ return {
         { "[[", icon = { icon = "", color = "grey" } },
       })
     else
-      vim.notify(
-        "which-key.nvim not found. Install it for enhanced keymap icons and descriptions.",
-        vim.log.levels.WARN,
-        { title = "Snacks Config" }
-      )
+      vim.notify("which-key.nvim not found. Install it for enhanced keymap icons and descriptions.", vim.log.levels.WARN, { title = "Snacks Config" })
     end
   end,
   init = function()
@@ -479,9 +475,11 @@ return {
     local augroup = vim.api.nvim_create_augroup
     local user_group = augroup("SnacksUserAutocmds", { clear = true })
 
+    -- Defer setup until all lazy-loaded plugins are ready (ensures Snacks & Gitsigns are available)
     autocmd("User", {
       group = user_group,
       pattern = "VeryLazy",
+      desc = "Initialize Snacks toggle keymaps after LazyVim startup",
       callback = function()
         -- Setup some globals for debugging (lazy-loaded)
         _G.dd = function(...)
@@ -511,11 +509,7 @@ return {
               })
               :map("<leader>TG")
           else
-            vim.notify(
-              "gitsigns.nvim not found. Skipping gitsigns column toggle option.",
-              vim.log.levels.WARN,
-              { title = "Snacks Config" }
-            )
+            vim.notify("gitsigns.nvim not found. Skipping gitsigns column toggle option.", vim.log.levels.WARN, { title = "Snacks Config" })
           end
         end
 
@@ -546,12 +540,7 @@ return {
               vim.bo.softtabstop = n_compact
 
               vim.notify(
-                string.format(
-                  "Indent View: tabstop=%d (shiftwidth=%d, softtabstop=%d)",
-                  vim.bo.tabstop,
-                  vim.bo.shiftwidth,
-                  vim.bo.softtabstop
-                ),
+                string.format("Indent View: tabstop=%d (shiftwidth=%d, softtabstop=%d)", vim.bo.tabstop, vim.bo.shiftwidth, vim.bo.softtabstop),
                 vim.log.levels.INFO,
                 { title = "Snacks" }
               )
@@ -559,19 +548,38 @@ return {
           }):map("<leader>Ti")
         end
         -- Create some toggle mappings
-        Snacks.toggle.option("spell", { name = "Spelling" }):map("<leader>Ts")
+        Snacks.toggle.option("spell", { name = "Spell Checking" }):map("<leader>Ts")
         Snacks.toggle.option("wrap", { name = "Wrap" }):map("<leader>Tw")
         Snacks.toggle.option("relativenumber", { name = "Relative Number" }):map("<leader>TL")
-        Snacks.toggle.diagnostics():map("<leader>Td")
-        Snacks.toggle.line_number():map("<leader>Tl")
         Snacks.toggle
-          .option("conceallevel", { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2 })
+          .diagnostics({ wk_desc = {
+            enabled = "Hide ",
+            disabled = "Show ",
+          } })
+          :map("<leader>Td")
+        Snacks.toggle.line_number():map("<leader>Tl")
+        -- Show markdown details example ``` or checkboxes etc..
+        Snacks.toggle
+          .option("conceallevel", {
+            name = "Markup Details",
+            off = 0,
+            on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2,
+            wk_desc = {
+              enabled = "Conceal ",
+              disabled = "Show ",
+            },
+          })
           :map("<leader>Tc")
         Snacks.toggle.treesitter():map("<leader>TT")
-        Snacks.toggle.inlay_hints():map("<leader>Th")
+        Snacks.toggle
+          .inlay_hints({ wk_desc = {
+            enabled = "Hide ",
+            disabled = "Show ",
+          } })
+          :map("<leader>Th")
         Snacks.toggle.indent():map("<leader>Tg")
         Snacks.toggle.dim():map("<leader>TD")
-        Snacks.toggle.option("list", { name = "Show Hidden Chars" }):map("TH")
+        Snacks.toggle.option("list", { name = "Hidden Chars" }):map("<leader>TH")
 
         setup_gitsigns_toggle()
         setup_indent_view_toggle()
