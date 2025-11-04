@@ -30,7 +30,6 @@ return {
             hop = true,
             illuminate = { enabled = true },
             native_lsp = { enabled = true },
-            -- neotree removed
             semantic_tokens = true,
             treesitter = true,
             treesitter_context = true,
