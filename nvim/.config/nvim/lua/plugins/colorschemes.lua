@@ -69,6 +69,15 @@ return {
                 FidgetTask = { fg = colors.subtext1 },
                 FidgetTitle = { fg = colors.peach },
 
+                -- Word under cursor / LSP reference style (below makes it bold, when cursor is on word)
+                LspReferenceText = { bg = "none", style = { "bold" } },
+                LspReferenceRead = { bg = "none", style = { "bold" } },
+                LspReferenceWrite = { bg = "none", style = { "bold" } },
+
+                IlluminatedWordText = { bg = "none", style = { "bold" } },
+                IlluminatedWordRead = { bg = "none", style = { "bold" } },
+                IlluminatedWordWrite = { bg = "none", style = { "bold" } },
+
                 -- -------------------------
                 -- Syntax / Treesitter layer
                 -- -------------------------
