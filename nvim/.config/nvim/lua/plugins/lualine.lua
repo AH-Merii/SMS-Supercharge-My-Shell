@@ -110,9 +110,13 @@ return {
 
       local function shorten_project_name(name)
         local words = {}
-        for seg in name:gmatch("[^%-%_]+") do table.insert(words, seg) end
+        for seg in name:gmatch("[^%-%_]+") do
+          table.insert(words, seg)
+        end
         if #words == 1 then
-          for seg in name:gmatch("[A-Z][^A-Z]*") do table.insert(words, seg) end
+          for seg in name:gmatch("[A-Z][^A-Z]*") do
+            table.insert(words, seg)
+          end
         end
         if #words >= 2 then
           return words[1] .. ".." .. words[#words]
@@ -182,6 +186,24 @@ return {
     })
 
     ---------------------------------------------------------------------------
+    -- Macro recording component
+    ---------------------------------------------------------------------------
+    local function macro_recording()
+      local reg = vim.fn.reg_recording()
+      if reg == "" then
+        return ""
+      end
+      return " @" .. reg
+    end
+
+    -- Refresh lualine when macro recording starts/stops
+    vim.api.nvim_create_autocmd({ "RecordingEnter", "RecordingLeave" }, {
+      callback = function()
+        require("lualine").refresh()
+      end,
+    })
+
+    ---------------------------------------------------------------------------
     -- lualine setup
     ---------------------------------------------------------------------------
     local config = {
@@ -226,9 +248,15 @@ return {
       function() return "" end,
       color = function()
         local mode_color = {
-          n = colors.red, i = colors.green, v = colors.blue, V = colors.blue,
-          c = colors.magenta, s = colors.orange, S = colors.orange,
-          R = colors.violet, t = colors.red,
+          n = colors.fg,
+          i = colors.green,
+          v = colors.blue,
+          V = colors.blue,
+          c = colors.magenta,
+          s = colors.orange,
+          S = colors.orange,
+          R = colors.violet,
+          t = colors.red,
         }
         return { fg = mode_color[vim.fn.mode()] or colors.red }
       end,
@@ -303,18 +331,6 @@ return {
     -- RIGHT side
     ---------------------------------------------------------------------------
     ins_right({
-      "o:encoding",
-      fmt = string.upper,
-      cond = conditions.hide_in_width,
-      color = { fg = colors.green, gui = "bold" },
-    })
-    ins_right({
-      "fileformat",
-      fmt = string.upper,
-      icons_enabled = false,
-      color = { fg = colors.green, gui = "bold" },
-    })
-    ins_right({
       "branch",
       icon = "",
       color = { fg = colors.cyan, gui = "bold" },
@@ -329,6 +345,10 @@ return {
         removed = { fg = colors.red },
       },
       cond = conditions.hide_in_width,
+    })
+    ins_right({
+      macro_recording,
+      color = { fg = colors.yellow, gui = "bold" },
     })
 
     ---------------------------------------------------------------------------
