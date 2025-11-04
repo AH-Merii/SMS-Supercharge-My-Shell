@@ -9,30 +9,22 @@ vim.g.lazydev_enabled = true
 vim.opt.termguicolors = true
 vim.opt.fileencoding = "utf-8"
 vim.opt.confirm = true -- Confirm before exiting modified buffer
-vim.opt.timeoutlen = 1000
-vim.opt.jumpoptions = "view" -- Replaces BufReadPost autocmd
+vim.opt.timeoutlen = 500 -- How much time nvim waits for the next command (example sa: for mini.surround)
+vim.opt.jumpoptions = "view" -- Restores both cursor and window view (scroll, folds, etc.) between jumps
 vim.opt.autoread = true -- Auto-reload files
-vim.opt.inccommand = "split" -- Live preview for substitutions
+vim.opt.inccommand = "split" -- Live preview for substitutions %s/text/new_text/
 
 -- 💾 Files, Backup & Undo
-vim.opt.backup = false
-vim.opt.writebackup = false
-vim.opt.swapfile = false
 vim.opt.undofile = true
 
 -- 📋 Clipboard & Mouse
 vim.opt.clipboard = "unnamedplus"
-vim.opt.mouse = "a"
+vim.opt.mouse = "a" -- enable mouse in (a)ll modes
 
 -- 🧭 UI & Appearance
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.numberwidth = 4
-vim.opt.cmdheight = 1
-vim.opt.laststatus = 3 -- Global statusline
-vim.opt.showcmdloc = "statusline" -- Show commands in statusline
-vim.opt.pumheight = 10
-vim.opt.pumblend = 10 -- Popup menu transparency
 vim.opt.scrolloff = 999
 vim.opt.sidescrolloff = 8
 vim.opt.virtualedit = "block" -- Block mode cursor positioning
@@ -47,6 +39,15 @@ vim.opt.listchars = {
   nbsp = "󰛗",
   lead = ".",
 }
+
+-- BUG: Below is not working -> expected example:
+-- when pressing 44j to go down 44 lines
+-- I expect to see a preview of that command below
+vim.opt.cmdheight = 0
+vim.o.showcmd = true
+vim.o.showcmdloc = "last"  -- show partial commands in the statusline
+
+-- make the hidden chars foreground color more subtle
 vim.cmd([[
 highlight NonText guifg=#cccccc ctermfg=lightgray
 highlight SpecialKey guifg=#cccccc ctermfg=lightgray
