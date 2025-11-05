@@ -52,9 +52,7 @@ function M.setup()
   -- Disable automatic comment insertion on new lines
   autocmd("BufEnter", {
     group = user_group,
-    callback = function()
-      vim.opt.formatoptions:remove({ "c", "r", "o" })
-    end,
+    callback = function() vim.opt.formatoptions:remove({ "c", "r", "o" }) end,
   })
 
   -- Wrap words softly in mail buffer
@@ -74,9 +72,7 @@ function M.setup()
   -- Highlight on yank
   vim.api.nvim_create_autocmd("TextYankPost", {
     group = user_group,
-    callback = function()
-      vim.highlight.on_yank({ higroup = "Search", timeout = 200 })
-    end,
+    callback = function() vim.highlight.on_yank({ higroup = "Search", timeout = 200 }) end,
   })
 
   -- Close specific filetypes with 'q'
@@ -115,24 +111,18 @@ function M.setup()
   -- Resize windows equally when Neovim is resized
   autocmd("VimResized", {
     group = user_group,
-    callback = function()
-      vim.cmd("tabdo wincmd =")
-    end,
+    callback = function() vim.cmd("tabdo wincmd =") end,
   })
 
   -- Show cursor line only in active window
   local cursor_group = augroup("CursorLine", { clear = true })
   autocmd({ "InsertLeave", "WinEnter" }, {
     group = cursor_group,
-    callback = function()
-      vim.opt_local.cursorline = true
-    end,
+    callback = function() vim.opt_local.cursorline = true end,
   })
   autocmd({ "InsertEnter", "WinLeave" }, {
     group = cursor_group,
-    callback = function()
-      vim.opt_local.cursorline = false
-    end,
+    callback = function() vim.opt_local.cursorline = false end,
   })
 
   -- Enable spell checking and wrapping for text-based files
@@ -150,9 +140,7 @@ function M.setup()
   autocmd("FileType", {
     group = user_group,
     pattern = { "terraform", "hcl" },
-    callback = function(event)
-      vim.bo[event.buf].commentstring = "# %s"
-    end,
+    callback = function(event) vim.bo[event.buf].commentstring = "# %s" end,
   })
 
   -- LuaSnip integration

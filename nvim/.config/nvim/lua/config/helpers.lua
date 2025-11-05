@@ -114,10 +114,7 @@ function M.build_lsp_status()
   end
 
   table.insert(lines, "󱍔 Status for buffer " .. bufnr .. ":")
-  table.insert(
-    lines,
-    "─────────────────────────────────"
-  )
+  table.insert(lines, "─────────────────────────────────")
 
   for i, client in ipairs(clients) do
     table.insert(lines, string.format("󰌘 Client %d: %s (ID: %d)", i, client.name, client.id))
@@ -138,15 +135,9 @@ function M.build_lsp_info()
   local clients = get_clients(bufnr)
 
   local lines = {}
-  table.insert(
-    lines,
-    "═══════════════════════════════════"
-  )
+  table.insert(lines, "═══════════════════════════════════")
   table.insert(lines, "           LSP INFORMATION          ")
-  table.insert(
-    lines,
-    "═══════════════════════════════════"
-  )
+  table.insert(lines, "═══════════════════════════════════")
   table.insert(lines, "")
 
   -- Basic info
@@ -168,10 +159,7 @@ function M.build_lsp_info()
   end
 
   table.insert(lines, "󱍔 LSP clients attached to buffer " .. bufnr .. ":")
-  table.insert(
-    lines,
-    "─────────────────────────────────"
-  )
+  table.insert(lines, "─────────────────────────────────")
 
   for i, client in ipairs(clients) do
     vim.list_extend(lines, build_client_basic_info(i, client))
@@ -229,15 +217,9 @@ function M.build_lsp_capabilities()
   end
 
   for _, client in ipairs(clients) do
-    table.insert(
-      lines,
-      "═══════════════════════════════════"
-    )
+    table.insert(lines, "═══════════════════════════════════")
     table.insert(lines, "  Capabilities: " .. client.name)
-    table.insert(
-      lines,
-      "═══════════════════════════════════"
-    )
+    table.insert(lines, "═══════════════════════════════════")
     table.insert(lines, "")
 
     local caps = client.server_capabilities
@@ -287,9 +269,7 @@ function M.build_lsp_capabilities()
 end
 
 ---@return string[]
-function M.build_lsp_diagnostics()
-  return build_diagnostics_summary(nil, "󰒡 Diagnostics for current buffer:")
-end
+function M.build_lsp_diagnostics() return build_diagnostics_summary(nil, "󰒡 Diagnostics for current buffer:") end
 
 ---@return string[]
 function M.build_status()
@@ -302,18 +282,14 @@ function M.build_status()
 
   -- LSP
   local clients = get_clients(bufnr)
-  local client_names = vim.tbl_map(function(c)
-    return c.name
-  end, clients)
+  local client_names = vim.tbl_map(function(c) return c.name end, clients)
   table.insert(lines, string.format("󱍔  LSP: %s", next(client_names) and table.concat(client_names, ", ") or "none"))
 
   -- Formatters
   local ok_conform, conform = pcall(require, "conform")
   if ok_conform then
     local formatters = conform.list_formatters_to_run(bufnr)
-    local names = vim.tbl_map(function(f)
-      return f.name
-    end, formatters)
+    local names = vim.tbl_map(function(f) return f.name end, formatters)
     table.insert(lines, string.format("󰁨  Formatters: %s", next(names) and table.concat(names, ", ") or "none"))
   else
     table.insert(lines, "󰁨  Formatters: none")
@@ -343,25 +319,15 @@ end
 -- Public user-facing commands
 -- ============================================================================
 
-function M.lsp_status()
-  echo_lines(M.build_lsp_status())
-end
+function M.lsp_status() echo_lines(M.build_lsp_status()) end
 
-function M.lsp_info()
-  echo_lines(M.build_lsp_info())
-end
+function M.lsp_info() echo_lines(M.build_lsp_info()) end
 
-function M.lsp_capabilities()
-  echo_lines(M.build_lsp_capabilities())
-end
+function M.lsp_capabilities() echo_lines(M.build_lsp_capabilities()) end
 
-function M.lsp_diagnostics()
-  echo_lines(M.build_lsp_diagnostics())
-end
+function M.lsp_diagnostics() echo_lines(M.build_lsp_diagnostics()) end
 
-function M.status()
-  echo_lines(M.build_status())
-end
+function M.status() echo_lines(M.build_status()) end
 
 -- ============================================================================
 -- Register Commands

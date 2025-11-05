@@ -13,13 +13,11 @@ return {
         local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
         local is_disabled = ok and stats and stats.size > 2 * 1024 * 1024 -- >2MB
         if is_disabled then
-          vim.schedule(function()
-            vim.notify(
-              string.format("Treesitter disabled for %s (file >2MB)", lang or "unknown"),
-              vim.log.levels.WARN,
-              { title = "nvim-treesitter" }
-            )
-          end)
+          vim.schedule(
+            function()
+              vim.notify(string.format("Treesitter disabled for %s (file >2MB)", lang or "unknown"), vim.log.levels.WARN, { title = "nvim-treesitter" })
+            end
+          )
         end
         return is_disabled
       end

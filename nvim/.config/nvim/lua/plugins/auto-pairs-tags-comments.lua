@@ -49,14 +49,10 @@ return {
         npairs.add_rules({
           Rule(bracket[1] .. " ", " " .. bracket[2])
             :with_pair(cond.none())
-            :with_move(function(opts)
-              return opts.char == bracket[2]
-            end)
+            :with_move(function(opts) return opts.char == bracket[2] end)
             :with_del(cond.none())
             :use_key(bracket[2])
-            :replace_map_cr(function(_)
-              return "<C-c>2xi<CR><C-c>O"
-            end),
+            :replace_map_cr(function(_) return "<C-c>2xi<CR><C-c>O" end),
         })
       end
 
@@ -66,18 +62,10 @@ return {
       for _, punct in pairs({ ",", ";" }) do
         require("nvim-autopairs").add_rules({
           require("nvim-autopairs.rule")("", punct)
-            :with_move(function(opts)
-              return opts.char == punct
-            end)
-            :with_pair(function()
-              return false
-            end)
-            :with_del(function()
-              return false
-            end)
-            :with_cr(function()
-              return false
-            end)
+            :with_move(function(opts) return opts.char == punct end)
+            :with_pair(function() return false end)
+            :with_del(function() return false end)
+            :with_cr(function() return false end)
             :use_key(punct),
         })
       end
@@ -89,9 +77,7 @@ return {
         "-html",
         "-javascriptreact",
         "-typescriptreact",
-      }):with_pair(cond.before_regex("%a+:?:?$", 3)):with_move(function(opts)
-        return opts.char == ">"
-      end))
+      }):with_pair(cond.before_regex("%a+:?:?$", 3)):with_move(function(opts) return opts.char == ">" end))
 
       --------------------------------------------------------------------------
       --  Add trailing commas to "'} inside Lua tables
@@ -153,14 +139,12 @@ return {
           autopairs.remove_rule("{")
           autopairs.remove_rule("[")
 
-          autopairs.add_rule(Rule("[%(%{%[]", "")
-            :use_regex(true)
-            :replace_endpair(function(opts)
-              return get_closing_for_line(opts.line)
-            end)
-            :end_wise(function(opts)
-              return get_closing_for_line(opts.line) ~= ""
-            end))
+          autopairs.add_rule(
+            Rule("[%(%{%[]", "")
+              :use_regex(true)
+              :replace_endpair(function(opts) return get_closing_for_line(opts.line) end)
+              :end_wise(function(opts) return get_closing_for_line(opts.line) ~= "" end)
+          )
         end,
       })
     end,

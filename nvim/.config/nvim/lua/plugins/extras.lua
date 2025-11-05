@@ -22,9 +22,7 @@ return {
     dependencies = {
       { "echasnovski/mini.icons", lazy = true, opts = {} },
     },
-    config = function()
-      require("mini.surround").setup()
-    end,
+    config = function() require("mini.surround").setup() end,
   },
 
   {

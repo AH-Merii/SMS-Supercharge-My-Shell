@@ -4,13 +4,6 @@ return {
   config = function()
     local lint = require("lint")
 
-    -- Configure custom linters using Mason-managed tools
-    local mason_bin_dir = vim.fn.stdpath("data") .. "/mason/bin"
-
-    -- Customize golangcilint to ignore exit codes (golangci-lint exits with code 1-3 when issues are found)
-    local golangcilint = require("lint").linters.golangcilint
-    golangcilint.ignore_exitcode = true
-
     -- Configure linters by filetype (using Mason-managed tools)
     lint.linters_by_ft = {
       -- Go
@@ -28,11 +21,9 @@ return {
       -- Shell
       sh = { "shellcheck" },
       bash = { "shellcheck" },
-      zsh = { "shellcheck" },
 
-      -- You can add more linters here as needed
+      --python
       python = { "ruff" },
-      -- rust = { "clippy" },
     }
 
     -- Auto-lint on save and text changes

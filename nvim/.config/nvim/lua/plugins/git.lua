@@ -5,69 +5,51 @@ return {
     keys = {
       {
         "[g",
-        function()
-          require("gitsigns").prev_hunk({ navigation_message = false })
-        end,
+        function() require("gitsigns").prev_hunk({ navigation_message = false }) end,
         desc = "Prev Hunk",
       },
       {
         "]g",
-        function()
-          require("gitsigns").next_hunk({ navigation_message = false })
-        end,
+        function() require("gitsigns").next_hunk({ navigation_message = false }) end,
         desc = "Next Hunk",
       },
 
       {
         "<leader>gb",
-        function()
-          require("gitsigns").blame_line()
-        end,
+        function() require("gitsigns").blame_line() end,
         desc = "Blame",
       },
       {
         "<leader>gd",
-        function()
-          require("gitsigns").preview_hunk()
-        end,
+        function() require("gitsigns").preview_hunk() end,
         desc = "Diff (Preview)",
       },
 
       {
         "<leader>Gr",
-        function()
-          require("gitsigns").reset_hunk()
-        end,
+        function() require("gitsigns").reset_hunk() end,
         desc = "Reset Hunk",
       },
       {
         "<leader>GR",
-        function()
-          require("gitsigns").reset_buffer()
-        end,
+        function() require("gitsigns").reset_buffer() end,
         desc = "Reset Buffer",
       },
 
       {
         "<leader>Gs",
-        function()
-          require("gitsigns").stage_hunk()
-        end,
+        function() require("gitsigns").stage_hunk() end,
         desc = "Stage Hunk",
       },
       {
         "<leader>Gu",
-        function()
-          require("gitsigns").undo_stage_hunk()
-        end,
+        function() require("gitsigns").undo_stage_hunk() end,
         desc = "Undo Stage Hunk",
       },
 
       {
         "<leader>Gd",
-        function()
-          vim.cmd("Gitsigns diffthis HEAD")
-        end,
+        function() vim.cmd("Gitsigns diffthis HEAD") end,
         desc = "Diff (vs HEAD)",
       },
     },
@@ -140,11 +122,7 @@ return {
           { "<leader>gd", icon = { icon = "󰦓", color = "cyan" } }, -- diff preview
         })
       else
-        vim.notify(
-          "which-key.nvim not found. Install it for Git icons/groups.",
-          vim.log.levels.WARN,
-          { title = "gitsigns.nvim" }
-        )
+        vim.notify("which-key.nvim not found. Install it for Git icons/groups.", vim.log.levels.WARN, { title = "gitsigns.nvim" })
       end
     end,
   },

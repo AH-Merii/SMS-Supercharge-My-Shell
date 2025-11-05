@@ -56,15 +56,16 @@ return {
         "terraformls",
         "tflint", -- tflint actually behaves like a linter, but mason exposes it as an lspconfig server too
 
-        -- YAML / JSON
+        -- YAML / JSON / TOML
         "yamlls",
         "jsonls",
+        "tombi",
+
+        -- Markdown / prose linting-as-LSP
+        "marksman",
 
         -- PHP
         "intelephense",
-
-        -- (optional) Markdown / prose linting-as-LSP
-        "marksman",
       },
     },
   },
@@ -82,6 +83,8 @@ return {
         "stylua", -- Lua formatter
         "goimports", -- Go formatter/imports
         "shfmt", -- Shell formatter
+        "pyproject-fmt", -- pyproject.toml formatter
+        "taplo", -- toml formatter
 
         -- Linting / analysis / diagnostics
         "eslint_d", -- Fast eslint
@@ -96,7 +99,7 @@ return {
         "luacheck", -- Lua linter
 
         -- Debuggers / extra tooling
-        "debugpy", -- Python
+        "debugpy", -- oython
         "delve", -- Go
         "js-debug-adapter", -- TypeScript / JavaScript
       },

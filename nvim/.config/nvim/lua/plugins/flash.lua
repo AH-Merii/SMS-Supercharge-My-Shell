@@ -18,9 +18,7 @@ return {
     {
       "f",
       mode = { "n", "x", "o" },
-      function()
-        require("flash").jump()
-      end,
+      function() require("flash").jump() end,
       desc = "Flash Anywhere (f)",
     },
     -- useful in yank mode
@@ -28,9 +26,7 @@ return {
     {
       "T",
       mode = { "o", "x" },
-      function()
-        require("flash").treesitter_search()
-      end,
+      function() require("flash").treesitter_search() end,
       desc = "treesitter search",
     },
 

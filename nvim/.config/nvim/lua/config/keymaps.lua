@@ -2,12 +2,8 @@ local opts = { noremap = true, silent = true }
 local keymap = vim.keymap.set
 
 -- Helper to add desc to opts
-local function desc(description)
-  return vim.tbl_extend("force", { noremap = true, silent = false }, { desc = description })
-end
-local function silent_desc(description)
-  return vim.tbl_extend("force", opts, { desc = description })
-end
+local function desc(description) return vim.tbl_extend("force", { noremap = true, silent = false }, { desc = description }) end
+local function silent_desc(description) return vim.tbl_extend("force", opts, { desc = description }) end
 
 -- Move selected line / block of text in visual mode
 keymap("v", "J", ":m '>+1<CR>gv=gv", silent_desc("Move line down"))
@@ -33,9 +29,7 @@ keymap("v", "<", function()
     vim.cmd("normal! <gv")
 
     -- Restore animation after short delay
-    vim.defer_fn(function()
-      vim.b[buf].snacks_indent_animate = prev_state
-    end, 30)
+    vim.defer_fn(function() vim.b[buf].snacks_indent_animate = prev_state end, 30)
   else
     vim.cmd("normal! <gv")
   end
@@ -50,9 +44,7 @@ keymap("v", ">", function()
 
     vim.cmd("normal! >gv")
 
-    vim.defer_fn(function()
-      vim.b[buf].snacks_indent_animate = prev_state
-    end, 30)
+    vim.defer_fn(function() vim.b[buf].snacks_indent_animate = prev_state end, 30)
   else
     vim.cmd("normal! >gv")
   end
@@ -69,12 +61,7 @@ keymap("n", "=", ":resize +5<CR>", silent_desc("Increase height"))
 keymap("n", "_", ":resize -5<CR>", silent_desc("Decrease height"))
 
 -- Split line with X
-keymap(
-  "n",
-  "X",
-  ":keeppatterns substitute/\\s*\\%#\\s*/\\r/e <bar> normal! ==^<cr>",
-  silent_desc("Split line at cursor")
-)
+keymap("n", "X", ":keeppatterns substitute/\\s*\\%#\\s*/\\r/e <bar> normal! ==^<cr>", silent_desc("Split line at cursor"))
 
 -- Select all
 keymap("n", "<C-a>", "ggVG", silent_desc("Select all"))

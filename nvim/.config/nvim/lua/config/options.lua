@@ -45,7 +45,7 @@ vim.opt.listchars = {
 -- I expect to see a preview of that command below
 vim.opt.cmdheight = 0
 vim.o.showcmd = true
-vim.o.showcmdloc = "last"  -- show partial commands in the statusline
+vim.o.showcmdloc = "last" -- show partial commands in the statusline
 
 -- make the hidden chars foreground color more subtle
 vim.cmd([[

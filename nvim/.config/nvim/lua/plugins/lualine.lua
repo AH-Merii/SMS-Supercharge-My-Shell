@@ -40,12 +40,8 @@ return {
     local colors = get_colors()
 
     local conditions = {
-      buffer_not_empty = function()
-        return vim.fn.empty(vim.fn.expand("%:t")) ~= 1
-      end,
-      hide_in_width = function()
-        return vim.fn.winwidth(0) > 80
-      end,
+      buffer_not_empty = function() return vim.fn.empty(vim.fn.expand("%:t")) ~= 1 end,
+      hide_in_width = function() return vim.fn.winwidth(0) > 80 end,
       check_git_workspace = function()
         local filepath = vim.fn.expand("%:p:h")
         local gitdir = vim.fn.finddir(".git", filepath .. ";")
@@ -136,9 +132,7 @@ return {
         return table.concat(out, "")
       end
 
-      local function path_width(str)
-        return vim.fn.strdisplaywidth((str:gsub("%%#.-#", "")))
-      end
+      local function path_width(str) return vim.fn.strdisplaywidth((str:gsub("%%#.-#", ""))) end
 
       local display = build_path(project_name, middle_path, filename)
 
@@ -167,9 +161,7 @@ return {
     -- Highlight groups for statusline segments
     ---------------------------------------------------------------------------
     local function define_highlights()
-      local set_hl = function(name, opts)
-        vim.api.nvim_set_hl(0, name, opts)
-      end
+      local set_hl = function(name, opts) vim.api.nvim_set_hl(0, name, opts) end
       set_hl("LualineNormal", { fg = colors.fg, bg = colors.bg })
       set_hl("LualineProjectRoot", { fg = colors.magenta, bg = colors.bg, bold = true })
       set_hl("LualinePath", { fg = colors.fg, bg = colors.bg })
@@ -198,9 +190,7 @@ return {
 
     -- Refresh lualine when macro recording starts/stops
     vim.api.nvim_create_autocmd({ "RecordingEnter", "RecordingLeave" }, {
-      callback = function()
-        require("lualine").refresh()
-      end,
+      callback = function() require("lualine").refresh() end,
     })
 
     ---------------------------------------------------------------------------
@@ -234,12 +224,8 @@ return {
       },
     }
 
-    local function ins_left(component)
-      table.insert(config.sections.lualine_c, component)
-    end
-    local function ins_right(component)
-      table.insert(config.sections.lualine_x, component)
-    end
+    local function ins_left(component) table.insert(config.sections.lualine_c, component) end
+    local function ins_right(component) table.insert(config.sections.lualine_x, component) end
 
     ---------------------------------------------------------------------------
     -- LEFT side
@@ -285,7 +271,9 @@ return {
     ins_left({
       function()
         local clients = vim.lsp.get_clients({ bufnr = 0 })
-        if not clients or next(clients) == nil then return "No Active LSP" end
+        if not clients or next(clients) == nil then
+          return "No Active LSP"
+        end
         local names_seen, names = {}, {}
         for _, client in ipairs(clients) do
           if not names_seen[client.name] then
@@ -302,10 +290,14 @@ return {
     ins_left({
       function()
         local ok, conform = pcall(require, "conform")
-        if not ok then return "" end
+        if not ok then
+          return ""
+        end
         local buf = vim.api.nvim_get_current_buf()
         local formatters = conform.list_formatters_to_run(buf)
-        if not formatters or vim.tbl_isempty(formatters) then return "" end
+        if not formatters or vim.tbl_isempty(formatters) then
+          return ""
+        end
         local names = vim.tbl_map(function(f) return f.name end, formatters)
         return table.concat(names, ", ")
       end,
@@ -316,11 +308,15 @@ return {
     ins_left({
       function()
         local ok, lint = pcall(require, "lint")
-        if not ok then return "" end
+        if not ok then
+          return ""
+        end
         local buf = vim.api.nvim_get_current_buf()
         local ft = vim.bo[buf].filetype
         local configured = lint.linters_by_ft[ft]
-        if not configured or vim.tbl_isempty(configured) then return "" end
+        if not configured or vim.tbl_isempty(configured) then
+          return ""
+        end
         return table.concat(configured, ", ")
       end,
       icon = " ",
@@ -357,4 +353,3 @@ return {
     lualine.setup(config)
   end,
 }
-
