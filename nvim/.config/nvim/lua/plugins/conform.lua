@@ -13,25 +13,42 @@ return {
 
   opts = {
     formatters_by_ft = {
-      -- Go
-      go = { "goimports", "gofmt" },
-
-      -- Lua
-      lua = { "stylua" },
 
       -- Web technologies
-      javascript = { "prettier" },
-      typescript = { "prettier" },
-      javascriptreact = { "prettier" },
-      typescriptreact = { "prettier" },
-      json = { "prettier" },
-      jsonc = { "prettier" },
-      yaml = { "prettier" },
-      markdown = { "prettier" },
-      html = { "prettier" },
-      css = { "prettier" },
-      scss = { "prettier" },
+      javascript = { "prettierd" },
+      typescript = { "prettierd" },
+      javascriptreact = { "prettierd" },
+      typescriptreact = { "prettierd" },
+      json = { "prettierd" },
+      jsonc = { "prettierd" },
+      yaml = { "prettierd" },
+      markdown = { "prettierd" },
+      html = { "prettierd" },
+      css = { "prettierd" },
+      scss = { "prettierd" },
 
+      python = {
+        "ruff_fix",
+        "ruff_format",
+        "ruff_organize_imports",
+      },
+
+      -- Shell
+      sh = { "shfmt" },
+      bash = { "shfmt" },
+
+      -- C/C++
+      c = { "clang_format" },
+      cpp = { "clang_format" },
+
+      go = { "goimports", "gofmt" },
+      lua = { "stylua" },
+      rust = { "rustfmt" },
+      zig = { "zigfmt" },
+      mojo = { "lsp" },
+
+      -- Other
+      make = { "gersemi" },
       -- TOML: use pyproject-fmt for pyproject.toml, taplo otherwise (if available)
       toml = function(bufnr)
         local c = require("conform")
@@ -49,20 +66,6 @@ return {
           return {}
         end
       end,
-
-      -- Python
-      python = {
-        "ruff_fix",
-        "ruff_format",
-        "ruff_organize_imports",
-      },
-
-      -- Shell
-      sh = { "shfmt" },
-      bash = { "shfmt" },
-
-      -- Other
-      rust = { "rustfmt" },
     },
 
     -- Use LSP if no external formatter is configured

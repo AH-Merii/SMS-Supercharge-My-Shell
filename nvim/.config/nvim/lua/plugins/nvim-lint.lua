@@ -15,29 +15,47 @@ return {
       javascriptreact = { "eslint_d" },
       typescriptreact = { "eslint_d" },
 
-      -- Lua
       lua = { "luacheck" },
 
       -- Shell
       sh = { "shellcheck" },
       bash = { "shellcheck" },
 
-      --python
       python = { "ruff" },
+      rust = { "clippy" },
+
+      -- Other
+      markdown = { "markdownlint" },
+      yaml = { "yamllint" },
+      json = { "jsonlint" },
+      make = { "checkmake" },
+      terraform = { "tflint", "tfsec" },
+      dockerfile = { "hadolint" },
     }
 
     -- Auto-lint on save and text changes
-    local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
+    local autocmd = vim.api.nvim_create_autocmd
+    local augroup = vim.api.nvim_create_augroup
+    local user_group = augroup("UserAutocmdsNvimLint", { clear = true })
 
-    vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
-      group = lint_augroup,
+    autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
+      group = user_group,
       callback = function()
-        -- Only lint if linters are available for this filetype
         local linters = lint.linters_by_ft[vim.bo.filetype]
         if linters and #linters > 0 then
           lint.try_lint()
         end
       end,
+    })
+
+    -- 🔹 GitHub Actions workflow linting (actionlint)
+    autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
+      group = user_group,
+      pattern = {
+        ".github/workflows/*.yml",
+        ".github/workflows/*.yaml",
+      },
+      callback = function() lint.try_lint("actionlint") end,
     })
 
     -- Manual linting command

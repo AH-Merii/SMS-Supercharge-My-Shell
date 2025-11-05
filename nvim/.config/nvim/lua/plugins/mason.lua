@@ -39,6 +39,8 @@ return {
 
         -- Python
         "pyright",
+        -- Mojo
+        -- "mojo-lsp-server", may become available in the future
 
         -- Go
         "gopls",
@@ -51,6 +53,12 @@ return {
 
         -- Bash / shell
         "bashls",
+
+        -- C/C++
+        "clangd",
+
+        -- make
+        "autotools_ls",
 
         -- Terraform
         "terraformls",
@@ -66,6 +74,9 @@ return {
 
         -- PHP
         "intelephense",
+
+        -- Docker
+        "dockerls",
       },
     },
   },
@@ -79,27 +90,31 @@ return {
     opts = {
       ensure_installed = {
         -- Formatting
-        "prettier", -- JS/TS/JSON/Markdown formatter
+        "prettierd", -- JS/TS/JSON/Markdown formatter
         "stylua", -- Lua formatter
         "goimports", -- Go formatter/imports
         "shfmt", -- Shell formatter
         "pyproject-fmt", -- pyproject.toml formatter
         "taplo", -- toml formatter
+        "clang-format", -- C/C++ formatter
 
         -- Linting / analysis / diagnostics
+        "tfsec", -- terraform security
         "eslint_d", -- Fast eslint
-        "pylint", -- Python linter
+        -- "pylint", -- Python linter
+        "checkmake", -- make linting
         "ruff", -- Python linter/formatter/organizer
         "golangci-lint", -- Go linter
         "shellcheck", -- Shell linter
-        "tflint", -- Terraform linter
         "yamllint", -- YAML linter
         "markdownlint", -- Markdown linter
         "jsonlint", -- JSON linter
         "luacheck", -- Lua linter
+        "hadolint", -- docker linter
+        "actionlint", -- github actions linter
 
         -- Debuggers / extra tooling
-        "debugpy", -- oython
+        "debugpy", -- python
         "delve", -- Go
         "js-debug-adapter", -- TypeScript / JavaScript
       },
