@@ -13,7 +13,6 @@ return {
 
   opts = {
     formatters_by_ft = {
-
       -- Web technologies
       javascript = { "prettierd" },
       typescript = { "prettierd" },
@@ -22,6 +21,8 @@ return {
       json = { "prettierd" },
       jsonc = { "prettierd" },
       yaml = { "prettierd" },
+      -- docker-compose in Neovim usually has filetype "yaml.docker-compose"
+      ["yaml.docker-compose"] = { "prettierd" },
       markdown = { "prettierd" },
       html = { "prettierd" },
       css = { "prettierd" },
@@ -47,8 +48,11 @@ return {
       zig = { "zigfmt" },
       mojo = { "lsp" },
 
-      -- Other
-      make = { "gersemi" },
+      cmake = { "gersemi" },
+
+      -- Another option for below is I could configure a new filetype toml.pyproject
+      -- Maybe down the line I would like to configure yaml.actions etc...
+      -- For future reference help: filetype | filetype-detect | new-filetype
       -- TOML: use pyproject-fmt for pyproject.toml, taplo otherwise (if available)
       toml = function(bufnr)
         local c = require("conform")

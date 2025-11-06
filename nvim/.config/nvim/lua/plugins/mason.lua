@@ -1,122 +1,230 @@
+-- Always-installed tools
+local ensure_installed_formatters_linters = {
+  -- Lua
+  "stylua",
+  "luacheck",
+
+  -- Python
+  "ruff",
+  "debugpy",
+  "pyproject-fmt",
+
+  -- Markdown / prose
+  "markdownlint",
+
+  -- Global formatter
+  "prettierd",
+
+  -- Spelling/Languague
+  "codespell",
+}
+
+-- Always installed LSPs
+local ensure_installed_lsps = {
+  -- LSP *server* names (not Mason package names)
+  "pyrefly",
+  "lua_ls",
+  "stylua",
+  "marksman",
+  "ts_ls",
+}
+
 return {
-  -- LSP servers
+  ---------------------------------------------------------------------------
+  -- Mason core
+  ---------------------------------------------------------------------------
   {
-    "williamboman/mason-lspconfig.nvim",
-    dependencies = {
-      {
-        "williamboman/mason.nvim",
-        opts = {
-          ui = {
-            icons = {
-              package_installed = "✓",
-              package_pending = "➜",
-              package_uninstalled = "✗",
-            },
-          },
-        },
-      },
-      "neovim/nvim-lspconfig",
-    },
+    "mason-org/mason.nvim",
     opts = {
-      -- LSP servers mason should install for us.
-      -- These names are lspconfig server names, not raw mason package names.
-      ensure_installed = {
-        -- Web / frontend
-        "ts_ls", -- typescript / javascript
-        "html",
-        "cssls",
-        "tailwindcss",
-        "svelte",
-        "emmet_ls",
-        "eslint",
-
-        -- Lua
-        "lua_ls",
-
-        -- GraphQL / Prisma
-        "graphql",
-        "prismals",
-
-        -- Python
-        "pyright",
-        -- Mojo
-        -- "mojo-lsp-server", may become available in the future
-
-        -- Go
-        "gopls",
-
-        -- Rust
-        "rust_analyzer",
-
-        -- Zig
-        "zls",
-
-        -- Bash / shell
-        "bashls",
-
-        -- C/C++
-        "clangd",
-
-        -- make
-        "autotools_ls",
-
-        -- Terraform
-        "terraformls",
-        "tflint", -- tflint actually behaves like a linter, but mason exposes it as an lspconfig server too
-
-        -- YAML / JSON / TOML
-        "yamlls",
-        "jsonls",
-        "tombi",
-
-        -- Markdown / prose linting-as-LSP
-        "marksman",
-
-        -- PHP
-        "intelephense",
-
-        -- Docker
-        "dockerls",
+      ui = {
+        icons = {
+          package_installed = "✓",
+          package_pending = "➜",
+          package_uninstalled = "✗",
+        },
       },
     },
   },
 
-  -- Formatters, linters, debuggers, etc.
+  ---------------------------------------------------------------------------
+  -- LSP bridge
+  ---------------------------------------------------------------------------
   {
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    "mason-org/mason-lspconfig.nvim",
     dependencies = {
-      "williamboman/mason.nvim",
+      "mason-org/mason.nvim",
+      "neovim/nvim-lspconfig",
     },
     opts = {
-      ensure_installed = {
-        -- Formatting
-        "prettierd", -- JS/TS/JSON/Markdown formatter
-        "stylua", -- Lua formatter
-        "goimports", -- Go formatter/imports
-        "shfmt", -- Shell formatter
-        "pyproject-fmt", -- pyproject.toml formatter
-        "taplo", -- toml formatter
-        "clang-format", -- C/C++ formatter
+      -- LSP *server* names (not Mason package names)
+      ensure_installed = ensure_installed_lsps,
+      -- Automatically enable installed servers
+      automatic_enable = true,
+    },
+  },
 
-        -- Linting / analysis / diagnostics
-        "tfsec", -- terraform security
-        "eslint_d", -- Fast eslint
-        -- "pylint", -- Python linter
-        "checkmake", -- make linting
-        "ruff", -- Python linter/formatter/organizer
-        "golangci-lint", -- Go linter
-        "shellcheck", -- Shell linter
-        "yamllint", -- YAML linter
-        "markdownlint", -- Markdown linter
-        "jsonlint", -- JSON linter
-        "luacheck", -- Lua linter
-        "hadolint", -- docker linter
-        "actionlint", -- github actions linter
+  ---------------------------------------------------------------------------
+  -- Always-install tools (Python / Lua / Markdown / TS)
+  ---------------------------------------------------------------------------
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    dependencies = { "mason-org/mason.nvim" },
+    opts = {
+      ensure_installed = ensure_installed_formatters_linters,
+    },
+  },
 
-        -- Debuggers / extra tooling
-        "debugpy", -- python
-        "delve", -- Go
-        "js-debug-adapter", -- TypeScript / JavaScript
+  ---------------------------------------------------------------------------
+  -- On-demand install/update of other LSPs, formatters, linters, DAPs
+  ---------------------------------------------------------------------------
+  {
+    "owallb/mason-auto-install.nvim",
+    dependencies = {
+      "mason-org/mason.nvim",
+      "neovim/nvim-lspconfig",
+    },
+    opts = {
+      -- Mason *package* names
+      -- LSP servers: filetypes are autodetected from LSP config
+      -- Non-LSP tools: need explicit filetypes
+      packages = {
+        ---------------------------------------------------------------------
+        -- Web / frontend
+        ---------------------------------------------------------------------
+        {
+          "eslint_d",
+          filetypes = {
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact",
+          },
+        },
+
+        "html-lsp",
+        "css-lsp",
+
+        "tailwindcss-language-server",
+        "svelte-language-server",
+        "emmet-ls",
+
+        -- ESLint LSP (separate from eslint_d)
+        "eslint-lsp",
+
+        ---------------------------------------------------------------------
+        -- GraphQL / Prisma
+        ---------------------------------------------------------------------
+        "graphql-language-service-cli",
+        "prisma-language-server",
+
+        ---------------------------------------------------------------------
+        -- Go
+        ---------------------------------------------------------------------
+        {
+          "gopls",
+          -- filetypes from LSP config; only deps are listed here
+          dependencies = {
+            { "goimports", filetypes = { "go" } },
+            { "golangci-lint", filetypes = { "go" } },
+            { "delve", filetypes = { "go" } },
+          },
+        },
+
+        ---------------------------------------------------------------------
+        -- Rust / Zig
+        ---------------------------------------------------------------------
+        "rust-analyzer",
+        "zls",
+
+        ---------------------------------------------------------------------
+        -- Shell / Bash
+        ---------------------------------------------------------------------
+        {
+          "bash-language-server",
+          dependencies = {
+            { "shfmt", filetypes = { "sh", "bash", "zsh" } },
+            { "shellcheck", filetypes = { "sh", "bash", "zsh" } },
+          },
+        },
+
+        ---------------------------------------------------------------------
+        -- C / C++
+        ---------------------------------------------------------------------
+        {
+          "clangd",
+          dependencies = {
+            { "clang-format", filetypes = { "c", "cpp", "objc", "objcpp" } },
+          },
+        },
+
+        ---------------------------------------------------------------------
+        -- make
+        ---------------------------------------------------------------------
+        "autotools-language-server",
+        { "checkmake", filetypes = { "make" } },
+
+        ---------------------------------------------------------------------
+        -- Terraform
+        ---------------------------------------------------------------------
+        {
+          "terraform-ls",
+          dependencies = {
+            { "tflint", filetypes = { "terraform", "tf", "hcl" } },
+            { "tfsec", filetypes = { "terraform", "tf", "hcl" } },
+          },
+        },
+
+        ---------------------------------------------------------------------
+        -- YAML / JSON / TOML
+        ---------------------------------------------------------------------
+        {
+          "yaml-language-server",
+          dependencies = {
+            { "yamllint", filetypes = { "yaml", "yml" } },
+            { "actionlint", filetypes = { "yaml", "yml" } },
+          },
+        },
+
+        {
+          "json-lsp",
+          dependencies = {
+            { "jsonlint", filetypes = { "json", "jsonc" } },
+          },
+        },
+
+        {
+          "tombi", -- TOML LSP / formatter / linter
+          dependencies = {
+            { "taplo", filetypes = { "toml" } }, -- used as formatter
+          },
+        },
+
+        ---------------------------------------------------------------------
+        -- PHP
+        ---------------------------------------------------------------------
+        "intelephense",
+
+        ---------------------------------------------------------------------
+        -- Docker
+        ---------------------------------------------------------------------
+        {
+          "dockerfile-language-server",
+          dependencies = {
+            { "hadolint", filetypes = { "dockerfile" } },
+          },
+        },
+        -- docker-compose LSP
+        "docker-compose-language-service",
+
+        ---------------------------------------------------------------------
+        -- TYPST
+        ---------------------------------------------------------------------
+        {
+          "tinymist",
+          dependencies = {
+            { "typstyle", filetypes = { "typst" } },
+          },
+        },
       },
     },
   },
