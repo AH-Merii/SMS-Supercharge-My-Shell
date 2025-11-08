@@ -6,13 +6,10 @@ function M.setup()
 
   local user_group = augroup("UserAutocmds", { clear = true })
 
-  -- Make sure folds are part of views
-  vim.opt.viewoptions:append("folds")
-
   -- Save view (including folds) when leaving or writing the buffer
   autocmd({ "BufWinLeave", "BufWritePost" }, {
     group = user_group,
-    desc = "Save view (folds, cursor, etc.)",
+    desc = "Save view (folds, etc.)",
     callback = function(event)
       local buf = event.buf
 
@@ -23,18 +20,24 @@ function M.setup()
       if vim.api.nvim_buf_get_name(buf) == "" then
         return
       end
+
       pcall(vim.api.nvim_command, "silent! mkview")
     end,
   })
 
-  -- Restore view *after* reading the file.
-  -- vim.schedule ensures it runs after UFO / LSP / TS have a chance to initialize.
+  -- Restore view *after* reading the file, but DO NOT let it move the cursor.
+  -- We:
+  --   1. Wait for Snacks / LSP / etc. to finish their jumps (vim.schedule)
+  --   2. Capture the current cursor position
+  --   3. run :loadview (restores folds & window view)
+  --   4. put the cursor back where it was
   autocmd("BufReadPost", {
     group = user_group,
-    desc = "Load view (folds, cursor, etc.)",
+    desc = "Load view (folds, keep cursor)",
     callback = function(event)
       local buf = event.buf
 
+      -- skip special/unnamed buffers
       if vim.bo[buf].buftype ~= "" then
         return
       end
@@ -43,8 +46,27 @@ function M.setup()
       end
 
       vim.schedule(function()
-        -- If the view file exists, this will restore folds & cursor
-        pcall(vim.api.nvim_command, "silent! loadview")
+        -- Find a window showing this buffer
+        local win = vim.fn.bufwinid(buf)
+        if win == -1 then
+          return
+        end
+
+        -- Whatever put us here (Snacks, LSP, quickfix, plain open),
+        -- this is the position we want to keep.
+        local ok_pos, cur = pcall(vim.api.nvim_win_get_cursor, win)
+        if not ok_pos then
+          return
+        end
+
+        -- Restore view (folds, etc.)
+        local ok = pcall(vim.api.nvim_command, "silent! loadview")
+        if not ok then
+          return
+        end
+
+        -- Put cursor back where it was before loadview
+        pcall(vim.api.nvim_win_set_cursor, win, cur)
       end)
     end,
   })
@@ -70,7 +92,7 @@ function M.setup()
   })
 
   -- Highlight on yank
-  vim.api.nvim_create_autocmd("TextYankPost", {
+  autocmd("TextYankPost", {
     group = user_group,
     callback = function() vim.highlight.on_yank({ higroup = "Search", timeout = 200 }) end,
   })
