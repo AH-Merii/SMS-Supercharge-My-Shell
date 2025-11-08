@@ -1,13 +1,11 @@
 local opts = { noremap = true, silent = true }
 local keymap = vim.keymap.set
-
--- Helper to add desc to opts
 local function desc(description) return vim.tbl_extend("force", { noremap = true, silent = false }, { desc = description }) end
 local function silent_desc(description) return vim.tbl_extend("force", opts, { desc = description }) end
 
 -- Move selected line / block of text in visual mode
-keymap("v", "J", ":m '>+1<CR>gv=gv", silent_desc("Move line down"))
-keymap("v", "K", ":m '<-2<CR>gv=gv", silent_desc("Move line up"))
+keymap("v", "J", ":m '>+1<CR>gv", silent_desc("Move block down"))
+keymap("v", "K", ":m '<-2<CR>gv", silent_desc("Move block up"))
 
 -- Fast saving
 keymap("n", "<leader>w", ":write!<CR>", silent_desc("Save file"))
