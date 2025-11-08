@@ -1,9 +1,16 @@
-theme = catppuccin-frappe
-font-size = 14
-background-blur-radius = 20
+theme = Catppuccin Frappe
+font-size = 12
 mouse-hide-while-typing = true
 window-decoration = true
 font-family = "FiraCode Nerd Font"
-# keybind = global:cmd+/=toggle_quick_terminal
-# background-opacity = 0.7
-# background-blur-radius = 20 
+
+# background-opacity = 0.8
+# background-blur = 20
+
+# Custom Shaders
+custom-shader-animation = always
+custom-shader = shaders1/cursor_sweep.glsl
+
+# Keybinds
+keybind = ctrl+end=jump_to_prompt:1
+keybind = ctrl+home=jump_to_prompt:-1
