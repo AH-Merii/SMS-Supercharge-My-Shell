@@ -134,7 +134,7 @@ local function collection_trailing_comma_rule(ft, open, close, ts_nodes)
   local Rule = require("nvim-autopairs.rule")
   local ts_conds = require("nvim-autopairs.ts-conds")
 
-  return Rule(open, close .. "+", ft):with_pair(ts_conds.is_ts_node(ts_nodes)):with_pair(not_followed_by_comma)
+  return Rule(open, close .. ",", ft):with_pair(ts_conds.is_ts_node(ts_nodes)):with_pair(not_followed_by_comma)
 end
 
 --------------------------------------------------------------------------
