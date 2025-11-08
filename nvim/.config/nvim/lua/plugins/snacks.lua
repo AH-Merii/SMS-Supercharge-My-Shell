@@ -36,7 +36,7 @@ return {
     { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Log (File)" },
 
     -- 󰞷  Search: Grep and search across files and buffers
-    { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep (Project)" },
+    { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep" },
     { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep (Open Buffers)" },
     { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Grep (Word/Selection)", mode = { "n", "x" } },
     { "<leader>sb", function() Snacks.picker.lines() end, desc = "Grep (Buffer Lines)" },

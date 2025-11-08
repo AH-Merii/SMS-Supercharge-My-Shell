@@ -3,17 +3,19 @@ local keymap = vim.keymap.set
 local function desc(description) return vim.tbl_extend("force", { noremap = true, silent = false }, { desc = description }) end
 local function silent_desc(description) return vim.tbl_extend("force", opts, { desc = description }) end
 
+-- Keymaps
+
 -- Move selected line / block of text in visual mode
-keymap("v", "J", ":m '>+1<CR>gv", silent_desc("Move block down"))
-keymap("v", "K", ":m '<-2<CR>gv", silent_desc("Move block up"))
+keymap("v", "J", ":m '>+1<CR>gv", { desc = "Move line down", silent = true })
+keymap("v", "K", ":m '<-2<CR>gv", { desc = "Move line up", silent = true })
 
 -- Fast saving
 keymap("n", "<leader>w", ":write!<CR>", silent_desc("Save file"))
 keymap("n", "<leader>q", ":q!<CR>", silent_desc("Quit without saving"))
 
--- Remap for dealing with visual line wraps
-keymap("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Move up (respects wraps)" })
-keymap("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, desc = "Move down (respects wraps)" })
+-- Remap for dealing with visual line wraps -> respects wraps
+keymap("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Move up" })
+keymap("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, desc = "Move down" })
 
 -- Better indenting (with temporary Snacks indent animation disable)
 keymap("v", "<", function()
