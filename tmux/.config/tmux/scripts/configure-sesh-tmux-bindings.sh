@@ -29,7 +29,7 @@ setup_sesh_bindings() {
   tmux bind-key -N "last-session (via sesh)" b run-shell "sesh last"
 
   if command -v fzf-tmux >/dev/null && command -v fd >/dev/null; then
-    tmux bind-key -N "Run sesh fzf-tmux" -n C-k run-shell "$XDG_CONFIG_HOME/tmux/scripts/configure-sesh-tmux-bindings.sh picker"
+    tmux bind-key -N "Run sesh fzf-tmux" C-k run-shell "$XDG_CONFIG_HOME/tmux/scripts/configure-sesh-tmux-bindings.sh picker"
   else
     tmux printf "sesh installed but fzf-tmux or fd not found; skipping sesh picker binding."
   fi
