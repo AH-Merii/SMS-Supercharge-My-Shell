@@ -1,16 +1,21 @@
 theme = Catppuccin Frappe
 font-size = 12
 mouse-hide-while-typing = true
-window-decoration = true
+window-decoration = none
 font-family = "FiraCode Nerd Font"
+clipboard-trim-trailing-spaces = true
 
-# background-opacity = 0.8
-# background-blur = 20
+background-opacity = 0.9
+background-blur = 20
 
 # Custom Shaders
-custom-shader-animation = always
+# https://catskull.net/fun-with-ghostty-shaders.html
 custom-shader = shaders1/cursor_sweep.glsl
+custom-shader = shaders1/sonic_boom_cursor.glsl
+# nice light theme uncomment below
+#custom-shader = shaders2/negative.glsl
 
 # Keybinds
-keybind = ctrl+end=jump_to_prompt:1
-keybind = ctrl+home=jump_to_prompt:-1
+keybind = ctrl+arrow_down=jump_to_prompt:1
+keybind = ctrl+arrow_up=jump_to_prompt:-1
+keybind = performable:ctrl+c=copy_to_clipboard
