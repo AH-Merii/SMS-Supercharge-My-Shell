@@ -1,11 +1,15 @@
-theme = Catppuccin Frappe
+theme = Atom One Dark
 font-size = 12
 mouse-hide-while-typing = true
 window-decoration = none
 font-family = "FiraCode Nerd Font"
 clipboard-trim-trailing-spaces = true
+link-url = true
+cursor-style-blink = true
 
-background-opacity = 0.9
+copy-on-select = clipboard
+
+background-opacity = 0.95
 background-blur = 20
 
 # Custom Shaders
@@ -19,3 +23,4 @@ custom-shader = shaders1/sonic_boom_cursor.glsl
 keybind = ctrl+arrow_down=jump_to_prompt:1
 keybind = ctrl+arrow_up=jump_to_prompt:-1
 keybind = performable:ctrl+c=copy_to_clipboard
+keybind = performable:ctrl+v=paste_from_clipboard
