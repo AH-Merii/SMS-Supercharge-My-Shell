@@ -53,9 +53,9 @@ return {
               -- popup menu
               Pmenu = { bg = "none" },
               NormalFloat = { bg = "none" },
-              CursorLineFold = { style = { "bold" } },
-              CursorLineNr = { style = { "bold" } },
-              CursorLineSign = { style = { "bold" } },
+              CursorLineFold = { fg = colors.pink, style = { "bold" } },
+              CursorLineNr = { fg = colors.pink, style = { "bold" } },
+              CursorLineSign = { fg = colors.pink, style = { "bold" } },
 
               LineNr = { fg = colors.overlay0 },
 
@@ -300,7 +300,7 @@ return {
       vim.api.nvim_set_hl(0, "NavicText", { default = true, bg = "none", fg = "#eedaad" })
       vim.api.nvim_set_hl(0, "NavicSeparator", { default = true, bg = "none", fg = "#eedaad" })
 
-      vim.cmd.colorscheme("catppuccin")
+      -- vim.cmd.colorscheme("catppuccin")
     end,
   },
   {
@@ -309,7 +309,8 @@ return {
     config = function()
       require("onedark").setup({
         -- Default theme style. Choose between 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
-        style = "cool",
+        style = "deep",
+        term_colors = true, -- Change terminal color as per the selected theme style
         transparent = true,
 
         -- toggle theme style ---
@@ -324,13 +325,35 @@ return {
           strings = "none",
           variables = "none",
         },
+        colors = {
+          bright_orange = "#ff8800",
+          text = "#cdd6f4",
+          str = "#82d547",
+          cursorline = "#2c313c",
+        },
 
         highlights = {
-          CursorLineNr = { fmt = "bold" },
+          CursorLineFold = { fg = "$bright_orange", fmt = "bold" },
+          CursorLineNr = { fg = "$bright_orange", fmt = "bold" },
+          CursorLineSign = { fg = "$bright_orange", fmt = "bold" },
+          CursorLine = { bg = "$cursorline" },
+          -- Make statusline/lualine background transparent
+          StatusLine = { bg = "none" },
+
+          String = { fg = "$str" },
+          ["@string"] = { fg = "$str" },
 
           Pmenu = { bg = "none" },
           NormalFloat = { bg = "none" },
-          FloatBorder = { bg = "none" },
+          FloatBorder = { fg = "$text", bg = "none" },
+
+          SnacksPickerBorder = { fg = "$text" },
+          SnacksPickerCursorLine = { bg = "$cursorline" },
+          SnacksPickerListCursorLine = { bg = "$cursorline" },
+          SnacksPickerPreviewCursorLine = { bg = "$cursorline" },
+
+          WhichKeyTitle = { fg = "$text" },
+          WhichKey = { fg = "$text" },
 
           LspReferenceText = { fg = "none", bg = "none", fmt = "bold" },
           LspReferenceRead = { fg = "none", bg = "none", fmt = "bold" },
@@ -353,7 +376,34 @@ return {
           background = true, -- use background color for virtual text
         },
       })
-      -- require("onedark").load()
+      require("onedark").load()
+    end,
+  },
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {
+      style = "storm",
+      transparent = true,
+      terminal_colors = true,
+      -- styles = {
+      --   floats = "transparent",
+      --   sidebars = "transparent",
+      -- },
+      -- on_highlights = function(hl, c)
+      --   -- hl.Pmenu = { bg = "none" }
+      --   -- hl.NormalFloat = { bg = "none" }
+      --   hl.CursorLineFold = { fg = c.fg_dark, bold = true }
+      --   hl.CursorLineNr = { fg = c.fg_dark, bold = true }
+      --   hl.CursorLineSign = { fg = c.fg_dark, bold = true }
+      --   -- hl.LineNr = { fg = c.fg_gutter }
+      -- end,
+    },
+    config = function(_, opts)
+      require("tokyonight").setup(opts)
+
+      -- vim.cmd.colorscheme("tokyonight")
     end,
   },
 }
