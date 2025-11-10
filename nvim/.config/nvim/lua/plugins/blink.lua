@@ -20,6 +20,12 @@ return {
               module = "lazydev.integrations.blink",
               -- make lazydev completions top priority (see `:h blink.cmp`)
               score_offset = 100,
+              -- path completion from cwd instead of current buffer’s directory
+            },
+            path = {
+              opts = {
+                get_cwd = function(_) return vim.fn.getcwd() end,
+              },
             },
             cmdline = {
               min_keyword_length = 2,
@@ -29,11 +35,21 @@ return {
         cmdline = {
           completion = { menu = { auto_show = true } },
           keymap = {
-            ["<CR>"] = { "accept_and_enter", "fallback" },
+            ["<Up>"] = { "select_prev", "fallback" },
+            ["<Down>"] = { "select_next", "fallback" },
           },
         },
         completion = {
+          list = {
+            selection = {
+              preselect = false,
+              auto_insert = false,
+            },
+          },
+          -- Configure how the menu looks; icon order, borders etc..
           menu = {
+
+            border = "rounded",
             scrolloff = 1,
             draw = {
               columns = {
@@ -44,6 +60,8 @@ return {
               },
             },
           },
+
+          -- Show documentation when selecting a completion item
           documentation = {
             window = {
               border = "rounded",
@@ -51,7 +69,13 @@ return {
             auto_show = true,
             auto_show_delay_ms = 500,
           },
+
+          -- Display a preview of the selected item on the current line
+          ghost_text = { enabled = true, menu = { auto_show = false } },
         },
+
+        -- Experimental signature help support
+        -- signature = { window = { border = "rounded" }, enabled = true },
       })
       require("luasnip.loaders.from_vscode").lazy_load()
     end,
