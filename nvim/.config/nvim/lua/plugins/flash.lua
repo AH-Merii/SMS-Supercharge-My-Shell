@@ -3,7 +3,7 @@ return {
   event = "VeryLazy",
   opts = {
     modes = {
-      search = { enabled = true },
+      search = { enabled = true, multi_window = false },
       char = {
         -- enables cycling between next and previous
         -- if you want to override the default behaviour of f,F,t,T
@@ -20,14 +20,6 @@ return {
       mode = { "n", "x", "o" },
       function() require("flash").jump() end,
       desc = "Flash Anywhere (f)",
-    },
-    -- useful in yank mode
-    -- example you would like search for a text object using function name, field name etc..
-    {
-      "T",
-      mode = { "o", "x" },
-      function() require("flash").treesitter_search() end,
-      desc = "treesitter search",
     },
 
     -- treesitter incremental selection
