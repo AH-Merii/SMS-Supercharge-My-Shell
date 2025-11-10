@@ -3,7 +3,7 @@ return {
   event = "VeryLazy",
   opts = {
     modes = {
-      search = { enabled = true, multi_window = false },
+      search = { enabled = true, search = { multi_window = false } },
       char = {
         -- enables cycling between next and previous
         -- if you want to override the default behaviour of f,F,t,T
@@ -22,6 +22,7 @@ return {
       desc = "Flash Anywhere (f)",
     },
 
+    { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
     -- treesitter incremental selection
     {
       "<bs>",
