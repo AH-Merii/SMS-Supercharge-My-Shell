@@ -6,126 +6,96 @@ return {
     config = function()
       -- Default configuration
       require("tiny-inline-diagnostic").setup({
-        -- Style preset for diagnostic messages
-        -- Available options:
-        -- "modern", "classic", "minimal", "powerline",
-        -- "ghost", "simple", "nonerdfont", "amongus"
-        preset = "classic",
+        preset = "modern",
 
-        transparent_bg = false, -- Set the background of the diagnostic to transparent
-        transparent_cursorline = false, -- Set the background of the cursorline to transparent (only one the first diagnostic)
+        -- Make cursorline background transparent for diagnostics
+        transparent_cursorline = true,
 
+        -- Highlight Groups
         hi = {
-          error = "DiagnosticError", -- Highlight group for error messages
-          warn = "DiagnosticWarn", -- Highlight group for warning messages
-          info = "DiagnosticInfo", -- Highlight group for informational messages
-          hint = "DiagnosticHint", -- Highlight group for hint or suggestion messages
-          arrow = "NonText", -- Highlight group for diagnostic arrows
-
-          -- Background color for diagnostics
-          -- Can be a highlight group or a hexadecimal color (#RRGGBB)
-          background = "CursorLine",
-
-          -- Color blending option for the diagnostic background
-          -- Use "None" or a hexadecimal color (#RRGGBB) to blend with another color
-          mixing_color = "None",
+          error = "DiagnosticError", -- Highlight for error diagnostics
+          warn = "DiagnosticWarn", -- Highlight for warning diagnostics
+          info = "DiagnosticInfo", -- Highlight for info diagnostics
+          hint = "DiagnosticHint", -- Highlight for hint diagnostics
+          arrow = "NonText", -- Highlight for the arrow pointing to diagnostic
+          background = "CursorLine", -- Background highlight for diagnostics
+          mixing_color = "Normal", -- Color to blend background with (or "None")
         },
 
         options = {
-          -- Display the source of the diagnostic (e.g., basedpyright, vsserver, lua_ls etc.)
+          -- Display the source of diagnostics (e.g., "lua_ls", "pyright")
           show_source = {
-            enabled = false,
-            if_many = false,
+            enabled = true, -- Enable showing source names
+            if_many = false, -- Only show source if multiple sources exist for the same diagnostic
           },
 
-          -- Use icons defined in the diagnostic configuration
+          -- Use icons from vim.diagnostic.config instead of preset icons
           use_icons_from_diagnostic = false,
 
-          -- Set the arrow icon to the same color as the first diagnostic severity
+          -- Color the arrow to match the severity of the first diagnostic
           set_arrow_to_diag_color = false,
 
-          -- Add messages to diagnostics when multiline diagnostics are enabled
-          -- If set to false, only signs will be displayed
-          add_messages = true,
-
-          -- Time (in milliseconds) to throttle updates while moving the cursor
-          -- Increase this value for better performance if your computer is slow
-          -- or set to 0 for immediate updates and better visual
+          -- Throttle update frequency in milliseconds to improve performance
+          -- Higher values reduce CPU usage but may feel less responsive
+          -- Set to 0 for immediate updates (may cause lag on slow systems)
           throttle = 20,
 
-          -- Minimum message length before wrapping to a new line
+          -- Minimum number of characters before wrapping long messages
           softwrap = 30,
 
-          -- Configuration for multiline diagnostics
-          -- Can either be a boolean or a table with the following options:
-          --  multilines = {
-          --      enabled = false,
-          --      always_show = false,
-          -- }
-          -- If it set as true, it will enable the feature with this options:
-          --  multilines = {
-          --      enabled = true,
-          --      always_show = false,
-          -- }
-          multilines = {
-            -- Enable multiline diagnostic messages
-            enabled = false,
-
-            -- Always show messages on all lines for multiline diagnostics
-            always_show = false,
+          -- Control how diagnostic messages are displayed
+          -- NOTE: When using display_count = true, you need to enable multiline diagnostics with multilines.enabled = true
+          --       If you want them to always be displayed, you can also set multilines.always_show = true.
+          add_messages = {
+            messages = true, -- Show full diagnostic messages
+            display_count = true, -- Show diagnostic count instead of messages when cursor not on line
+            use_max_severity = false, -- When counting, only show the most severe diagnostic
+            show_multiple_glyphs = true, -- Show multiple icons for multiple diagnostics of same severity
           },
 
-          -- Display all diagnostic messages on the cursor line
+          -- Settings for multiline diagnostics
+          multilines = {
+            enabled = true, -- Enable support for multiline diagnostic messages
+            always_show = false, -- Always show messages on all lines of multiline diagnostics
+            trim_whitespaces = false, -- Remove leading/trailing whitespace from each line
+            tabstop = 4, -- Number of spaces per tab when expanding tabs
+            severity = nil, -- Filter multiline diagnostics by severity (e.g., { vim.diagnostic.severity.ERROR })
+          },
+
+          -- Show all diagnostics on the current cursor line, not just those under the cursor
           show_all_diags_on_cursorline = false,
 
-          -- Enable diagnostics in Insert mode
-          -- If enabled, it is better to set the `throttle` option to 0 to avoid visual artifacts
-          enable_on_insert = false,
+          -- Display related diagnostics from LSP relatedInformation
+          show_related = {
+            enabled = true, -- Enable displaying related diagnostics
+            max_count = 3, -- Maximum number of related diagnostics to show per diagnostic
+          },
 
-          -- Enable diagnostics in Select mode (e.g when auto inserting with Blink)
-          enable_on_select = false,
-
+          -- Handle messages that exceed the window width
           overflow = {
-            -- Manage how diagnostic messages handle overflow
-            -- Options:
-            -- "wrap" - Split long messages into multiple lines
-            -- "none" - Do not truncate messages
-            -- "oneline" - Keep the message on a single line, even if it's long
-            mode = "wrap",
-
-            -- Trigger wrapping to occur this many characters earlier when mode == "wrap".
-            -- Increase this value appropriately if you notice that the last few characters
-            -- of wrapped diagnostics are sometimes obscured.
-            padding = 0,
+            mode = "none", -- "wrap": split into lines, "none": no truncation, "oneline": keep single line
+            padding = 0, -- Extra characters to trigger wrapping earlier
           },
 
-          -- Configuration for breaking long messages into separate lines
+          -- Break long messages into separate lines
           break_line = {
-            -- Enable the feature to break messages after a specific length
-            enabled = false,
-
-            -- Number of characters after which to break the line
-            after = 30,
+            enabled = false, -- Enable automatic line breaking
+            after = 30, -- Number of characters before inserting a line break
           },
 
-          -- Custom format function for diagnostic messages
-          -- Example:
-          -- format = function(diagnostic)
-          --     return diagnostic.message .. " [" .. diagnostic.source .. "]"
-          -- end
+          -- Custom function to format diagnostic messages
+          -- Receives diagnostic object, returns formatted string
+          -- Example: function(diag) return diag.message .. " [" .. diag.source .. "]" end
           format = nil,
 
+          -- Virtual text display priority
+          -- Higher values appear above other plugins (e.g., GitBlame)
           virt_texts = {
-            -- Priority for virtual text display
             priority = 2048,
           },
 
-          -- Filter diagnostics by severity
-          -- Available severities:
-          -- vim.diagnostic.severity.ERROR
-          -- vim.diagnostic.severity.WARN
-          -- vim.diagnostic.severity.INFO
-          -- vim.diagnostic.severity.HINT
+          -- Filter diagnostics by severity levels
+          -- Remove severities you don't want to display
           severity = {
             vim.diagnostic.severity.ERROR,
             vim.diagnostic.severity.WARN,
@@ -133,13 +103,15 @@ return {
             vim.diagnostic.severity.HINT,
           },
 
-          -- Events to attach diagnostics to buffers
-          -- You should not change this unless the plugin does not work with your configuration
-          overwrite_events = nil,
+          -- Automatically disable diagnostics when opening diagnostic float windows
+          override_open_float = true,
         },
-        disabled_ft = {}, -- List of filetypes to disable the plugin
       })
-      vim.diagnostic.config({ virtual_text = false }) -- Only if needed in your configuration, if you already have native LSP diagnostics
+
+      -- Turn off built-in virtual text so TinyInline can handle display
+      vim.diagnostic.config({
+        virtual_text = false,
+      })
     end,
   },
 }
