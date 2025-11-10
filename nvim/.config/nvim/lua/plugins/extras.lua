@@ -60,15 +60,31 @@ return {
 
   -- Better folding
   {
-    "kevinhwang91/nvim-ufo",
-    dependencies = { "kevinhwang91/promise-async" },
+    "chrisgrieser/nvim-origami",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    event = { "BufReadPre", "BufWinEnter" },
     init = function()
-      -- Recommended base options
       vim.opt.foldlevel = 99
       vim.opt.foldlevelstart = 99
-      vim.opt.foldenable = true
-      vim.opt.foldmethod = "expr"
-      vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+
+      vim.opt.fillchars = {
+        fold = " ",
+        foldopen = "",
+        foldclose = "",
+        foldsep = " ",
+      }
     end,
+    opts = {
+      foldtext = {
+        lineCount = {
+          template = "󰘖 %d", -- `%d` is replaced with the number of folded lines
+        },
+      },
+    },
+  },
+  {
+    "folke/todo-comments.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    opts = {},
   },
 }
