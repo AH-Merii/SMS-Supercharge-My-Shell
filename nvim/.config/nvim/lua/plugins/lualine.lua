@@ -17,6 +17,7 @@ local function get_catppuccin_pallete()
       violet = c.lavender,
     }
   else
+    vim.notify("Unable to Load catppuccin pallette in lualine", vim.log.levels.WARN)
     return {
       bg = "#1e1e2e",
       fg = "#cdd6f4",
@@ -49,6 +50,7 @@ local function get_onedark_palette()
       violet = c.violet or "#a9a1e1",
     }
   else
+    vim.notify("Unable to Load onedark pallette in lualine", vim.log.levels.WARN)
     -- Fallback OneDark colors (from official theme)
     return {
       bg = "#282c34",
@@ -65,13 +67,15 @@ local function get_onedark_palette()
   end
 end
 
+local function get_colors() return get_onedark_palette() end
+
 return {
   "nvim-lualine/lualine.nvim",
   event = "VeryLazy",
   config = function()
     local lualine = require("lualine")
 
-    local colors = get_onedark_palette()
+    local colors = get_colors()
 
     local conditions = {
       buffer_not_empty = function() return vim.fn.empty(vim.fn.expand("%:t")) ~= 1 end,
@@ -82,6 +86,17 @@ return {
         return gitdir ~= "" and #gitdir > 0 and #gitdir < #filepath
       end,
     }
+
+    ---------------------------------------------------------------------------
+    -- Highlight groups for statusline segments
+    ---------------------------------------------------------------------------
+    local function define_highlights(c)
+      local set_hl = function(name, opts) vim.api.nvim_set_hl(0, name, opts) end
+      set_hl("LualineNormal", { fg = c.fg })
+      set_hl("LualineProjectRoot", { fg = c.magenta, bold = true })
+      set_hl("LualinePath", { fg = c.fg })
+      set_hl("LualineFilename", { fg = c.blue, bold = true })
+    end
 
     ---------------------------------------------------------------------------
     -- Project root logic
@@ -192,25 +207,14 @@ return {
       return display
     end
 
-    ---------------------------------------------------------------------------
-    -- Highlight groups for statusline segments
-    ---------------------------------------------------------------------------
-    local function define_highlights()
-      local set_hl = function(name, opts) vim.api.nvim_set_hl(0, name, opts) end
-      set_hl("LualineNormal", { fg = colors.fg, bg = colors.bg })
-      set_hl("LualineProjectRoot", { fg = colors.magenta, bg = colors.bg, bold = true })
-      set_hl("LualinePath", { fg = colors.fg, bg = colors.bg })
-      set_hl("LualineFilename", { fg = colors.blue, bg = colors.bg, bold = true })
-    end
+    define_highlights(colors)
 
-    define_highlights()
-
-    vim.api.nvim_create_autocmd("ColorScheme", {
-      callback = function()
-        colors = get_colors()
-        define_highlights()
-      end,
-    })
+    -- vim.api.nvim_create_autocmd("ColorScheme", {
+    --   callback = function()
+    --     colors = get_colors()
+    --     define_highlights(colors)
+    --   end,
+    -- })
 
     ---------------------------------------------------------------------------
     -- Macro recording component
@@ -237,8 +241,8 @@ return {
         section_separators = "",
         globalstatus = true,
         theme = {
-          normal = { c = { fg = colors.fg, bg = colors.bg } },
-          inactive = { c = { fg = colors.fg, bg = colors.bg } },
+          normal = { c = { fg = colors.fg } },
+          inactive = { c = { fg = colors.fg } },
         },
       },
       sections = {
