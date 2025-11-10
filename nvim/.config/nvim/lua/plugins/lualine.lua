@@ -1,43 +1,77 @@
+-- palletes
+--- dynamic Catppuccin palette (fallback if missing)
+local function get_catppuccin_pallete()
+  local ok, palette = pcall(require, "catppuccin.palettes")
+  if ok then
+    local c = palette.get_palette()
+    return {
+      bg = c.mantle,
+      fg = c.text,
+      red = c.red,
+      yellow = c.yellow,
+      green = c.green,
+      cyan = c.teal,
+      blue = c.blue,
+      magenta = c.mauve,
+      orange = c.peach,
+      violet = c.lavender,
+    }
+  else
+    return {
+      bg = "#1e1e2e",
+      fg = "#cdd6f4",
+      red = "#f38ba8",
+      yellow = "#f9e2af",
+      green = "#a6e3a1",
+      cyan = "#94e2d5",
+      blue = "#89b4fa",
+      magenta = "#cba6f7",
+      orange = "#fab387",
+      violet = "#b4befe",
+    }
+  end
+end
+
+local function get_onedark_palette()
+  local ok, onedark = pcall(require, "onedark.palette")
+  if ok then
+    local c = onedark
+    return {
+      bg = c.bg0 or "#282c34",
+      fg = c.fg or "#abb2bf",
+      red = c.red or "#e06c75",
+      yellow = c.yellow or "#e5c07b",
+      green = c.green or "#98c379",
+      cyan = c.cyan or "#56b6c2",
+      blue = c.blue or "#61afef",
+      magenta = c.purple or "#c678dd",
+      orange = c.orange or "#d19a66",
+      violet = c.violet or "#a9a1e1",
+    }
+  else
+    -- Fallback OneDark colors (from official theme)
+    return {
+      bg = "#282c34",
+      fg = "#abb2bf",
+      red = "#e06c75",
+      yellow = "#e5c07b",
+      green = "#98c379",
+      cyan = "#56b6c2",
+      blue = "#61afef",
+      magenta = "#c678dd",
+      orange = "#d19a66",
+      violet = "#a9a1e1",
+    }
+  end
+end
+
 return {
   "nvim-lualine/lualine.nvim",
   event = "VeryLazy",
   config = function()
     local lualine = require("lualine")
 
-    -- dynamic Catppuccin palette (fallback if missing)
-    local function get_colors()
-      local ok, palette = pcall(require, "catppuccin.palettes")
-      if ok then
-        local c = palette.get_palette()
-        return {
-          bg = c.mantle,
-          fg = c.text,
-          red = c.red,
-          yellow = c.yellow,
-          green = c.green,
-          cyan = c.teal,
-          blue = c.blue,
-          magenta = c.mauve,
-          orange = c.peach,
-          violet = c.lavender,
-        }
-      else
-        return {
-          bg = "#1e1e2e",
-          fg = "#cdd6f4",
-          red = "#f38ba8",
-          yellow = "#f9e2af",
-          green = "#a6e3a1",
-          cyan = "#94e2d5",
-          blue = "#89b4fa",
-          magenta = "#cba6f7",
-          orange = "#fab387",
-          violet = "#b4befe",
-        }
-      end
-    end
-
-    local colors = get_colors()
+    local colors = get_onedark_palette()
 
     local conditions = {
       buffer_not_empty = function() return vim.fn.empty(vim.fn.expand("%:t")) ~= 1 end,
@@ -52,6 +86,7 @@ return {
     ---------------------------------------------------------------------------
     -- Project root logic
     ---------------------------------------------------------------------------
+    -- Path to Project
     local function get_project_root()
       local buf_dir = vim.fn.expand("%:p:h")
       local git_root = vim.fn.systemlist("git -C " .. vim.fn.shellescape(buf_dir) .. " rev-parse --show-toplevel")[1]
@@ -256,6 +291,7 @@ return {
 
     ins_left({ "location" })
     ins_left({ "progress", color = { fg = colors.fg, gui = "bold" } })
+    -- diagnostics
     ins_left({
       "diagnostics",
       sources = { "nvim_diagnostic" },
@@ -268,6 +304,7 @@ return {
     })
     ins_left({ function() return "%=" end })
 
+    -- LSP
     ins_left({
       function()
         local clients = vim.lsp.get_clients({ bufnr = 0 })
@@ -287,6 +324,7 @@ return {
       color = { fg = colors.yellow, gui = "bold" },
     })
 
+    -- Formatters
     ins_left({
       function()
         local ok, conform = pcall(require, "conform")
@@ -305,6 +343,7 @@ return {
       color = { fg = colors.magenta, gui = "bold" },
     })
 
+    -- Linters
     ins_left({
       function()
         local ok, lint = pcall(require, "lint")
@@ -326,12 +365,14 @@ return {
     ---------------------------------------------------------------------------
     -- RIGHT side
     ---------------------------------------------------------------------------
+    -- Git Branch
     ins_right({
       "branch",
       icon = "",
       color = { fg = colors.cyan, gui = "bold" },
       cond = conditions.check_git_workspace,
     })
+    -- Git Changes
     ins_right({
       "diff",
       symbols = { added = "󰐖 ", modified = "󰦓 ", removed = "󰍵 " },
@@ -342,6 +383,7 @@ return {
       },
       cond = conditions.hide_in_width,
     })
+    -- Macro Status
     ins_right({
       macro_recording,
       color = { fg = colors.yellow, gui = "bold" },
