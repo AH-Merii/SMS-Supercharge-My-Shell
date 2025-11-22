@@ -35,3 +35,4 @@ alias_check xp "fzf --exact --preview='bat --color=always --style=numbers {}' --
 alias_check fp "fzf --preview='bat --color=always --style=numbers {}' --bind page-up:preview-up,ctrl-u:preview-page-up,page-down:preview-down,ctrl-d:preview-page-down"
 which fzf >/dev/null && alias xph="fd --hidden --exclude '.git' | xp" # exact preview hidden
 which fzf >/dev/null && alias fph="fd --hidden --exclude '.git' | fp" # file preview hidden
+alias pandoc="pandoc --pdf-engine=typst"
