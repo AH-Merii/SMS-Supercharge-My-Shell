@@ -50,7 +50,7 @@ install_homebrew() {
   if [[ ! -x "${BREW_PREFIX}/bin/brew" ]]; then
     echo -en "$CNT - Installing Homebrew..."
 
-    echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &>>"$INSTLOG" &
+    echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >>"$INSTLOG" &
     local install_pid=$!
     # Show progress until the installation finishes
     show_progress $install_pid "Successfully installed Homebrew"
@@ -87,7 +87,7 @@ install_homebrew_package() {
     echo -e "$COK - $1 is already installed."
   else
     echo -en "$CNT - Now installing $1"
-    brew install "${1}" &>>"${INSTLOG}" &
+    brew install "${1}" >>"${INSTLOG}" &
     local install_pid=$!
     show_progress "$install_pid" "${1} was installed."
   fi
@@ -95,7 +95,7 @@ install_homebrew_package() {
 
 cleanup_homebrew_installation() {
   echo -en "$CNT - Cleaning up Homebrew installation..."
-  brew cleanup &>>"${INSTLOG}" &
+  brew cleanup >>"${INSTLOG}" &
   install_pid=$!
   show_progress "${install_pid}" "Homebrew installation cleaned"
 }
@@ -132,12 +132,12 @@ stow_all_configs_to_home_dir() {
     fi
 
     # Final stow call with --adopt, which only affects adopted files
-    if ! stow --adopt -vt ~ "$dir" &>>"${INSTLOG}"; then
+    if ! stow --adopt -vt ~ "$dir" >>"${INSTLOG}"; then
       echo -e "${CER} - Problem linking $dir, check $INSTLOG"
       return 1
     fi
 
-    if ! stow -vt ~ "$dir" &>>"${INSTLOG}"; then
+    if ! stow -vt ~ "$dir" >>"${INSTLOG}"; then
       echo -e "${CER} - Problem linking $dir, check $INSTLOG"
       return 1
     fi
@@ -153,11 +153,11 @@ ensure_shell_in_etc_shells() {
     return 1
   fi
 
-  if grep -Fxq "$shell_path" /etc/shells &>>"${INSTLOG}"; then
+  if grep -Fxq "$shell_path" /etc/shells >>"${INSTLOG}"; then
     echo -e "${CCA}${COK} - $shell_path is already listed in /etc/shells"
   else
     echo -e "${CCA}${CNT} - Adding ${shell_path} to /etc/shells... " && sleep 1
-    if echo "$shell_path" | sudo tee -a /etc/shells &>>"${INSTLOG}"; then
+    if echo "$shell_path" | sudo tee -a /etc/shells >>"${INSTLOG}"; then
       echo -e "${CCA}${COK} - ${shell_path} added to /etc/shells."
     else
       echo -e "${CCA}${CER} - Unable to add ${shell_path} to /etc/shells."
@@ -175,7 +175,7 @@ change_default_shell_to_zsh() {
   # Change the user's default shell if not already set
   if getent passwd "$USER" | cut -d: -f7 | grep -q "zsh"; then
     echo -e "${CNT} - Changing default shell to ZSH... " && sleep 1
-    if usermod --shell "${zsh_path}" "$USER" &>>"$INSTLOG"; then
+    if usermod --shell "${zsh_path}" "$USER" >>"$INSTLOG"; then
       echo -e "${CCA}${COK} - ZSH is now your default shell."
     else
       echo -e "${CCA}${CER} - Unable to set ZSH as your default shell."
@@ -194,17 +194,17 @@ clean_dotfiles_from_homedir() {
   if [[ ${ANTIDOT} == "Y" || ${ANTIDOT} == "y" ]]; then
     echo -e "${CCA}${CNT} - Decluttering home directory..."
 
-    if antidot update &>>"${INSTLOG}"; then
+    if antidot update >>"${INSTLOG}"; then
       echo -e "${CCA}${COK} - Antidot rules updated successfully." && sleep 1
       if antidot clean; then
-        if grep -F 'eval "$(antidot init)"' "${ZDOTDIR}/.zshrc" &>>"${INSTLOG}"; then
+        if grep -F 'eval "$(antidot init)"' "${ZDOTDIR}/.zshrc" >>"${INSTLOG}"; then
           echo -e "${COK} - eval antidot init already present in .zshrc"
         else
           echo 'eval "$(antidot init)"' >>"$ZDOTDIR/.zshrc"
           echo -e "${COK} - Added antidot configuration to .zsrhc"
         fi
 
-        if eval "$(antidot init)" &>>"${INSTLOG}"; then
+        if eval "$(antidot init)" >>"${INSTLOG}"; then
           echo -e "${COK} - Home directory is now squeaky clean."
         else
           echo -e "${COK} - Failed to evaluate antidot init"

@@ -1,7 +1,7 @@
 theme = Atom One Dark
-font-size = 12
+font-size = 18
 mouse-hide-while-typing = true
-window-decoration = none
+#window-decoration = none
 font-family = "FiraCode Nerd Font"
 clipboard-trim-trailing-spaces = true
 link-url = true
@@ -24,3 +24,4 @@ keybind = ctrl+arrow_down=jump_to_prompt:1
 keybind = ctrl+arrow_up=jump_to_prompt:-1
 keybind = performable:ctrl+c=copy_to_clipboard
 keybind = performable:ctrl+v=paste_from_clipboard
+keybind = shift+enter=text:\x1b\r

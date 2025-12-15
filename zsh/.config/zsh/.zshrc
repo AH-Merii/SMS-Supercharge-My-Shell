@@ -23,23 +23,11 @@ autoload -U +X bashcompinit && bashcompinit
 source "$ANTIDOTE_HOME"/mattmc3/antidote/antidote.zsh
 antidote load
 
-# load AWS CLI completions only if they are available
-command -v aws_completer &>/dev/null && complete -o nospace -C "$(command -v aws_completer)" aws
-
 # check if powerlevel10k configuration exists, if not, run powerlevel10k
 [[ -f $ZDOTDIR/.p10k.zsh ]] && source "$ZDOTDIR"/.p10k.zsh || p10k configure
 
-eval "$(enable-fzf-tab)"
-command -v pyenv >/dev/null && eval "$(pyenv init -)"
+#eval "$(enable-fzf-tab)"
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
-
-# Automatically starts Hyprland on boot if running directly from tty1 (first virtual console),
-# not in an X11 environment, Hyprland is installed, and Hyprland is not already running.
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ] && command -v Hyprland >/dev/null && ! pgrep -x Hyprland >/dev/null; then
-  Hyprland
-fi
-
-. "$HOME/.local/share/../bin/env"
 
 if [[ -n $GHOSTTY_RESOURCES_DIR ]]; then
   source "$GHOSTTY_RESOURCES_DIR"/shell-integration/zsh/ghostty-integration
