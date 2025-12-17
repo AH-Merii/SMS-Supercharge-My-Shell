@@ -3,7 +3,7 @@
   ui = auto
 [alias]
   # List available aliases
-  aliases = !git config --get-regexp alias | sed -re 's/alias\\.(\\S*)\\s(.*)$/\\1 = \\2/g'
+  aliases = "!git config --get-regexp alias | sed -E 's/alias\\.([^ ]*) (.*)$/\\1 = \\2/g'"
   # Command shortcuts
   ci = commit
   co = checkout
@@ -151,5 +151,5 @@
 [delta]
 	side-by-side = true
 [filter "remove_gitconfig_user"]
-	clean = "sed '/^\\[user\\]/,/^\\[.*\\]/ { /^[^[]/d; /^\\[user\\]/d }'"
+	clean = "awk '/^\\[user\\]/{skip=1} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
 	smudge = cat
