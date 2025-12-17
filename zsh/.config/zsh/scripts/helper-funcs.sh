@@ -3,20 +3,20 @@
 # checks if repo exists. if repo does not exist clones it else it pulls the most recent changes.
 clone-repo() {
     repo=$1 
-    repo_name=$(echo $repo | sed -rn 's/git@.+\/(.+)\.git/\1/p')
+    repo_name=$(echo $repo | sed -En 's/git@.+\/(.+)\.git/\1/p')
     # handle empty input for directory
     [ -z "$2" ] && directory="./" || directory=$2
     # check if repo is already cloned or not; if exists then pull
     if cd "$directory/$repo_name"; then git pull; else git clone --depth=1 $repo "$directory/$repo_name"; fi
 }
 
-# downloads the latest release of given repo that is compatible with linux
+# downloads the latest release of given repo that is compatible with current platform
 get-latest-release() {
     repo=$1
 
     curl -L "https://api.github.com/repos/$repo/releases/latest" | \
         jq -r ".assets[].browser_download_url" | \
-        grep -Pi "(?=.*[_.-]linux[_.-])(?=.*[_.-](amd64|x86_64)[_.-]).*"
+        grep -Ei "(linux|darwin|macos).*(amd64|x86_64|arm64)"
 } 
 
 # installs the latest release of repo

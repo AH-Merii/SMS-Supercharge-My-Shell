@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.config/zsh/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # allow pushd without explicit command
 setopt autopushd
 # allow cd without explicit command
@@ -26,7 +33,6 @@ antidote load
 # check if powerlevel10k configuration exists, if not, run powerlevel10k
 [[ -f $ZDOTDIR/.p10k.zsh ]] && source "$ZDOTDIR"/.p10k.zsh || p10k configure
 
-#eval "$(enable-fzf-tab)"
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
 
 if [[ -n $GHOSTTY_RESOURCES_DIR ]]; then

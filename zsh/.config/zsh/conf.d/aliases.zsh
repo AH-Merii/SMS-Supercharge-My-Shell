@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env zsh
 
 alias_check() {
   # Extract only the first word of $2 (the actual command)
@@ -18,6 +18,14 @@ alias_check() {
 alias_check cat  bat
 alias_check diff delta
 alias_check grep rg
+
+# eza (modern ls replacement)
+if command -v eza >/dev/null 2>&1; then
+  alias ls="eza --icons=always --group-directories-first"
+  alias ll="eza --icons=always --group-directories-first -l --git"
+  alias la="eza --icons=always --group-directories-first -la --git"
+  alias tree="eza --icons=always --tree"
+fi
 
 # shortcuts
 alias_check b popd

@@ -25,8 +25,6 @@ source "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-jirutka-SL
 fpath+=( "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-powerlevel10k" )
 source "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-powerlevel10k/powerlevel10k.zsh-theme"
 source "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-romkatv-SLASH-powerlevel10k/powerlevel9k.zsh-theme"
-fpath+=( "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-exa" )
-source "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-exa/eza.plugin.zsh"
 fpath+=( "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-fzf" )
 source "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-zap-zsh-SLASH-fzf/fzf.plugin.zsh"
 fpath+=( "$HOME/.cache/repos/https-COLON--SLASH--SLASH-github.com-SLASH-mattmc3-SLASH-zephyr/plugins/confd" )
