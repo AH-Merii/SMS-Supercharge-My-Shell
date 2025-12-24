@@ -28,6 +28,10 @@ autoload -U +X bashcompinit && bashcompinit
   git clone --depth 1 --quiet https://github.com/mattmc3/antidote "$ANTIDOTE_HOME"/mattmc3/antidote
 
 source "$ANTIDOTE_HOME"/mattmc3/antidote/antidote.zsh
+
+# plugin hooks (must be defined before antidote load)
+[[ -r $ZDOTDIR/hooks.zsh ]] && source "$ZDOTDIR/hooks.zsh"
+
 antidote load
 
 # check if powerlevel10k configuration exists, if not, run powerlevel10k
