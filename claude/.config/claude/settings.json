@@ -1,4 +1,8 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Read(**)",
@@ -32,47 +36,18 @@
       "WebFetch(domain:bun.sh)",
       "WebFetch(domain:bun.pm)",
       "WebFetch(domain:pnpm.io)",
-      "WebFetch(domain:astral.sh)"
-    ],
-    "ask": [
-      "Edit(**)",
-
-      "Bash(git branch :*)",
-      "Bash(git checkout:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(git pull:*)",
-      "Bash(git merge:*)",
-      "Bash(git rebase:*)",
-
-      "Bash(npm install:*)",
-      "Bash(npm ci:*)",
-      "Bash(npm run :*)",
-      "Bash(npm exec :*)",
-      "Bash(npx :*)",
-
-      "Bash(yarn :*)",
-      "Bash(pnpm :*)",
-      "Bash(bun install:*)",
-      "Bash(bun add:*)",
-      "Bash(bun remove:*)",
-      "Bash(bun run :*)",
-      "Bash(bunx :*)",
-
-      "Bash(uv sync:*)",
-      "Bash(uv add:*)",
-      "Bash(uv remove:*)",
-      "Bash(uv run :*)",
-      "Bash(uv pip install:*)",
-      "Bash(uv pip uninstall:*)",
-      "Bash(uv venv:*)",
-
-      "Bash(make :*)",
-      "Bash(go test:*)",
-      "Bash(python -m pytest:*)",
-
-      "WebFetch(domain:*)"
+      "WebFetch(domain:astral.sh)",
+      "WebSearch",
+      "WebFetch(domain:antidote.sh)",
+      "WebFetch(domain:manpages.debian.org)",
+      "WebFetch(domain:fishshell.com)",
+      "WebFetch(domain:samedwardes.com)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(tmux:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(grep:*)",
+      "Bash(cat:*)"
     ],
     "deny": [
       "Read(./.env)",
@@ -120,6 +95,41 @@
       "Bash(init :*)",
       "Bash(systemctl:*)",
       "Bash(service :*)"
-    ]
+    ],
+    "ask": [
+      "Edit(**)",
+      "Bash(git branch :*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm run :*)",
+      "Bash(npm exec :*)",
+      "Bash(npx :*)",
+      "Bash(yarn :*)",
+      "Bash(pnpm :*)",
+      "Bash(bun install:*)",
+      "Bash(bun add:*)",
+      "Bash(bun remove:*)",
+      "Bash(bun run :*)",
+      "Bash(bunx :*)",
+      "Bash(uv sync:*)",
+      "Bash(uv add:*)",
+      "Bash(uv remove:*)",
+      "Bash(uv run :*)",
+      "Bash(uv pip install:*)",
+      "Bash(uv pip uninstall:*)",
+      "Bash(uv venv:*)",
+      "Bash(make :*)",
+      "Bash(go test:*)",
+      "Bash(python -m pytest:*)",
+      "WebFetch(domain:*)"
+    ],
+    "defaultMode": "default"
   }
 }
