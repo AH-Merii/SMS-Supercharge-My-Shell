@@ -14,10 +14,10 @@ background-blur = 20
 
 # Custom Shaders
 # https://catskull.net/fun-with-ghostty-shaders.html
-custom-shader = shaders1/cursor_sweep.glsl
-custom-shader = shaders1/sonic_boom_cursor.glsl
+custom-shader = shaders2/cursor_sweep.glsl
+custom-shader = shaders2/sonic_boom_cursor.glsl
 # nice light theme uncomment below
-#custom-shader = shaders2/negative.glsl
+#custom-shader = shaders1/negative.glsl
 
 # Keybinds
 keybind = ctrl+arrow_down=jump_to_prompt:1
