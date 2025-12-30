@@ -24,14 +24,5 @@ alias cfrc "cat ~/.config/fish/config.fish"
 # lazygit
 abbr --add lg lazygit
 
-# fzf preview helpers
-if command -v fzf >/dev/null
-    alias xp "fzf --exact --preview='bat --color=always --style=numbers {}' --bind page-up:preview-up,ctrl-u:preview-page-up,page-down:preview-down,ctrl-d:preview-page-down"
-    alias fp "fzf --preview='bat --color=always --style=numbers {}' --bind page-up:preview-up,ctrl-u:preview-page-up,page-down:preview-down,ctrl-d:preview-page-down"
-    # Hidden file search + preview
-    alias xph "fd --hidden --exclude '.git' | xp"
-    alias fph "fd --hidden --exclude '.git' | fp"
-end
-
 # pandoc
-alias pandoc "pandoc --pdf-engine=typst"
+abbr pandoc "pandoc --pdf-engine=typst"

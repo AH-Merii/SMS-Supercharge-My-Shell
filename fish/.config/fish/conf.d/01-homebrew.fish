@@ -1,13 +1,15 @@
 # Homebrew initialization (macOS + Linux)
-
-# macOS: Apple Silicon or Intel
-if test (uname) = Darwin
-    if test -x /opt/homebrew/bin/brew
-        eval (/opt/homebrew/bin/brew shellenv)
-    else if test -x /usr/local/bin/brew
-        eval (/usr/local/bin/brew shellenv)
-    end
-# Linux
-else if test -x /home/linuxbrew/.linuxbrew/bin/brew
-    eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+switch (uname)
+    case Darwin
+        for b in /opt/homebrew/bin/brew /usr/local/bin/brew
+            if test -x $b
+                eval ($b shellenv)
+                break
+            end
+        end
+    case '*'
+        if test -x /home/linuxbrew/.linuxbrew/bin/brew
+            eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+        end
 end
+

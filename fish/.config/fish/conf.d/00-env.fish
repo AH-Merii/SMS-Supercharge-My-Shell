@@ -12,9 +12,15 @@ set -gx XDG_DATA_HOME ~/.local/share
 set -gx XDG_STATE_HOME ~/.local/state
 set -gx XDG_PROJECTS_DIR ~/Projects
 
-# Create XDG directories
-mkdir -p $XDG_CONFIG_HOME $XDG_CACHE_HOME $XDG_DATA_HOME $XDG_STATE_HOME
-mkdir -p $XDG_DATA_HOME/fish $XDG_CACHE_HOME/repos
+if status is-interactive
+    mkdir -p \
+        $XDG_CONFIG_HOME \
+        $XDG_CACHE_HOME \
+        $XDG_DATA_HOME \
+        $XDG_STATE_HOME \
+        $XDG_DATA_HOME/fish \
+        $XDG_CACHE_HOME/repos
+end
 
 # PATH additions
 fish_add_path $HOME/.local/bin
