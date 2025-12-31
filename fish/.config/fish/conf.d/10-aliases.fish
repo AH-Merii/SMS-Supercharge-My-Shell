@@ -10,7 +10,6 @@ if command -v eza >/dev/null
     alias ls "eza --icons=always --group-directories-first"
     alias ll "eza --icons=always --group-directories-first -l --git"
     alias la "eza --icons=always --group-directories-first -la --git"
-    alias tree "eza --icons=always --tree"
 end
 
 # Shortcuts

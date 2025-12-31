@@ -33,7 +33,7 @@ if not functions -q fisher
     set_color yellow --bold
     echo -n "Install:"
     set_color normal
-    set_color cyan --dim
+    set_color cyan
     echo -n "  curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source"
     set_color normal
     set_color $border_color
@@ -42,7 +42,7 @@ if not functions -q fisher
     set_color yellow --bold
     echo -n "Then:"
     set_color normal
-    set_color cyan --dim
+    set_color cyan
     echo -n "     fisher update"
     set_color normal
     set_color $border_color

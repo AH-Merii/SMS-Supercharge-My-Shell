@@ -18,22 +18,22 @@ function ccli --description "Claude Code CLI - get commands and tldr-style refer
 | `-h, --help` | Show this help |
 
 ## Examples
-```bash
-# Get a command
-ccli "list current tmux session"
 
-# Get tldr-style reference
-ccli -t "git stash"
+    # Get a command
+    ccli "list current tmux session"
 
-# Pipe command to clipboard
-ccli "find large files" | pbcopy
+    # Get tldr-style reference
+    ccli -t "git stash"
 
-# Execute with confirmation
-ccli -x "kill process on port 3000"
+    # Pipe command to clipboard
+    ccli "find large files" | pbcopy
 
-# Ask a question
-ccli -a "what is the difference between curl and wget"
-```' | glow
+    # Execute with confirmation
+    ccli -x "kill process on port 3000"
+
+    # Ask a question
+    ccli -a "what is the difference between curl and wget"
+' | glow
         return 0
     end
 
