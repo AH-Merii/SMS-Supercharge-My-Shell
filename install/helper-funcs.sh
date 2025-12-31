@@ -101,8 +101,25 @@ cleanup_homebrew_installation() {
 }
 
 stow_all_configs_to_home_dir() {
+  # Directories that should use --no-folding to create file symlinks instead of directory symlinks
+  local no_folding_dirs=("tmux" "ghostty" "karabiner")
+  local dir_name
+  local stow_opts=()
+
   for dir in */; do
-    conflicts=$(stow -nvt ~ "$dir" 2>&1 | grep 'neither a link nor a directory')
+    # Remove trailing slash for comparison
+    dir_name="${dir%/}"
+    stow_opts=()
+
+    # Check if this directory needs --no-folding
+    for no_fold_dir in "${no_folding_dirs[@]}"; do
+      if [[ "$dir_name" == "$no_fold_dir" ]]; then
+        stow_opts=("--no-folding")
+        break
+      fi
+    done
+
+    conflicts=$(stow "${stow_opts[@]}" -nvt ~ "$dir" 2>&1 | grep 'neither a link nor a directory')
 
     if [[ -n $conflicts ]]; then
       echo "$conflicts" | while read -r line; do
@@ -132,12 +149,12 @@ stow_all_configs_to_home_dir() {
     fi
 
     # Final stow call with --adopt, which only affects adopted files
-    if ! stow --adopt -vt ~ "$dir" >>"${INSTLOG}"; then
+    if ! stow "${stow_opts[@]}" --adopt -vt ~ "$dir" >>"${INSTLOG}"; then
       echo -e "${CER} - Problem linking $dir, check $INSTLOG"
       return 1
     fi
 
-    if ! stow -vt ~ "$dir" >>"${INSTLOG}"; then
+    if ! stow "${stow_opts[@]}" -vt ~ "$dir" >>"${INSTLOG}"; then
       echo -e "${CER} - Problem linking $dir, check $INSTLOG"
       return 1
     fi
