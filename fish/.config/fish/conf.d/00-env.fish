@@ -37,6 +37,7 @@ set -gx TEXMFVAR $XDG_CACHE_HOME/texlive/texmf-var
 # Custom
 set -gx GNUPGHOME $XDG_DATA_HOME/gnupg
 set -gx REPO_HOME $XDG_CACHE_HOME/repos
+set -gx STARSHIP_CONFIG $XDG_CONFIG_HOME/starship/starship.toml
 
 # AWS CLI
 set -gx AWS_CLI_AUTO_PROMPT on-partial

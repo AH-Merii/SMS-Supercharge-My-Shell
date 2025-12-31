@@ -1,0 +1,310 @@
+"$schema" = "https://starship.rs/config-schema.json"
+
+add_newline = false
+scan_timeout = 20
+command_timeout = 800
+
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$git_metrics\
+$git_state\
+$fill\
+$python\
+$pixi\
+$nodejs\
+$deno\
+$bun\
+$rust\
+$golang\
+$zig\
+$c\
+$cpp\
+$custom\
+$direnv\
+$line_break\
+$status\
+$character\
+"""
+
+right_format = """$docker_context${custom.podman_connection}$kubernetes$aws$azure$jobs$cmd_duration"""
+
+# ----------------------------
+# SSH identity (built-in; no custom commands)
+# ----------------------------
+[username]
+style_user = "bold dimmed white"
+style_root = "bold red"
+format = "[$user]($style)@"
+show_always = false
+
+[hostname]
+ssh_only = true
+ssh_symbol = "󰣀 "
+style = "bold dimmed white"
+format = "[$ssh_symbol$hostname]($style) "
+trim_at = "."
+disabled = false
+
+# ----------------------------
+# Prompt mode (fish vi mode)
+# ----------------------------
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+vimcmd_visual_symbol = "[▼](bold green)"
+vimcmd_replace_symbol = "[▶](bold green)"
+vimcmd_replace_one_symbol = "[▷](bold green)"
+
+[line_break]
+disabled = false
+
+[fill]
+symbol = ' '
+
+# ----------------------------
+# Directory + your icons
+# ----------------------------
+[directory]
+style = "bold cyan"
+format = "[$path]($style)[$read_only]($read_only_style) "
+truncation_length = 8
+truncation_symbol = "…/"
+fish_style_pwd_dir_length = 1
+read_only = ""
+read_only_style = "red"
+home_symbol = ""
+repo_root_format = ""
+
+# substitutions are literal string replacements (no glob/regex)
+[directory.substitutions]
+"SMS-Supercharge-My-Shell" = " SMS"
+
+"claude/.config/claude" = " claude  "
+"fish/.config/fish" = "󰈺  "
+"ghostty/.config/ghostty" = "󰊠  "
+"git/.config/git" = "  "
+"karabiner/.config/karabiner" = " karabiner  "
+"kitty/.config/kitty" = "󰄛  "
+"nvim/.config/nvim" = "  "
+"tmux/.config/tmux" = "  "
+"zsh/.config/zsh" = " zsh  "
+
+# Custom for AECOM
+"libs" = " "
+"monopy" = "󱥒 "
+"plant-room" = "󰈏 "
+"plant_room" = "󰈏 "
+
+"claude" = " claude"
+"fish" = "󰈺 "
+"ghostty" = "󰊠 "
+"git" = " "
+"karabiner" = " karabiner"
+"kitty" = "󰄛 "
+"nvim" = " "
+"tmux" = " "
+"zsh" = " zsh"
+
+".git" = " "
+".github" = " "
+"workflows" = " "
+
+".config" = " "
+".local" = " .local"
+".state" = " "
+".cache" = " "
+".ssh" = "󰢬 "
+".npm" = " "
+
+"docker" = " "
+"terraform" = "󱁢 "
+
+"Applications" = "󱕕 "
+"Desktop" = " "
+"Documents" = "󰲂 "
+"Downloads" = "󰉍 "
+"Library" = " "
+"Movies" = "󰿎 "
+"Music" = "󱍙 "
+"Pictures" = "󰉏 "
+"Public" = "󱞊 "
+
+"Projects" = "󱌣 "
+"projects" = "󱌣 "
+
+# ----------------------------
+# Git
+# ----------------------------
+[git_branch]
+symbol = "  "
+style = "bold white"
+format = "[$symbol$branch]($style) "
+truncation_length = 50
+truncation_symbol = "…"
+
+[git_status]
+format = "($all_status$ahead_behind)"
+
+conflicted = "[ ${count}](bold red) "
+ahead = "[⇡${count}](green) "
+behind = "[⇣${count}](yellow) "
+diverged = "[󰹶](purple) [⇡${ahead_count}](green) [⇣${behind_count}](yellow) "
+untracked = "[󰕚 ${count}](bright-black) "
+stashed = "[ ${count}](fg:208) "                                             # orange
+modified = "[ ${count}](yellow) "
+staged = "[ ${count}](green) "
+renamed = "[ ${count}](purple) "
+deleted = "[ ${count}](dimmed red) "
+
+[git_metrics]
+disabled = false
+format = "({[+$added]($added_style) )([-$deleted]($deleted_style)} )"
+added_style = "green"
+deleted_style = "red"
+
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+rebase = "[󰜘 rebase](fg:208)"                                        # orange
+merge = "[ merge](purple)"
+revert = "[󰕌 revert](red)"
+cherry_pick = "[ cherry-pick](purple)"
+bisect = "[ bisect](white)"
+am = "[󰇰 am](blue)"
+am_or_rebase = "[󰇰 󰜘 am/rebase](yellow)"
+
+# ----------------------------
+# Python + pixi + uv + hatch
+# Priority: pixi > uv, pixi > hatch
+# ----------------------------
+[python]
+symbol = " "
+style = "yellow bold"
+pyenv_version_name = false
+format = '[$symbol](cyan)[($version )](purple)[($virtualenv )]($style)'
+
+[pixi]
+disabled = false
+symbol = "⬢ "
+style = "yellow"
+format = "[$symbol($environment )]($style)"
+
+[custom.uv]
+detect_files = ["uv.lock"]
+when = """
+! test -f pixi.toml && \
+! test -f pixi.lock && \
+! (test -f pyproject.toml && grep -q '\\[tool\\.pixi\\]' pyproject.toml)
+"""
+command = 'echo "󰬂󰬃"'
+shell = ["sh", "-c"]
+format = "[$output](bold purple) "
+description = "uv project (uv.lock present, no pixi)"
+
+[custom.hatch]
+when = """
+! test -f pixi.toml && \
+! test -f pixi.lock && \
+! (test -f pyproject.toml && grep -q '\\[tool\\.pixi\\]' pyproject.toml) && \
+(test -f hatch.toml || (test -f pyproject.toml && grep -q '\\[tool\\.hatch\\]' pyproject.toml))
+"""
+command = 'echo "󰪯 hatch"'
+shell = ["sh", "-c"]
+format = "[$output](bold yellow) "
+description = "hatch project (hatch.toml or [tool.hatch], no pixi)"
+
+# ----------------------------
+# Languages (strict detection - config files only)
+# ----------------------------
+[nodejs]
+detect_extensions = []
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+
+[deno]
+detect_extensions = []
+detect_files = ["deno.json", "deno.jsonc", "deno.lock"]
+
+[bun]
+detect_extensions = []
+detect_files = ["bun.lockb", "bunfig.toml"]
+
+[rust]
+detect_extensions = []
+detect_files = ["Cargo.toml", "Cargo.lock"]
+
+[golang]
+detect_extensions = []
+detect_files = ["go.mod", "go.sum"]
+
+[zig]
+detect_extensions = []
+detect_files = ["build.zig", "build.zig.zon"]
+
+[c]
+detect_extensions = []
+detect_files = ["Makefile", "CMakeLists.txt", "compile_commands.json"]
+
+[cpp]
+detect_extensions = []
+detect_files = ["Makefile", "CMakeLists.txt", "compile_commands.json"]
+
+# ----------------------------
+# Cloud
+# ----------------------------
+[aws]
+symbol = " "
+style = "white"
+format = "[$symbol$profile( \\($region\\))]($style) "
+force_display = false
+
+[azure]
+symbol = " "
+style = "dimmed blue"
+format = "[$symbol$subscription]($style) "
+disabled = false
+
+# ----------------------------
+# Ops / env tooling
+# ----------------------------
+[docker_context]
+symbol = " "
+style = "blue"
+format = "[$symbol$context]($style) "
+
+[custom.podman_connection]
+command = 'podman machine list --format "{{if eq .Running true}}{{.Name}}{{end}}" | tr -d "\n*"'
+when = 'podman machine list --format "{{.Running}}" 2>/dev/null | grep -q true'
+symbol = " "
+style = "purple"
+format = "[$symbol$output]($style) "
+
+[kubernetes]
+symbol = "⎈ "
+style = "dimmed cyan"
+format = "[$symbol$context( \\($namespace\\))]($style) "
+disabled = false
+
+[direnv]
+disabled = false
+style = "bright-black"
+format = "[direnv]($style) "
+
+# ----------------------------
+# Status / jobs / duration
+# ----------------------------
+[status]
+disabled = false
+format = "[$status](bold red) "
+
+[jobs]
+symbol = ""
+style = "purple"
+format = "[$symbol$number]($style) "
+
+[cmd_duration]
+min_time = 800
+format = "[ $duration](dimmed white)"

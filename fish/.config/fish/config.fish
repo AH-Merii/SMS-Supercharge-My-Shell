@@ -7,3 +7,6 @@ set -g fish_greeting
 if set -q GHOSTTY_RESOURCES_DIR
     source "$GHOSTTY_RESOURCES_DIR/shell-integration/fish/vendor_conf.d/ghostty-shell-integration.fish"
 end
+
+# Enable Starship prompt
+starship init fish | source
