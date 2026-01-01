@@ -11,7 +11,7 @@ echo -en "${CNT} - Sourcing .zshenv"
 sleep 0.5
 
 if [[ -f "${ZSHENV}" ]]; then
-  if source "${ZSHENV}" &>>"${INSTLOG}"; then
+  if source "${ZSHENV}" >>"${INSTLOG}"; then
     echo -e "${CCL}${COK} - Sourced .zshenv"
   else
     echo -e "${CCL}${CROSS} - Failed to source ${ZSHENV} ${CROSS}"

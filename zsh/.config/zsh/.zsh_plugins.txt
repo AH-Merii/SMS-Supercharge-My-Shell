@@ -26,7 +26,6 @@ jirutka/zsh-shift-select
 romkatv/powerlevel10k
 
 # tool aliases
-zap-zsh/exa
 zap-zsh/fzf
 
 # final

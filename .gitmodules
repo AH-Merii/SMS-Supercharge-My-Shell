@@ -1,0 +1,15 @@
+[submodule "/home/amerii/SMS-Supercharge-My-Shell/ghostty/.config/ghostty/shaders"]
+	path = /home/amerii/SMS-Supercharge-My-Shell/ghostty/.config/ghostty/shaders
+	url = git@github.com:sahaj-b/ghostty-cursor-shaders.git
+[submodule "/home/amerii/SMS-Supercharge-My-Shell/ghostty/.config/ghostty/shaders1"]
+	path = /home/amerii/SMS-Supercharge-My-Shell/ghostty/.config/ghostty/shaders1
+	url = git@github.com:AH-Merii/ghostty-cursor-shaders.git
+[submodule "/home/amerii/SMS-Supercharge-My-Shell/ghostty/.config/ghostty/shaders2"]
+	path = /home/amerii/SMS-Supercharge-My-Shell/ghostty/.config/ghostty/shaders2
+	url = git@github.com:AH-Merii/ghostty-shaders.git
+[submodule "shaders1"]
+	path = ghostty/.config/ghostty/shaders1
+	url = git@github.com:AH-Merii/ghostty-shaders.git
+[submodule "shaders2"]
+	path = ghostty/.config/ghostty/shaders2
+	url = git@github.com:AH-Merii/ghostty-cursor-shaders.git
