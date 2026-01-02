@@ -9,6 +9,8 @@
       "Grep(**)",
       "Glob(**)",
 
+      "Bash(rm -rf:/tmp/*)",
+
       "Bash(git status)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
@@ -81,7 +83,6 @@
       "Bash(git restore:*)",
       "Bash(git rm:*)",
 
-      "Bash(rm -rf:*)",
       "Bash(sudo:*)",
       "Bash(curl:*)",
       "Bash(wget:*)",
@@ -97,6 +98,7 @@
       "Bash(service :*)"
     ],
     "ask": [
+      "Bash(rm -rf:./*)",
       "Edit(**)",
       "Bash(git branch :*)",
       "Bash(git checkout:*)",
