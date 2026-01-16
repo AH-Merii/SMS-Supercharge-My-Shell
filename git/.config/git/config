@@ -49,7 +49,7 @@
   # Display submodule-related information (commit listings)
   submodule = log
   # Use VSCode as default diff tool when running `git diff-tool`
-  tool = vscode
+  tool = delta
 [difftool "vscode"]
   cmd = code --wait --diff $LOCAL $REMOTE
 [fetch]

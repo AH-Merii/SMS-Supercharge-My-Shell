@@ -44,3 +44,12 @@ set -gx AWS_CLI_AUTO_PROMPT on-partial
 
 # Man pager
 set -gx MANPAGER 'nvim +Man!'
+
+# macOS: Add Homebrew library path for dynamic libraries (Cairo, etc.)
+if test (uname) = Darwin
+    if test -d /opt/homebrew/lib
+        set -gx DYLD_LIBRARY_PATH /opt/homebrew/lib $DYLD_LIBRARY_PATH
+    else if test -d /usr/local/lib
+        set -gx DYLD_LIBRARY_PATH /usr/local/lib $DYLD_LIBRARY_PATH
+    end
+end
