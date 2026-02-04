@@ -8,14 +8,11 @@
       "Read(**)",
       "Grep(**)",
       "Glob(**)",
-
       "Bash(rm -rf:/tmp/*)",
-
       "Bash(git status)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git branch)",
-
       "Bash(node --version)",
       "Bash(npm --version)",
       "Bash(pnpm --version)",
@@ -24,16 +21,13 @@
       "Bash(uv --version)",
       "Bash(uv pip list)",
       "Bash(uv tree:*)",
-
       "Bash(npm ls:*)",
       "Bash(pnpm list:*)",
       "Bash(bun pm ls:*)",
-
       "WebFetch(domain:github.com)",
       "WebFetch(domain:npmjs.com)",
       "WebFetch(domain:pypi.org)",
       "WebFetch(domain:crates.io)",
-
       "WebFetch(domain:nodejs.org)",
       "WebFetch(domain:bun.sh)",
       "WebFetch(domain:bun.pm)",
@@ -58,12 +52,10 @@
       "Read(**/.env.*)",
       "Read(./secrets/**)",
       "Read(**/secrets/**)",
-
       "Read(**/.npmrc)",
       "Read(**/.pypirc)",
       "Read(**/.netrc)",
       "Read(**/.docker/config.json)",
-
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
       "Read(~/.kube/**)",
@@ -73,16 +65,13 @@
       "Read(*.key)",
       "Read(*.p12)",
       "Read(*.pfx)",
-
       "Write(.env*)",
       "Write(**/secrets/**)",
       "Write(~/.ssh/**)",
-
       "Bash(git reset:*)",
       "Bash(git clean:*)",
       "Bash(git restore:*)",
       "Bash(git rm:*)",
-
       "Bash(sudo:*)",
       "Bash(curl:*)",
       "Bash(wget:*)",
@@ -133,5 +122,28 @@
       "WebFetch(domain:*)"
     ],
     "defaultMode": "default"
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bunx -y ccstatusline@latest",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true,
+    "terminal-icons@local-plugins": true
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "allowUnixSockets": [],
+      "allowLocalBinding": true
+    }
+  },
+  "pluginMarketplaces": [
+    "~/.config/claude/plugins/marketplace.json"
+  ]
 }
