@@ -6,11 +6,41 @@ return {
   ---@type snacks.Config
   opts = {
     bigfile = { enabled = true },
+    profiler = { enabled = true },
     dashboard = { enabled = false }, --
     explorer = { enabled = false }, --
     indent = { enabled = true },
     input = { enabled = true },
-    picker = { enabled = true },
+    picker = {
+      enabled = true,
+      win = {
+        input = {
+          keys = {
+            -- Navigation
+            ["<C-h>"] = { "focus_list", mode = { "n", "i" } },
+            ["<C-l>"] = { "focus_preview", mode = { "n", "i" } },
+            ["<C-k>"] = { "focus_list", mode = { "n", "i" } },
+            ["<C-j>"] = { "focus_preview", mode = { "n", "i" } },
+          },
+        },
+        list = {
+          keys = {
+            -- Navigation
+            ["<C-h>"] = { "focus_input", mode = { "n" } },
+            ["<C-l>"] = { "focus_preview", mode = { "n" } },
+            ["<C-k>"] = { "focus_input", mode = { "n" } },
+            ["<C-j>"] = { "focus_preview", mode = { "n" } },
+          },
+        },
+        preview = {
+          keys = {
+            -- Only map "go back to picker" keys; C-l/C-j are no-op (already at destination)
+            ["<C-h>"] = { "focus_list", mode = { "n" } },
+            ["<C-k>"] = { "focus_list", mode = { "n" } },
+          },
+        },
+      },
+    },
     notifier = { enabled = true },
     quickfile = { enabled = true },
     scope = { enabled = true },
@@ -87,6 +117,11 @@ return {
     { "<leader>GB", function() Snacks.gitbrowse() end, desc = "Open in Git Browser" },
     { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Reference (word)" },
     { "[[", function() Snacks.words.jump(-vim.v.count1) end, desc = "Reference (word)" },
+
+    -- Profiler
+    { "<leader>pp", function() Snacks.profiler.toggle() end, desc = "Toggle Profiler" },
+    { "<leader>ps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch" },
+    { "<leader>ph", function() Snacks.profiler.highlight() end, desc = "Profiler Highlight" },
   },
 
   config = function(_, opts)

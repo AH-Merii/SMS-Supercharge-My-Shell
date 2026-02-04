@@ -13,13 +13,13 @@ return {
 
   opts = {
     formatters_by_ft = {
-      -- Web technologies
-      javascript = { "prettierd" },
-      typescript = { "prettierd" },
-      javascriptreact = { "prettierd" },
-      typescriptreact = { "prettierd" },
-      json = { "prettierd" },
-      jsonc = { "prettierd" },
+      -- Web technologies (Biome for JS/TS/JSON, Prettier for markup/config)
+      javascript = { "biome" },
+      typescript = { "biome" },
+      javascriptreact = { "biome" },
+      typescriptreact = { "biome" },
+      json = { "biome" },
+      jsonc = { "biome" },
       yaml = { "prettierd" },
       -- docker-compose in Neovim usually has filetype "yaml.docker-compose"
       ["yaml.docker-compose"] = { "prettierd" },
@@ -49,6 +49,7 @@ return {
       mojo = { "lsp" },
 
       cmake = { "gersemi" },
+      typst = { "typstyle" },
 
       -- Another option for below is I could configure a new filetype toml.pyproject
       -- Maybe down the line I would like to configure yaml.actions etc...
@@ -140,14 +141,6 @@ return {
         vim.notify(string.format("Formatted %s with: %s", filename, formatter_label), vim.log.levels.INFO, { title = "Conform" })
       end)
     end
-
-    vim.api.nvim_create_user_command("FormatWithConform", function() c.format_buffer({ async = true, quiet = false }) end, {
-      desc = "Format current buffer with Conform and print formatters used",
-    })
-
-    vim.api.nvim_create_user_command("FormatWithConform", function() c.format_buffer({ async = true, quiet = false }) end, {
-      desc = "Format current buffer with Conform and print formatters used",
-    })
 
     vim.api.nvim_create_user_command("FormatWithConform", function() c.format_buffer({ async = true, quiet = false }) end, {
       desc = "Format current buffer with Conform and print formatters used",

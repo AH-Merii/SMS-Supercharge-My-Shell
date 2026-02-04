@@ -10,10 +10,10 @@ return {
       go = { "golangcilint" },
 
       -- JavaScript/TypeScript
-      javascript = { "eslint_d" },
-      typescript = { "eslint_d" },
-      javascriptreact = { "eslint_d" },
-      typescriptreact = { "eslint_d" },
+      javascript = { "biomejs" },
+      typescript = { "biomejs" },
+      javascriptreact = { "biomejs" },
+      typescriptreact = { "biomejs" },
 
       lua = { "luacheck" },
 
@@ -29,7 +29,7 @@ return {
       yaml = { "yamllint" },
       json = { "jsonlint" },
       make = { "checkmake" },
-      terraform = { "tflint", "tfsec" },
+      terraform = { "tflint", "trivy" },
       dockerfile = { "hadolint" },
     }
 

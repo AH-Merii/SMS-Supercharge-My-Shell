@@ -105,4 +105,14 @@ return {
       virtual_symbol_position = "eol",
     },
   },
+  {
+    "AH-Merii/github-pr-reviewer.nvim",
+    opts = {
+      pr_list_limit = 250,
+    },
+    keys = {
+      { "<leader>p", "<cmd>PRReviewMenu<cr>", desc = "PR Review Menu" },
+      { "<leader>p", ":<C-u>'<,'>PRSuggestChange<CR>", desc = "Suggest change", mode = "v" },
+    },
+  },
 }

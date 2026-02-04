@@ -14,16 +14,45 @@ local ensure_installed_formatters_linters = {
 
   -- Global formatter
   "prettierd",
+
+  -- Shell
+  "shellcheck",
+  "shfmt",
+
+  -- Go (gofmt comes with Go toolchain)
+  "golangci-lint",
+  "goimports",
+
+  -- JavaScript/TypeScript
+  "biome",
+
+  -- YAML/JSON/TOML
+  "yamllint",
+  "jsonlint",
+  "taplo",
+
+  -- IaC / Docker
+  "tflint",
+  "trivy",
+  "hadolint",
+  "actionlint",
+
+  -- CMake / Make
+  "gersemi",
+  "checkmake",
+
+  -- Typst
+  "typstyle",
 }
 
 local ensure_installed_lsps = {
-
   -- LSP *server* names (not Mason package names)
   "pyrefly",
   "lua_ls",
   "fish_lsp",
   "marksman",
   "ts_ls",
+  "tinymist", -- Typst
 }
 
 return {
@@ -107,25 +136,5 @@ return {
     optional = true,
     dependencies = { "mason-org/mason.nvim" },
     opts = {},
-  },
-
-  ---------------------------------------------------------------------------
-  -- Optional: language-specific tool bundles
-  ---------------------------------------------------------------------------
-  {
-    "williamboman/mason.nvim",
-    opts = {
-      ensure_installed = {
-        ---------------------------------------------------------------------
-        -- TYPST
-        ---------------------------------------------------------------------
-        {
-          "tinymist",
-          dependencies = {
-            { "typstyle", filetypes = { "typst" } },
-          },
-        },
-      },
-    },
   },
 }

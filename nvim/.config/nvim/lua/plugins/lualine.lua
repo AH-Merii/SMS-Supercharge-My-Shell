@@ -99,17 +99,85 @@ return {
     end
 
     ---------------------------------------------------------------------------
-    -- Project root logic
+    -- Project root logic (cached to avoid shell calls on every redraw)
     ---------------------------------------------------------------------------
-    -- Path to Project
+    local project_root_cache = {}
+
     local function get_project_root()
       local buf_dir = vim.fn.expand("%:p:h")
+      if project_root_cache[buf_dir] then
+        return project_root_cache[buf_dir]
+      end
       local git_root = vim.fn.systemlist("git -C " .. vim.fn.shellescape(buf_dir) .. " rev-parse --show-toplevel")[1]
-      if git_root and git_root ~= "" then
+      if git_root and git_root ~= "" and not git_root:match("^fatal") then
+        project_root_cache[buf_dir] = git_root
         return git_root
       end
-      return vim.fn.getcwd()
+      project_root_cache[buf_dir] = vim.fn.getcwd()
+      return project_root_cache[buf_dir]
     end
+
+    -- Clear git cache when cwd changes
+    vim.api.nvim_create_autocmd("DirChanged", {
+      callback = function() project_root_cache = {} end,
+    })
+
+    ---------------------------------------------------------------------------
+    -- Cached statusline component data (updated on BufEnter, not every redraw)
+    ---------------------------------------------------------------------------
+    local cached_lsp_names = ""
+    local cached_formatters = ""
+    local cached_linters = ""
+
+    local function update_statusline_cache()
+      -- LSP clients
+      local clients = vim.lsp.get_clients({ bufnr = 0 })
+      if clients and next(clients) then
+        local names_seen, names = {}, {}
+        for _, client in ipairs(clients) do
+          if not names_seen[client.name] then
+            table.insert(names, client.name)
+            names_seen[client.name] = true
+          end
+        end
+        cached_lsp_names = table.concat(names, ", ")
+      else
+        cached_lsp_names = "No Active LSP"
+      end
+
+      -- Formatters
+      local ok_conform, conform = pcall(require, "conform")
+      if ok_conform then
+        local buf = vim.api.nvim_get_current_buf()
+        local formatters = conform.list_formatters_to_run(buf)
+        if formatters and not vim.tbl_isempty(formatters) then
+          cached_formatters = table.concat(vim.tbl_map(function(f) return f.name end, formatters), ", ")
+        else
+          cached_formatters = ""
+        end
+      else
+        cached_formatters = ""
+      end
+
+      -- Linters
+      local ok_lint, lint = pcall(require, "lint")
+      if ok_lint then
+        local ft = vim.bo.filetype
+        local configured = lint.linters_by_ft[ft]
+        if configured and not vim.tbl_isempty(configured) then
+          cached_linters = table.concat(configured, ", ")
+        else
+          cached_linters = ""
+        end
+      else
+        cached_linters = ""
+      end
+    end
+
+    -- Update cache on buffer/window changes and LSP lifecycle events
+    vim.api.nvim_create_autocmd({ "BufEnter", "FileType", "LspAttach", "LspDetach" }, {
+      callback = update_statusline_cache,
+    })
 
     ---------------------------------------------------------------------------
     -- Adaptive Path component with highlight
@@ -308,60 +376,23 @@ return {
     })
     ins_left({ function() return "%=" end })
 
-    -- LSP
+    -- LSP (use cached value)
     ins_left({
-      function()
-        local clients = vim.lsp.get_clients({ bufnr = 0 })
-        if not clients or next(clients) == nil then
-          return "No Active LSP"
-        end
-        local names_seen, names = {}, {}
-        for _, client in ipairs(clients) do
-          if not names_seen[client.name] then
-            table.insert(names, client.name)
-            names_seen[client.name] = true
-          end
-        end
-        return table.concat(names, ", ")
-      end,
+      function() return cached_lsp_names end,
       icon = "󱍔 LSP:",
       color = { fg = colors.yellow, gui = "bold" },
     })
 
-    -- Formatters
+    -- Formatters (use cached value)
     ins_left({
-      function()
-        local ok, conform = pcall(require, "conform")
-        if not ok then
-          return ""
-        end
-        local buf = vim.api.nvim_get_current_buf()
-        local formatters = conform.list_formatters_to_run(buf)
-        if not formatters or vim.tbl_isempty(formatters) then
-          return ""
-        end
-        local names = vim.tbl_map(function(f) return f.name end, formatters)
-        return table.concat(names, ", ")
-      end,
+      function() return cached_formatters end,
       icon = "󰁨 ",
       color = { fg = colors.magenta, gui = "bold" },
     })
 
-    -- Linters
+    -- Linters (use cached value)
     ins_left({
-      function()
-        local ok, lint = pcall(require, "lint")
-        if not ok then
-          return ""
-        end
-        local buf = vim.api.nvim_get_current_buf()
-        local ft = vim.bo[buf].filetype
-        local configured = lint.linters_by_ft[ft]
-        if not configured or vim.tbl_isempty(configured) then
-          return ""
-        end
-        return table.concat(configured, ", ")
-      end,
+      function() return cached_linters end,
       icon = " ",
       color = { fg = colors.orange, gui = "bold" },
     })

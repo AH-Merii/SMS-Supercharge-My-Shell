@@ -163,7 +163,12 @@ function M.build_lsp_info()
 
   for i, client in ipairs(clients) do
     vim.list_extend(lines, build_client_basic_info(i, client))
-    table.insert(lines, "  Command: " .. table.concat(client.config.cmd or {}, " "))
+    local cmd = client.config.cmd
+    if type(cmd) == "function" then
+      table.insert(lines, "  Command: <dynamic>")
+    else
+      table.insert(lines, "  Command: " .. table.concat(cmd or {}, " "))
+    end
 
     -- Server status
     if client.is_stopped() then

@@ -60,6 +60,7 @@ BREW_PACKAGES=(
   pipx
   pixi
   uv
+  luarocks
   go
   rust
   node
