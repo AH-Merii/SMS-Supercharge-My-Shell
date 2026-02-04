@@ -1,3 +1,6 @@
+# Use main branch builds instead of stable releases
+auto-update-channel = tip
+
 theme = Atom One Dark
 font-size = 18
 mouse-hide-while-typing = true
