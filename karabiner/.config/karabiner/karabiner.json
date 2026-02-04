@@ -4,10 +4,46 @@
       "complex_modifications": {
         "rules": [
           {
+            "description": "Hyper+S/F in Ghostty → shell commands (bypass fzf conflict)",
+            "manipulators": [
+              {
+                "conditions": [
+                  {
+                    "bundle_identifiers": ["^com\\.mitchellh\\.ghostty$"],
+                    "type": "frontmost_application_if"
+                  }
+                ],
+                "from": {
+                  "key_code": "s",
+                  "modifiers": {
+                    "mandatory": ["command", "control", "option", "shift"]
+                  }
+                },
+                "to": [{ "shell_command": "open -a Slack" }],
+                "type": "basic"
+              },
+              {
+                "conditions": [
+                  {
+                    "bundle_identifiers": ["^com\\.mitchellh\\.ghostty$"],
+                    "type": "frontmost_application_if"
+                  }
+                ],
+                "from": {
+                  "key_code": "f",
+                  "modifiers": {
+                    "mandatory": ["command", "control", "option", "shift"]
+                  }
+                },
+                "to": [{ "shell_command": "open -g 'raycast://extensions/raycast/window-management/toggle-fullscreen'" }],
+                "type": "basic"
+              }
+            ]
+          },
+          {
             "description": "Track Tab Switcher State",
             "manipulators": [
               {
-                "type": "basic",
                 "from": {
                   "key_code": "tab",
                   "modifiers": {
@@ -16,12 +52,20 @@
                   }
                 },
                 "to": [
-                  { "key_code": "tab", "modifiers": ["left_control"] },
-                  { "set_variable": { "name": "ctrl_tab_active", "value": 1 } }
-                ]
+                  {
+                    "key_code": "tab",
+                    "modifiers": ["left_control"]
+                  },
+                  {
+                    "set_variable": {
+                      "name": "ctrl_tab_active",
+                      "value": 1
+                    }
+                  }
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "from": {
                   "key_code": "tab",
                   "modifiers": {
@@ -30,49 +74,70 @@
                   }
                 },
                 "to": [
-                  { "key_code": "tab", "modifiers": ["left_option"] },
-                  { "set_variable": { "name": "alt_tab_active", "value": 1 } }
-                ]
+                  {
+                    "key_code": "tab",
+                    "modifiers": ["left_option"]
+                  },
+                  {
+                    "set_variable": {
+                      "name": "alt_tab_active",
+                      "value": 1
+                    }
+                  }
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
-                "from": {
-                  "key_code": "left_control"
-                },
+                "from": { "key_code": "left_control" },
                 "to": [{ "key_code": "left_control" }],
                 "to_after_key_up": [
-                  { "set_variable": { "name": "ctrl_tab_active", "value": 0 } }
-                ]
+                  {
+                    "set_variable": {
+                      "name": "ctrl_tab_active",
+                      "value": 0
+                    }
+                  }
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
-                "from": {
-                  "key_code": "right_control"
-                },
+                "from": { "key_code": "right_control" },
                 "to": [{ "key_code": "right_control" }],
                 "to_after_key_up": [
-                  { "set_variable": { "name": "ctrl_tab_active", "value": 0 } }
-                ]
+                  {
+                    "set_variable": {
+                      "name": "ctrl_tab_active",
+                      "value": 0
+                    }
+                  }
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
-                "from": {
-                  "key_code": "left_option"
-                },
+                "from": { "key_code": "left_option" },
                 "to": [{ "key_code": "left_option" }],
                 "to_after_key_up": [
-                  { "set_variable": { "name": "alt_tab_active", "value": 0 } }
-                ]
+                  {
+                    "set_variable": {
+                      "name": "alt_tab_active",
+                      "value": 0
+                    }
+                  }
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
-                "from": {
-                  "key_code": "right_option"
-                },
+                "from": { "key_code": "right_option" },
                 "to": [{ "key_code": "right_option" }],
                 "to_after_key_up": [
-                  { "set_variable": { "name": "alt_tab_active", "value": 0 } }
-                ]
+                  {
+                    "set_variable": {
+                      "name": "alt_tab_active",
+                      "value": 0
+                    }
+                  }
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -80,10 +145,8 @@
             "description": "PC-Style Home/End",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -100,7 +163,8 @@
                       "^com\\.brave\\.Browser$",
                       "^com\\.apple\\.Safari$",
                       "^app\\.zen-browser\\.zen$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -112,13 +176,12 @@
                     "key_code": "left_arrow",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -129,7 +192,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -144,13 +208,12 @@
                     "key_code": "up_arrow",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -167,7 +230,8 @@
                       "^com\\.brave\\.Browser$",
                       "^com\\.apple\\.Safari$",
                       "^app\\.zen-browser\\.zen$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -179,13 +243,12 @@
                     "key_code": "right_arrow",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -196,7 +259,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -211,7 +275,8 @@
                     "key_code": "down_arrow",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -219,14 +284,13 @@
             "description": "Terminal Home/End (readline: Ctrl+A / Ctrl+E)",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_if",
                     "bundle_identifiers": [
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$"
-                    ]
+                    ],
+                    "type": "frontmost_application_if"
                   }
                 ],
                 "from": {
@@ -238,17 +302,17 @@
                     "key_code": "a",
                     "modifiers": ["left_control"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_if",
                     "bundle_identifiers": [
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$"
-                    ]
+                    ],
+                    "type": "frontmost_application_if"
                   }
                 ],
                 "from": {
@@ -260,7 +324,8 @@
                     "key_code": "e",
                     "modifiers": ["left_control"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -268,10 +333,8 @@
             "description": "PC-Style Copy/Paste/Cut",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -282,7 +345,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -297,13 +361,12 @@
                     "key_code": "c",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -314,7 +377,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -329,13 +393,12 @@
                     "key_code": "v",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -346,7 +409,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -361,7 +425,8 @@
                     "key_code": "x",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -369,10 +434,8 @@
             "description": "PC-Style Undo/Redo",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -383,7 +446,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -398,13 +462,12 @@
                     "key_code": "z",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -415,7 +478,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -430,7 +494,8 @@
                     "key_code": "z",
                     "modifiers": ["left_command", "left_shift"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -438,10 +503,8 @@
             "description": "PC-Style Select All / Save / New / Open / Close / Find / New Tab / Reload",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -452,7 +515,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -467,13 +531,12 @@
                     "key_code": "a",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -484,7 +547,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -499,13 +563,12 @@
                     "key_code": "s",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -516,7 +579,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -531,13 +595,12 @@
                     "key_code": "n",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -548,7 +611,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -563,13 +627,12 @@
                     "key_code": "o",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -580,7 +643,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -595,13 +659,12 @@
                     "key_code": "w",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -612,7 +675,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -627,13 +691,12 @@
                     "key_code": "f",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -644,7 +707,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -659,13 +723,12 @@
                     "key_code": "g",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -676,7 +739,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -691,13 +755,12 @@
                     "key_code": "t",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -708,7 +771,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -723,13 +787,12 @@
                     "key_code": "r",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -740,7 +803,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -752,13 +816,12 @@
                     "key_code": "r",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -769,7 +832,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -784,7 +848,8 @@
                     "key_code": "k",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -792,10 +857,8 @@
             "description": "PC-Style Delete Word (Ctrl+Backspace / Ctrl+Delete)",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -806,7 +869,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -821,13 +885,12 @@
                     "key_code": "delete_or_backspace",
                     "modifiers": ["left_option"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -838,7 +901,8 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -853,7 +917,8 @@
                     "key_code": "delete_forward",
                     "modifiers": ["left_option"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -861,10 +926,8 @@
             "description": "PC-Style Control+Arrow (word navigation)",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -875,11 +938,12 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   },
                   {
-                    "type": "variable_unless",
                     "name": "ctrl_tab_active",
+                    "type": "variable_unless",
                     "value": 1
                   }
                 ],
@@ -895,13 +959,12 @@
                     "key_code": "left_arrow",
                     "modifiers": ["left_option"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -912,11 +975,12 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   },
                   {
-                    "type": "variable_unless",
                     "name": "ctrl_tab_active",
+                    "type": "variable_unless",
                     "value": 1
                   }
                 ],
@@ -932,13 +996,12 @@
                     "key_code": "right_arrow",
                     "modifiers": ["left_option"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -949,11 +1012,12 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   },
                   {
-                    "type": "variable_unless",
                     "name": "ctrl_tab_active",
+                    "type": "variable_unless",
                     "value": 1
                   }
                 ],
@@ -969,13 +1033,12 @@
                     "key_code": "up_arrow",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -986,11 +1049,12 @@
                       "^com\\.apple\\.Terminal$",
                       "^com\\.mitchellh\\.ghostty$",
                       "^com\\.microsoft\\.VSCode$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   },
                   {
-                    "type": "variable_unless",
                     "name": "ctrl_tab_active",
+                    "type": "variable_unless",
                     "value": 1
                   }
                 ],
@@ -1006,7 +1070,8 @@
                     "key_code": "down_arrow",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -1014,10 +1079,8 @@
             "description": "PC-Style Browser Back/Forward (Alt+Arrow)",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_if",
                     "bundle_identifiers": [
                       "^org\\.mozilla\\.firefox",
                       "^com\\.google\\.Chrome$",
@@ -1025,11 +1088,12 @@
                       "^com\\.brave\\.Browser$",
                       "^com\\.apple\\.Safari$",
                       "^app\\.zen-browser\\.zen$"
-                    ]
+                    ],
+                    "type": "frontmost_application_if"
                   },
                   {
-                    "type": "variable_unless",
                     "name": "alt_tab_active",
+                    "type": "variable_unless",
                     "value": 1
                   }
                 ],
@@ -1045,13 +1109,12 @@
                     "key_code": "open_bracket",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_if",
                     "bundle_identifiers": [
                       "^org\\.mozilla\\.firefox",
                       "^com\\.google\\.Chrome$",
@@ -1059,11 +1122,12 @@
                       "^com\\.brave\\.Browser$",
                       "^com\\.apple\\.Safari$",
                       "^app\\.zen-browser\\.zen$"
-                    ]
+                    ],
+                    "type": "frontmost_application_if"
                   },
                   {
-                    "type": "variable_unless",
                     "name": "alt_tab_active",
+                    "type": "variable_unless",
                     "value": 1
                   }
                 ],
@@ -1079,7 +1143,8 @@
                     "key_code": "close_bracket",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -1087,10 +1152,8 @@
             "description": "PC-Style Browser Zoom (Ctrl+Plus/Minus/0)",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_if",
                     "bundle_identifiers": [
                       "^org\\.mozilla\\.firefox",
                       "^com\\.google\\.Chrome$",
@@ -1098,7 +1161,8 @@
                       "^com\\.brave\\.Browser$",
                       "^com\\.apple\\.Safari$",
                       "^app\\.zen-browser\\.zen$"
-                    ]
+                    ],
+                    "type": "frontmost_application_if"
                   }
                 ],
                 "from": {
@@ -1113,13 +1177,12 @@
                     "key_code": "hyphen",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_if",
                     "bundle_identifiers": [
                       "^org\\.mozilla\\.firefox",
                       "^com\\.google\\.Chrome$",
@@ -1127,7 +1190,8 @@
                       "^com\\.brave\\.Browser$",
                       "^com\\.apple\\.Safari$",
                       "^app\\.zen-browser\\.zen$"
-                    ]
+                    ],
+                    "type": "frontmost_application_if"
                   }
                 ],
                 "from": {
@@ -1142,13 +1206,12 @@
                     "key_code": "equal_sign",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               },
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_if",
                     "bundle_identifiers": [
                       "^org\\.mozilla\\.firefox",
                       "^com\\.google\\.Chrome$",
@@ -1156,7 +1219,8 @@
                       "^com\\.brave\\.Browser$",
                       "^com\\.apple\\.Safari$",
                       "^app\\.zen-browser\\.zen$"
-                    ]
+                    ],
+                    "type": "frontmost_application_if"
                   }
                 ],
                 "from": {
@@ -1171,7 +1235,8 @@
                     "key_code": "0",
                     "modifiers": ["left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           },
@@ -1179,10 +1244,8 @@
             "description": "PC-Style Emoji Picker (Cmd+. -> Ctrl+Cmd+Space)",
             "manipulators": [
               {
-                "type": "basic",
                 "conditions": [
                   {
-                    "type": "frontmost_application_unless",
                     "bundle_identifiers": [
                       "^com\\.vmware\\.fusion$",
                       "^com\\.vmware\\.horizon$",
@@ -1190,7 +1253,8 @@
                       "^com\\.parallels\\.desktop",
                       "^com\\.parallels\\.vm$",
                       "^org\\.virtualbox\\.app\\.VirtualBoxVM$"
-                    ]
+                    ],
+                    "type": "frontmost_application_unless"
                   }
                 ],
                 "from": {
@@ -1202,17 +1266,27 @@
                     "key_code": "spacebar",
                     "modifiers": ["left_control", "left_command"]
                   }
-                ]
+                ],
+                "type": "basic"
               }
             ]
           }
         ]
       },
+      "devices": [
+        {
+          "identifiers": {
+            "is_keyboard": true,
+            "product_id": 24926,
+            "vendor_id": 7504
+          },
+          "treat_as_built_in_keyboard": true
+        }
+      ],
       "name": "Default profile",
       "selected": true,
-      "virtual_hid_keyboard": {
-        "keyboard_type_v2": "ansi"
-      }
+      "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
     }
   ]
 }
+
