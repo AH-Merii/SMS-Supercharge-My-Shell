@@ -1,0 +1,13 @@
+{
+  "name": "local-plugins",
+  "owner": {
+    "name": "local"
+  },
+  "plugins": [
+    {
+      "name": "terminal-icons",
+      "source": "./terminal-icons",
+      "description": "Workaround for Claude Code filtering BMP Private Use Area Unicode characters (U+E000-U+F8FF). Provides placeholder syntax for icons (primarily Nerd Fonts) and automatic conversion."
+    }
+  ]
+}
