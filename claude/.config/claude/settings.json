@@ -8,10 +8,10 @@
       "Read(**)",
       "Grep(**)",
       "Glob(**)",
-      "Bash(rm -rf:/tmp/*)",
+      "Bash(rm -rf /tmp/*)",
       "Bash(git status)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
       "Bash(git branch)",
       "Bash(node --version)",
       "Bash(npm --version)",
@@ -20,10 +20,10 @@
       "Bash(bun --version)",
       "Bash(uv --version)",
       "Bash(uv pip list)",
-      "Bash(uv tree:*)",
-      "Bash(npm ls:*)",
-      "Bash(pnpm list:*)",
-      "Bash(bun pm ls:*)",
+      "Bash(uv tree *)",
+      "Bash(npm ls *)",
+      "Bash(pnpm list *)",
+      "Bash(bun pm ls *)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:npmjs.com)",
       "WebFetch(domain:pypi.org)",
@@ -38,12 +38,27 @@
       "WebFetch(domain:manpages.debian.org)",
       "WebFetch(domain:fishshell.com)",
       "WebFetch(domain:samedwardes.com)",
-      "Bash(tree:*)",
-      "Bash(wc:*)",
-      "Bash(tmux:*)",
+      "Bash(tree *)",
+      "Bash(wc *)",
+      "Bash(tmux *)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(grep:*)",
-      "Bash(cat:*)"
+      "Bash(gh pr view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr status *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh pr checks *)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
+      "Bash(gh issue status *)",
+      "Bash(gh repo view *)",
+      "Bash(gh repo list *)",
+      "Bash(gh run view *)",
+      "Bash(gh run list *)",
+      "Bash(gh release view *)",
+      "Bash(gh release list *)",
+      "Bash(gh api *)",
+      "Bash(gh search *)",
+      "Bash(gh auth status *)"
     ],
     "deny": [
       "Read(./.env)",
@@ -68,60 +83,68 @@
       "Write(.env*)",
       "Write(**/secrets/**)",
       "Write(~/.ssh/**)",
-      "Bash(git reset:*)",
-      "Bash(git clean:*)",
-      "Bash(git restore:*)",
-      "Bash(git rm:*)",
-      "Bash(sudo:*)",
-      "Bash(curl:*)",
-      "Bash(wget:*)",
-      "Bash(nc :*)",
-      "Bash(netcat :*)",
-      "Bash(dd :*)",
-      "Bash(mkfs:*)",
-      "Bash(fdisk:*)",
-      "Bash(shutdown:*)",
-      "Bash(reboot:*)",
-      "Bash(init :*)",
-      "Bash(systemctl:*)",
-      "Bash(service :*)"
+      "Bash(git reset *)",
+      "Bash(git clean *)",
+      "Bash(sudo *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(dd *)",
+      "Bash(ssh *)",
+      "Bash(eval *)",
+      "Bash(chmod 777 *)",
+      "Bash(scp *)",
+      "Bash(rsync *)"
     ],
     "ask": [
-      "Bash(rm -rf:./*)",
-      "Edit(**)",
-      "Bash(git branch :*)",
-      "Bash(git checkout:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(git pull:*)",
-      "Bash(git merge:*)",
-      "Bash(git rebase:*)",
-      "Bash(npm install:*)",
-      "Bash(npm ci:*)",
-      "Bash(npm run :*)",
-      "Bash(npm exec :*)",
-      "Bash(npx :*)",
-      "Bash(yarn :*)",
-      "Bash(pnpm :*)",
-      "Bash(bun install:*)",
-      "Bash(bun add:*)",
-      "Bash(bun remove:*)",
-      "Bash(bun run :*)",
-      "Bash(bunx :*)",
-      "Bash(uv sync:*)",
-      "Bash(uv add:*)",
-      "Bash(uv remove:*)",
-      "Bash(uv run :*)",
-      "Bash(uv pip install:*)",
-      "Bash(uv pip uninstall:*)",
-      "Bash(uv venv:*)",
-      "Bash(make :*)",
-      "Bash(go test:*)",
-      "Bash(python -m pytest:*)",
-      "WebFetch(domain:*)"
+      "Bash(rm -rf ./*)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git rm *)",
+      "Bash(git restore *)",
+      "Bash(npm install *)",
+      "Bash(npm ci *)",
+      "Bash(bun install *)",
+      "Bash(bun add *)",
+      "Bash(bun remove *)",
+      "Bash(uv sync *)",
+      "Bash(uv add *)",
+      "Bash(uv remove *)",
+      "Bash(uv pip install *)",
+      "Bash(uv pip uninstall *)",
+      "Bash(uv venv *)",
+      "WebFetch(domain:*)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh pr close *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh pr comment *)",
+      "Bash(gh pr review *)",
+      "Bash(gh issue create *)",
+      "Bash(gh issue close *)",
+      "Bash(gh issue edit *)",
+      "Bash(gh issue comment *)",
+      "Bash(gh issue delete *)",
+      "Bash(gh repo create *)",
+      "Bash(gh repo delete *)",
+      "Bash(gh repo edit *)",
+      "Bash(gh repo fork *)",
+      "Bash(gh repo clone *)",
+      "Bash(gh release create *)",
+      "Bash(gh release delete *)",
+      "Bash(gh release edit *)",
+      "Bash(gh run rerun *)",
+      "Bash(gh run cancel *)"
     ],
-    "defaultMode": "default"
+    "defaultMode": "acceptEdits"
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "statusLine": {
     "type": "command",
@@ -142,6 +165,89 @@
       "allowUnixSockets": [],
       "allowLocalBinding": true
     }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/enforce-uv.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/enforce-rg.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/enforce-fd.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/prettier-format.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/check-actions-versions.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/notify-stop.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/notify-notification.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Setup": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/validate-env.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/skill-eval.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
   },
   "pluginMarketplaces": [
     "~/.config/claude/plugins/marketplace.json"
