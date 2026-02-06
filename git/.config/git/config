@@ -1,155 +1,143 @@
-[color]
-  # Enable colors in color-supporting terminals
-  ui = auto
 [alias]
-  # List available aliases
-  aliases = "!git config --get-regexp alias | sed -E 's/alias\\.([^ ]*) (.*)$/\\1 = \\2/g'"
-  # Command shortcuts
-  ci = commit
-  co = checkout
-  st = status
-  # Display tree-like log, because default log is a pain…
-  lg = log --graph --date=relative --pretty=tformat:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%an %ad)%Creset'
-  # Useful when you have to update your last commit
-  # with staged files without editing the commit message.
-  oops = commit --amend --no-edit
-  # Ensure that force-pushing won't lose someone else's work (only mine).
-  push-with-lease = push --force-with-lease
-  # Rebase won’t trigger hooks on each "replayed" commit.
-  # This is an ugly hack that will replay each commit during rebase with the
-  # standard `commit` command which will trigger hooks.
-  rebase-with-hooks = rebase -x 'git reset --soft HEAD~1 && git commit -C HEAD@{1}'
-  # List local commits that were not pushed to remote repository
-  review-local = "!git lg @{push}.."
-  # Edit last commit message
-  reword = commit --amend
-  # Undo last commit but keep changed files in stage
-  uncommit = reset --soft HEAD~1
-  # Remove file(s) from Git but not from disk
-  untrack = rm --cache --
-	remain = !git co main && git pull && git co - && git rebase main
+	aliases = "!git config --get-regexp alias | sed -E 's/alias\\.([^ ]*) (.*)$/\\1 = \\2/g'"
+	ci = commit
+	co = checkout
+	sw = switch
+	st = status
+	lg = log --graph --date=relative --pretty=tformat:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%an %ad)%Creset'
+	dog = log --all --decorate --oneline --graph
+	last = log -1 HEAD
+	oops = commit --amend --no-edit
+	reword = commit --amend
+	fixup = commit --fixup
+	wip = "!f() { git commit -am \"WIP: ${1:-work in progress}\"; }; f"
+	ws = "!f() { count=$(git log --oneline --format='%s' | awk '/^WIP:/{c++} !/^WIP:/{exit} END{print c+0}'); if [ \"$count\" -eq 0 ]; then echo 'No WIP commits found'; return 1; fi; if [ \"$1\" = '-m' ] && [ -n \"$2\" ]; then git reset --soft HEAD~$count && git commit -m \"$2\"; else git rebase -i HEAD~$((count + 1)); fi; }; f"
+	uncommit = reset --soft HEAD~1
+	undo = reset HEAD~1 --mixed
+	untrack = rm --cache --
+	rs = restore
+	rss = restore --staged
+	sync-main = "!git checkout main && git pull && git checkout - && git rebase main"
+	p = push
+	fp = push --force-with-lease
+	re = rebase
+	stash-all = stash push -u
+	who = shortlog -sne
+	changes = log -p --follow
+	filelog = log --oneline --follow
+
+[blame]
+	coloring = highlightRecent
+	date = relative
+
+[branch]
+	sort = -committerdate
+
+[column]
+	ui = auto
+
+[commit]
+	gpgSign = true
+	verbose = true
+
 [core]
-  # Don't paginate output by default
-	pager = delta --line-numbers --dark
-  # Global ignore file (not shared)
-  excludesfile = ~/.gitignore_global
-  # Global shared hooks directory
-  # hooksPath = ~/.githooks
-  #
-  editor = nvim
-  # Don't consider trailing space change as a cause for merge conflicts
-  whitespace = -trailing-space
+	editor = nvim
+	pager = sh -c 'test $(tput cols) -ge 160 && exec delta --features side-by-side || exec delta'
+	fsmonitor = true
+	untrackedCache = true
+
+[delta]
+	navigate = true
+	line-numbers = true
+	hyperlinks = true
+	syntax-theme = OneHalfDark
+	tabs = 4
+	true-color = always
+	file-modified-label = modified:
+	wrap-max-lines = unlimited
+
+[delta "side-by-side"]
+	side-by-side = true
+
 [diff]
-  # Use better, descriptive initials (c, i, w) instead of a/b.
-  mnemonicPrefix = true
-  # Show renames/moves as such
-  renames = true
-  # When using --word-diff, assume --word-diff-regex=.
-  wordRegex = .
-  # Display submodule-related information (commit listings)
-  submodule = log
-  # Use VSCode as default diff tool when running `git diff-tool`
-  tool = delta
-[difftool "vscode"]
-  cmd = code --wait --diff $LOCAL $REMOTE
+	algorithm = histogram
+	colorMoved = plain
+	colorMovedWS = allow-indentation-change
+	mnemonicPrefix = true
+	renames = true
+
 [fetch]
-  # Auto-fetch submodule changes (sadly, won't auto-update)
-  recurseSubmodules = on-demand
-[grep]
-  break = true
-  heading = true
-  lineNumber = true
-  # Consider most regexes to be ERE
-  extendedRegexp = true
-[log]
-  # Use abbrev SHAs whenever possible/relevant instead of full 40 chars
-  abbrevCommit = true
-  # Automatically --follow when given a single path
-  follow = true
-  # Disable decorate for reflog
-  # (because there is no dedicated `reflog` section available)
-  decorate = false
-[merge]
-  # Display common-ancestor blocks in conflict hunks
-  # conflictStyle = diff3
-  # Disable fast-forward merges as default merge strategy.
-  # Force explicit call of `git merge --ff …`.
-  ff = false
-  # Custom/dedicated merge drive for npm lock files (`package-lock.json`).
-  # Also works with Yarn.
-  # Use Git attributes to set targeted files (located at `~/.config/git/attributes``
-  # when installed with npm).
-  # See https://www.npmjs.com/package/npm-merge-driver
-  # [merge "npm-merge-driver"]
-  # name = automatically merge npm lockfiles
-  # driver = npx npm-merge-driver merge %A %O %B %P
-[mergetool]
-  # Clean up backup files created by merge tools on tool exit
-  keepBackup = false
-  # Clean up temp files created by merge tools on tool exit
-  keepTemporaries = false
-  # Put the temp files in a dedicated dir anyway
-  writeToTemp = true
-  # Auto-accept file prompts when launching merge tools
-  prompt = false
-# [page]
-  # Use custom pager to get an better log on terminal.
-  # As this is an external tool it has to be installed.
-  # See https://github.com/so-fancy/diff-so-fancy
-  # show = diff-so-fancy | less --tabs=4 -RFX
-[pull]
-  # This is GREAT… when you know what you're doing and are careful
-  # not to pull --no-rebase over a local line containing a true merge.
-  # rebase = true
-  # This option, which does away with the one gotcha of
-  # auto-rebasing on pulls, is only available from 1.8.5 onwards.
-  # rebase = preserve
-  # WARNING! This option, which is the latest variation, is only
-  # available from 2.18 onwards.
-  rebase = merges
-[push]
-  # Default push should only push the current branch to its push target, regardless of its remote name
-	default = current
-  # When pushing, also push tags whose commit-ishs are now reachable upstream
-  followTags = true
-# [rebase]
-  # Rebase advanced usage.
-  # Automagically reorder and prefix your commands while doing an interactive
-  # rebase. This has to be used with `--fixup` and/or `--squash` options for
-  # `git commit`.
-  # autoSquash = true
-  # Automatically stash current WD and stage when running rebase
-  # then you won't have to manually `git stash push` and `git stash pop`
-  # after and before your rebase.
-  # autoStash = true
-# [rerere]
-  # If, like me, you like rerere, uncomment these
-  # autoupdate = true
-  # enabled = true
-[status]
-  # Display submodule rev change summaries in status
-  submoduleSummary = true
-  # Recursively traverse untracked directories to display all contents
-  showUntrackedFiles = all
-[color "branch"]
-  # Blue on black is hard to read in git branch -vv: use cyan instead
-  upstream = cyan
-[tag]
-  # Sort tags as version numbers whenever applicable, so 1.10.2 is AFTER 1.2.0.
-  sort = version:refname
-[versionsort]
-  prereleaseSuffix = -pre
-  prereleaseSuffix = .pre
-  prereleaseSuffix = -beta
-  prereleaseSuffix = .beta
-  prereleaseSuffix = -rc
-  prereleaseSuffix = .rc
+	all = true
+	prune = true
+	pruneTags = true
+	writeCommitGraph = true
+
+[help]
+	autocorrect = prompt
+
 [init]
 	defaultBranch = main
+
+[interactive]
+	diffFilter = delta --color-only
+
+[merge]
+	conflictStyle = zdiff3
+	ff = false
+
+[pull]
+	rebase = merges
+
+[push]
+	default = current
+	autoSetupRemote = true
+
+[rebase]
+	autoSquash = true
+	autoStash = true
+	updateRefs = true
+
+[rerere]
+	enabled = true
+	autoupdate = true
+
 [safe]
 	directory = *
-[delta]
-	side-by-side = true
+
+[tag]
+	sort = version:refname
+	gpgSign = true
+
+[transfer]
+	fsckObjects = true
+
+[url "git@github.com:"]
+	insteadOf = gh:
+
+[url "git@gitlab.com:"]
+	insteadOf = gl:
+
+[versionsort]
+	prereleaseSuffix = -pre
+	prereleaseSuffix = .pre
+	prereleaseSuffix = -beta
+	prereleaseSuffix = .beta
+	prereleaseSuffix = -rc
+	prereleaseSuffix = .rc
+
 [filter "remove_gitconfig_user"]
-	clean = "awk '/^\\[user\\]/{skip=1} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
+	clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # <email>, <name>, <signingkey> — see README for setup\"; next} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
 	smudge = cat
+
+[filter "remove_allowed_signers"]
+	clean = "echo '# <email> <key-type> <base64-key> — see README for setup'"
+	smudge = cat
+
+[user]
+    # <email>, <name>, <signingkey> — see README for setup
+[gpg]
+	format = ssh
+
+[gpg "ssh"]
+	program = op-ssh-sign
+	allowedSignersFile = ~/.config/git/allowed_signers
