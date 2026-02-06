@@ -32,8 +32,10 @@ mkdir -p "$XDG_DATA_HOME/zsh" "$XDG_CACHE_HOME/repos"
 
 # binaries
 export PATH=$HOME/.local/bin:$PATH
+export PATH=$HOME/.cargo/bin:$PATH
 export PATH=$XDG_DATA_HOME/go/bin:$PATH
 export PATH=$XDG_DATA_HOME/nvim/mason/bin:$PATH
+export PATH=$XDG_CACHE_HOME/.bun/bin:$PATH
 
 # Set zsh config directory
 export ZDOTDIR=$XDG_CONFIG_HOME/zsh
