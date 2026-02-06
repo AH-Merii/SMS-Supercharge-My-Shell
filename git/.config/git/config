@@ -1,143 +1,143 @@
 [alias]
-	aliases = "!git config --get-regexp alias | sed -E 's/alias\\.([^ ]*) (.*)$/\\1 = \\2/g'"
-	ci = commit
-	co = checkout
-	sw = switch
-	st = status
-	lg = log --graph --date=relative --pretty=tformat:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%an %ad)%Creset'
-	dog = log --all --decorate --oneline --graph
-	last = log -1 HEAD
-	oops = commit --amend --no-edit
-	reword = commit --amend
-	fixup = commit --fixup
-	wip = "!f() { git commit -am \"WIP: ${1:-work in progress}\"; }; f"
-	ws = "!f() { count=$(git log --oneline --format='%s' | awk '/^WIP:/{c++} !/^WIP:/{exit} END{print c+0}'); if [ \"$count\" -eq 0 ]; then echo 'No WIP commits found'; return 1; fi; if [ \"$1\" = '-m' ] && [ -n \"$2\" ]; then git reset --soft HEAD~$count && git commit -m \"$2\"; else git rebase -i HEAD~$((count + 1)); fi; }; f"
-	uncommit = reset --soft HEAD~1
-	undo = reset HEAD~1 --mixed
-	untrack = rm --cache --
-	rs = restore
-	rss = restore --staged
-	sync-main = "!git checkout main && git pull && git checkout - && git rebase main"
-	p = push
-	fp = push --force-with-lease
-	re = rebase
-	stash-all = stash push -u
-	who = shortlog -sne
-	changes = log -p --follow
-	filelog = log --oneline --follow
+  aliases = "!git config --get-regexp alias | sed -E 's/alias\\.([^ ]*) (.*)$/\\1 = \\2/g'"
+  ci = commit
+  co = checkout
+  sw = switch
+  st = status
+  lg = log --graph --date=relative --pretty=tformat:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%an %ad)%Creset'
+  dog = log --all --decorate --oneline --graph
+  last = log -1 HEAD
+  oops = commit --amend --no-edit
+  reword = commit --amend
+  fixup = commit --fixup
+  wip = "!f() { git commit -am \"WIP: ${1:-work in progress}\"; }; f"
+  ws = "!f() { count=$(git log --oneline --format='%s' | awk '/^WIP:/{c++} !/^WIP:/{exit} END{print c+0}'); if [ \"$count\" -eq 0 ]; then echo 'No WIP commits found'; return 1; fi; if [ \"$1\" = '-m' ] && [ -n \"$2\" ]; then git reset --soft HEAD~$count && git commit -m \"$2\"; else git rebase -i HEAD~$((count + 1)); fi; }; f"
+  uncommit = reset --soft HEAD~1
+  undo = reset HEAD~1 --mixed
+  untrack = rm --cache --
+  rs = restore
+  rss = restore --staged
+  sync-main = "!git checkout main && git pull && git checkout - && git rebase main"
+  p = push
+  fp = push --force-with-lease
+  re = rebase
+  stash-all = stash push -u
+  who = shortlog -sne
+  changes = log -p --follow
+  filelog = log --oneline --follow
 
 [blame]
-	coloring = highlightRecent
-	date = relative
+  coloring = highlightRecent
+  date = relative
 
 [branch]
-	sort = -committerdate
+  sort = -committerdate
 
 [column]
-	ui = auto
+  ui = auto
 
 [commit]
-	gpgSign = true
-	verbose = true
+  gpgSign = true
+  verbose = true
 
 [core]
-	editor = nvim
-	pager = sh -c 'test $(tput cols) -ge 160 && exec delta --features side-by-side || exec delta'
-	fsmonitor = true
-	untrackedCache = true
+  editor = nvim
+  pager = sh -c 'test $(tput cols) -ge 160 && exec delta --features side-by-side || exec delta'
+  fsmonitor = true
+  untrackedCache = true
 
 [delta]
-	navigate = true
-	line-numbers = true
-	hyperlinks = true
-	syntax-theme = OneHalfDark
-	tabs = 4
-	true-color = always
-	file-modified-label = modified:
-	wrap-max-lines = unlimited
+  navigate = true
+  line-numbers = true
+  hyperlinks = true
+  syntax-theme = OneHalfDark
+  tabs = 4
+  true-color = always
+  file-modified-label = modified:
+  wrap-max-lines = unlimited
 
 [delta "side-by-side"]
-	side-by-side = true
+  side-by-side = true
 
 [diff]
-	algorithm = histogram
-	colorMoved = plain
-	colorMovedWS = allow-indentation-change
-	mnemonicPrefix = true
-	renames = true
+  algorithm = histogram
+  colorMoved = plain
+  colorMovedWS = allow-indentation-change
+  mnemonicPrefix = true
+  renames = true
 
 [fetch]
-	all = true
-	prune = true
-	pruneTags = true
-	writeCommitGraph = true
+  all = true
+  prune = true
+  pruneTags = true
+  writeCommitGraph = true
 
 [help]
-	autocorrect = prompt
+  autocorrect = prompt
 
 [init]
-	defaultBranch = main
+  defaultBranch = main
 
 [interactive]
-	diffFilter = delta --color-only
+  diffFilter = delta --color-only
 
 [merge]
-	conflictStyle = zdiff3
-	ff = false
+  conflictStyle = zdiff3
+  ff = false
 
 [pull]
-	rebase = merges
+  rebase = merges
 
 [push]
-	default = current
-	autoSetupRemote = true
+  default = current
+  autoSetupRemote = true
 
 [rebase]
-	autoSquash = true
-	autoStash = true
-	updateRefs = true
+  autoSquash = true
+  autoStash = true
+  updateRefs = true
 
 [rerere]
-	enabled = true
-	autoupdate = true
+  enabled = true
+  autoupdate = true
 
 [safe]
-	directory = *
+  directory = *
 
 [tag]
-	sort = version:refname
-	gpgSign = true
+  sort = version:refname
+  gpgSign = true
 
 [transfer]
-	fsckObjects = true
+  fsckObjects = true
 
 [url "git@github.com:"]
-	insteadOf = gh:
+  insteadOf = gh:
 
 [url "git@gitlab.com:"]
-	insteadOf = gl:
+  insteadOf = gl:
 
 [versionsort]
-	prereleaseSuffix = -pre
-	prereleaseSuffix = .pre
-	prereleaseSuffix = -beta
-	prereleaseSuffix = .beta
-	prereleaseSuffix = -rc
-	prereleaseSuffix = .rc
+  prereleaseSuffix = -pre
+  prereleaseSuffix = .pre
+  prereleaseSuffix = -beta
+  prereleaseSuffix = .beta
+  prereleaseSuffix = -rc
+  prereleaseSuffix = .rc
 
 [filter "remove_gitconfig_user"]
-	clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # <email>, <name>, <signingkey> — see README for setup\"; next} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
-	smudge = cat
+  clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # <email>, <name>, <signingkey> — see README for setup\"; next} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
+  smudge = cat
 
 [filter "remove_allowed_signers"]
-	clean = "echo '# <email> <key-type> <base64-key> — see README for setup'"
-	smudge = cat
+  clean = "echo '# <email> <key-type> <base64-key> — see README for setup'"
+  smudge = cat
 
 [user]
     # <email>, <name>, <signingkey> — see README for setup
 [gpg]
-	format = ssh
+  format = ssh
 
 [gpg "ssh"]
-	program = op-ssh-sign
-	allowedSignersFile = ~/.config/git/allowed_signers
+  program = op-ssh-sign
+  allowedSignersFile = ~/.config/git/allowed_signers
