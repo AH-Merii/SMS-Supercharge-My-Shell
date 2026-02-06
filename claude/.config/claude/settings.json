@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "attribution": {
     "commit": "",
     "pr": ""
@@ -8,6 +9,8 @@
       "Read(**)",
       "Grep(**)",
       "Glob(**)",
+      "Edit(~/SMS-Supercharge-My-Shell/**)",
+      "Write(~/SMS-Supercharge-My-Shell/**)",
       "Bash(rm -rf /tmp/*)",
       "Bash(git status)",
       "Bash(git diff *)",
@@ -42,6 +45,7 @@
       "Bash(wc *)",
       "Bash(tmux *)",
       "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
       "Bash(gh pr view *)",
       "Bash(gh pr list *)",
       "Bash(gh pr status *)",
@@ -104,7 +108,9 @@
       "Bash(op account *)",
       "Bash(op connect *)",
       "Bash(op plugin *)",
-      "Bash(op service-account *)"
+      "Bash(op service-account *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)"
     ],
     "ask": [
       "Bash(rm -rf ./*)",
@@ -150,7 +156,8 @@
       "Bash(gh release delete *)",
       "Bash(gh release edit *)",
       "Bash(gh run rerun *)",
-      "Bash(gh run cancel *)"
+      "Bash(gh run cancel *)",
+      "Bash(stow --adopt *)"
     ],
     "defaultMode": "acceptEdits"
   },
@@ -173,7 +180,19 @@
     "autoAllowBashIfSandboxed": true,
     "allowUnsandboxedCommands": false,
     "network": {
-      "allowUnixSockets": [],
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "uploads.github.com",
+        "objects.githubusercontent.com",
+        "raw.githubusercontent.com",
+        "registry.npmjs.org",
+        "pypi.org",
+        "files.pythonhosted.org"
+      ],
+      "allowUnixSockets": [
+        "/Users/ah_merii/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+      ],
       "allowLocalBinding": true
     }
   },
@@ -193,6 +212,10 @@
           {
             "type": "command",
             "command": "~/.config/claude/hooks/enforce-fd.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/enforce-stow.sh"
           }
         ]
       }
@@ -220,6 +243,11 @@
             "type": "command",
             "command": "~/.config/claude/hooks/notify-stop.sh",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/sync-webfetch-rules.sh",
+            "async": true
           }
         ]
       }
@@ -243,6 +271,10 @@
           {
             "type": "command",
             "command": "~/.config/claude/hooks/validate-env.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/sync-agent-skills.sh"
           }
         ]
       }

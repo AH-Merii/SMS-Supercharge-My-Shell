@@ -33,7 +33,6 @@ Use conventional commits: `type(scope): description`
 - All commits and tags are auto-signed via 1Password SSH keys (Touch ID prompt)
 - Signing uses `op-ssh-sign` (symlinked at `~/.local/bin`), not GPG
 - Never use `--no-gpg-sign` -- if signing fails, check that 1Password is running
-- **The sandbox blocks access to the 1Password agent socket** -- always use `dangerouslyDisableSandbox: true` on git commit/push commands
 - Verify signatures: `git log --show-signature` or `git verify-commit HEAD`
 
 ## Review Checklist (before committing)

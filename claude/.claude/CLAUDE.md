@@ -17,5 +17,20 @@
 # Dotfiles (GNU Stow)
 
 - Source: ~/SMS-Supercharge-My-Shell/claude/
-- Edit source files in SMS repo, then: stow -vt ~ claude
+- Edit source files in SMS repo, then: `cd ~/SMS-Supercharge-My-Shell && stow claude`
 - Fallback: ~/.config/claude/ -> ~/.claude/
+
+# Mistake Log
+
+When an agent makes a mistake, document it here so future sessions avoid repeating it.
+This follows Hashimoto's "harness engineering" pattern: fix the system, not just the symptom.
+
+- Sandbox blocks 1Password agent socket -- use allowUnixSockets, not dangerouslyDisableSandbox
+- `WebFetch(domain:X)` rules do NOT propagate to Bash commands -- also add to sandbox.network.allowedDomains
+- When user says "swarm", they mean 10+ agents minimum, not 3
+
+# Context Management
+
+- Use `/clear` between unrelated task phases to prevent context degradation
+- For long tasks, summarize progress before clearing so the next context window has orientation
+- Prefer project-level CLAUDE.md for architecture notes; keep global CLAUDE.md for universal rules

@@ -39,6 +39,21 @@ case "$PROMPT_LOWER" in
     suggestions+=("debugging") ;;
 esac
 
+case "$PROMPT_LOWER" in
+  *sandbox*|*"allowed domain"*|*"alloweddomain"*|*permission*|*"settings.json"*|*"claude config"*|*"claude code config"*|*"claude code setup"*|*"claude code setting"*|*hook*)
+    suggestions+=("claude-config-research") ;;
+esac
+
+case "$PROMPT_LOWER" in
+  *"find skill"*|*"find a skill"*|*"is there a skill"*|*"search skill"*|*"install skill"*|*"skill for"*|*"extend capabilit"*|*"bunx skills"*)
+    suggestions+=("find-skills") ;;
+esac
+
+case "$PROMPT_LOWER" in
+  *btca*|*"better context"*|*"source-first"*|*"ask resource"*|*"btca ask"*)
+    suggestions+=("btca-cli") ;;
+esac
+
 if [ ${#suggestions[@]} -gt 0 ]; then
   skills_list=$(printf ', %s' "${suggestions[@]}")
   skills_list="${skills_list:2}"  # Remove leading ", "

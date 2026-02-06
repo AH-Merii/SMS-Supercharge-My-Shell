@@ -71,20 +71,21 @@ This setup also includes all the shortcuts for selecting text that you would use
 - [NerdFonts](https://www.nerdfonts.com/font-downloads) compatible font
 
 ### Setup Script
+
 To install the dotfiles you can run the following command in your terminal:
+
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/refs/heads/main/install/install.sh)
 ```
 
 ### Dotfiles
-Run `stow` to symlink everything or just select what you want
+
+Run `stow` from the repo root to symlink packages:
 
 ```bash
-stow */ -t ~ # creates a symlink for all config files
-```
-
-```bash
-stow zsh # creates symlink for only zsh configs
+stow */                  # symlink all config packages
+stow zsh                 # symlink only zsh configs
+stow --no-folding fish   # use when target dir has non-stow files (caches, history, plugin state)
 ```
 
 ### Systemd Services
