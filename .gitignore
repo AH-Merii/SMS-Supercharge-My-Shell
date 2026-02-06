@@ -1,5 +1,6 @@
 helix/.config/helix/runtime
 .claude/
+!claude/.claude/
 zsh/.config/zsh/.zcompdump
 zsh/.config/zsh/.zsh_history
 zsh/.config/zsh/.zshrc.old
