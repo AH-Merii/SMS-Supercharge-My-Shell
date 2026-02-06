@@ -5,7 +5,7 @@
 missing=()
 
 # Check required tools
-for tool in bun uv fish git gh stow fd rg jq btca; do
+for tool in bun uv fish git gh stow fd rg jq btca op; do
   if ! command -v "$tool" &>/dev/null; then
     missing+=("$tool")
   fi

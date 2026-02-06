@@ -93,7 +93,18 @@
       "Bash(eval *)",
       "Bash(chmod 777 *)",
       "Bash(scp *)",
-      "Bash(rsync *)"
+      "Bash(rsync *)",
+      "Bash(git commit --no-gpg-sign *)",
+      "Bash(op read *)",
+      "Bash(op item *)",
+      "Bash(op vault *)",
+      "Bash(op document *)",
+      "Bash(op inject *)",
+      "Bash(op run *)",
+      "Bash(op account *)",
+      "Bash(op connect *)",
+      "Bash(op plugin *)",
+      "Bash(op service-account *)"
     ],
     "ask": [
       "Bash(rm -rf ./*)",
