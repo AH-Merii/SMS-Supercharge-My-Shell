@@ -34,7 +34,7 @@ function gh-setup-1p-ssh --description "Set up a GitHub org with 1Password SSH k
         set_color --dim
         echo "  # Custom vault and host alias"
         set_color normal
-        echo '  gh-setup-1p-ssh --org AECOM-AI-Engineering --vault Work --host github-aecom \'
+        echo '  gh-setup-1p-ssh --org AECOM-AI-Engineering --vault Work --host github-aecom \\'
         echo '      --name "John Doe" --email "john@aecom.com"'
         echo
         set_color --dim
