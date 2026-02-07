@@ -163,7 +163,7 @@ deleted = "[ ${count}](dimmed red) "
 
 [git_metrics]
 disabled = false
-format = "({[+$added]($added_style) )([-$deleted]($deleted_style)} )"
+format = "({([+$added]($added_style))( [-$deleted]($deleted_style))} )"
 added_style = "green"
 deleted_style = "red"
 
@@ -245,12 +245,16 @@ detect_extensions = []
 detect_files = ["build.zig", "build.zig.zon"]
 
 [c]
-detect_extensions = []
-detect_files = ["Makefile", "CMakeLists.txt", "compile_commands.json"]
+symbol = "\ue61e "
+style = "bold white"
+detect_extensions = ["c"]
+detect_files = []
 
 [cpp]
-detect_extensions = []
-detect_files = ["Makefile", "CMakeLists.txt", "compile_commands.json"]
+symbol = "\ue61d "
+style = "bold #659AD2"
+detect_extensions = ["cpp", "cc", "cxx", "hpp", "hh", "hxx"]
+detect_files = []
 
 # ----------------------------
 # Cloud
@@ -263,9 +267,12 @@ force_display = false
 
 [azure]
 symbol = " "
-style = "dimmed blue"
-format = "[$symbol$subscription]($style) "
+style = "#0078D4"
+format = "[$symbol($subscription)]($style) "
 disabled = false
+
+[azure.subscription_aliases]
+"N/A(tenant level account)" = ""
 
 # ----------------------------
 # Ops / env tooling
@@ -276,11 +283,11 @@ style = "blue"
 format = "[$symbol$context]($style) "
 
 [custom.podman_connection]
-command = 'podman machine list --format "{{if eq .Running true}}{{.Name}}{{end}}" | tr -d "\n*"'
+command = 'name=$(podman machine list --format "{{if eq .Running true}}{{.Name}}{{end}}" | tr -d "\n*" | sed "s/podman-machine-//"); [ "$name" != "default" ] && echo "$name"'
 when = 'podman machine list --format "{{.Running}}" 2>/dev/null | grep -q true'
 symbol = " "
-style = "purple"
-format = "[$symbol$output]($style) "
+style = "#AF5FC1"
+format = "[$symbol]($style)[podman( $output)]($style) "
 
 [kubernetes]
 symbol = "⎈ "
