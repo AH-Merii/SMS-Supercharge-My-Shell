@@ -15,22 +15,22 @@ suggestions=()
 
 # Check each skill's activation keywords
 case "$PROMPT_LOWER" in
-  *stow*|*dotfile*|*"shell config"*|*symlink*)
+  *stow*|*dotfile*|*"shell config"*|*"stow package"*|*"stow source"*|*restow*)
     suggestions+=("stow-config") ;;
 esac
 
 case "$PROMPT_LOWER" in
-  *"github action"*|*ci*|*workflow*|*release*|*"ci/cd"*)
+  *"github action"*|*"gh action"*|*"gh actions"*|*"ci/cd"*|*"ci pipeline"*|*"ci workflow"*|*"github workflow"*|*".github/workflows"*|*"release automation"*)
     suggestions+=("ci-workflow") ;;
 esac
 
 case "$PROMPT_LOWER" in
-  *fish*|*"fish shell"*|*"fish function"*|*conf.d*)
+  *"fish shell"*|*"fish function"*|*"fish config"*|*"fish plugin"*|*"fish script"*|*".fish"*|*fishfile*)
     suggestions+=("fish-shell") ;;
 esac
 
 case "$PROMPT_LOWER" in
-  *commit*|*"pull request"*|*pr*|*"git workflow"*|*"conventional commit"*)
+  *commit*|*"pull request"*|*"git workflow"*|*"conventional commit"*|*"open pr"*|*"create pr"*|*"review pr"*|*"pr review"*)
     suggestions+=("git-workflow") ;;
 esac
 
@@ -40,7 +40,7 @@ case "$PROMPT_LOWER" in
 esac
 
 case "$PROMPT_LOWER" in
-  *sandbox*|*"allowed domain"*|*"alloweddomain"*|*permission*|*"settings.json"*|*"claude config"*|*"claude code config"*|*"claude code setup"*|*"claude code setting"*|*hook*)
+  *sandbox*|*"allowed domain"*|*permission*|*"settings.json"*|*"claude config"*|*"claude code config"*|*"claude code setup"*|*"claude code setting"*|*hook*|*agent*|*"best practice"*|*"research claude"*|*"claude doc"*|*"claude.md"*|*mcp*)
     suggestions+=("claude-config-research") ;;
 esac
 
