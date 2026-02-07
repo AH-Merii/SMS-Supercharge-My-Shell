@@ -15,6 +15,8 @@ Settings in `config` grouped by impact.
 
 | Setting                | Value     | Description                                 |
 | ---------------------- | --------- | ------------------------------------------- |
+| `init.defaultBranch`   | `main`    | Default branch for new repos                |
+| `pull.rebase`          | `merges`  | Rebase on pull, preserving merge commits    |
 | `push.autoSetupRemote` | `true`    | Auto-create upstream tracking on first push |
 | `push.default`         | `current` | Push current branch to same-named remote    |
 | `rebase.autoSquash`    | `true`    | Auto-reorder fixup! commits during rebase   |
@@ -28,15 +30,18 @@ Settings in `config` grouped by impact.
 
 ## Diff & Display
 
-| Setting             | Value                      | Description                           |
-| ------------------- | -------------------------- | ------------------------------------- |
-| `diff.algorithm`    | `histogram`                | Cleaner, more readable diffs          |
-| `diff.colorMoved`   | `plain`                    | Highlight moved code blocks           |
-| `diff.colorMovedWS` | `allow-indentation-change` | Detect moved+reindented code as moves |
-| `column.ui`         | `auto`                     | Column output for branches/tags       |
-| `branch.sort`       | `-committerdate`           | Recent branches first                 |
-| `blame.coloring`    | `highlightRecent`          | Highlight recent changes in blame     |
-| `blame.date`        | `relative`                 | Show relative dates in blame          |
+| Setting               | Value                      | Description                           |
+| --------------------- | -------------------------- | ------------------------------------- |
+| `diff.algorithm`      | `histogram`                | Cleaner, more readable diffs          |
+| `diff.colorMoved`     | `plain`                    | Highlight moved code blocks           |
+| `diff.colorMovedWS`   | `allow-indentation-change` | Detect moved+reindented code as moves |
+| `diff.mnemonicPrefix` | `true`                     | Use i/ w/ instead of a/ b/ in diffs   |
+| `diff.renames`        | `true`                     | Detect renamed files in diffs         |
+| `tag.sort`            | `version:refname`          | Sort tags by semantic version         |
+| `column.ui`           | `auto`                     | Column output for branches/tags       |
+| `branch.sort`         | `-committerdate`           | Recent branches first                 |
+| `blame.coloring`      | `highlightRecent`          | Highlight recent changes in blame     |
+| `blame.date`          | `relative`                 | Show relative dates in blame          |
 
 ## Fetch & Cleanup
 
@@ -101,11 +106,20 @@ git clone gh:AH-Merii/dotfiles
 | ------------------ | -------- | ----------------------------------- |
 | `help.autocorrect` | `prompt` | Prompt before auto-correcting typos |
 
+## Misc
+
+| Setting                        | Value                                          | Description              |
+| ------------------------------ | ---------------------------------------------- | ------------------------ |
+| `core.editor`                  | `nvim`                                         | Default editor           |
+| `safe.directory`               | `*`                                            | Trust all directories    |
+| `versionsort.prereleaseSuffix` | `-pre`, `.pre`, `-beta`, `.beta`, `-rc`, `.rc` | Pre-release tag ordering |
+
 ## Commit Signing (SSH via 1Password)
 
 | Setting                      | Value                           | Description                                          |
 | ---------------------------- | ------------------------------- | ---------------------------------------------------- |
 | `gpg.format`                 | `ssh`                           | Use SSH keys instead of GPG                          |
+| `gpg.ssh.defaultKeyCommand`  | `ssh-add -L`                    | Auto-detect signing key from SSH agent               |
 | `gpg.ssh.program`            | `op-ssh-sign`                   | Cross-platform 1Password wrapper (in `~/.local/bin`) |
 | `gpg.ssh.allowedSignersFile` | `~/.config/git/allowed_signers` | For signature verification                           |
 
@@ -113,10 +127,10 @@ The `op-ssh-sign` wrapper detects the platform and dispatches to the correct 1Pa
 
 ### Clean Filters
 
-| Filter                   | File              | Effect                                            |
-| ------------------------ | ----------------- | ------------------------------------------------- |
-| `remove_gitconfig_user`  | `config`          | Strips `[user]` section (email, name, signingkey) |
-| `remove_allowed_signers` | `allowed_signers` | Replaces contents with placeholder comment        |
+| Filter                   | File              | Effect                                     |
+| ------------------------ | ----------------- | ------------------------------------------ |
+| `remove_gitconfig_user`  | `config`          | Strips `[user]` section (email, name)      |
+| `remove_allowed_signers` | `allowed_signers` | Replaces contents with placeholder comment |
 
 Both files must be populated locally after cloning — see [README.md](README.md#post-clone-setup).
 
@@ -124,3 +138,4 @@ Both files must be populated locally after cloning — see [README.md](README.md
 
 - [delta](https://github.com/dandavison/delta) - Diff viewer with syntax highlighting
 - [1Password](https://1password.com/) desktop app with SSH agent enabled (for commit signing)
+- `git-whichside` - Conflict helper showing ours vs theirs (included in `~/.local/bin`)

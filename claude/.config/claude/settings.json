@@ -1,68 +1,75 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "attribution": {
     "commit": "",
     "pr": ""
   },
   "permissions": {
     "allow": [
-      "Read(**)",
-      "Grep(**)",
-      "Glob(**)",
-      "Edit(~/SMS-Supercharge-My-Shell/**)",
-      "Write(~/SMS-Supercharge-My-Shell/**)",
-      "Bash(rm -rf /tmp/*)",
-      "Bash(git status)",
+      "Bash(bun --version)",
+      "Bash(bun pm ls *)",
+      "Bash(gh api *)",
+      "Bash(gh auth status *)",
+      "Bash(gh issue list *)",
+      "Bash(gh issue status *)",
+      "Bash(gh issue view *)",
+      "Bash(gh pr checks *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr status *)",
+      "Bash(gh pr view *)",
+      "Bash(gh release list *)",
+      "Bash(gh release view *)",
+      "Bash(gh repo list *)",
+      "Bash(gh repo view *)",
+      "Bash(gh run list *)",
+      "Bash(gh run view *)",
+      "Bash(gh search *)",
+      "Bash(git branch)",
       "Bash(git diff *)",
       "Bash(git log *)",
-      "Bash(git branch)",
+      "Bash(git status)",
       "Bash(node --version)",
       "Bash(npm --version)",
+      "Bash(npm ls *)",
       "Bash(pnpm --version)",
-      "Bash(yarn --version)",
-      "Bash(bun --version)",
+      "Bash(pnpm list *)",
+      "Bash(rm -rf /tmp/*)",
+      "Bash(tmux *)",
+      "Bash(tree *)",
       "Bash(uv --version)",
       "Bash(uv pip list)",
       "Bash(uv tree *)",
-      "Bash(npm ls *)",
-      "Bash(pnpm list *)",
-      "Bash(bun pm ls *)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:npmjs.com)",
-      "WebFetch(domain:pypi.org)",
-      "WebFetch(domain:crates.io)",
-      "WebFetch(domain:nodejs.org)",
-      "WebFetch(domain:bun.sh)",
-      "WebFetch(domain:bun.pm)",
-      "WebFetch(domain:pnpm.io)",
-      "WebFetch(domain:astral.sh)",
-      "WebSearch",
-      "WebFetch(domain:antidote.sh)",
-      "WebFetch(domain:manpages.debian.org)",
-      "WebFetch(domain:fishshell.com)",
-      "WebFetch(domain:samedwardes.com)",
-      "Bash(tree *)",
       "Bash(wc *)",
-      "Bash(tmux *)",
-      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(yarn --version)",
+      "Edit(~/SMS-Supercharge-My-Shell/**)",
+      "Glob(**)",
+      "Grep(**)",
+      "Read(**)",
+      "WebFetch(domain:antidote.sh)",
       "WebFetch(domain:api.github.com)",
-      "Bash(gh pr view *)",
-      "Bash(gh pr list *)",
-      "Bash(gh pr status *)",
-      "Bash(gh pr diff *)",
-      "Bash(gh pr checks *)",
-      "Bash(gh issue view *)",
-      "Bash(gh issue list *)",
-      "Bash(gh issue status *)",
-      "Bash(gh repo view *)",
-      "Bash(gh repo list *)",
-      "Bash(gh run view *)",
-      "Bash(gh run list *)",
-      "Bash(gh release view *)",
-      "Bash(gh release list *)",
-      "Bash(gh api *)",
-      "Bash(gh search *)",
-      "Bash(gh auth status *)"
+      "WebFetch(domain:astral.sh)",
+      "WebFetch(domain:bun.pm)",
+      "WebFetch(domain:bun.sh)",
+      "WebFetch(domain:crates.io)",
+      "WebFetch(domain:eu-central-1-1.aws.cloud2.influxdata.com)",
+      "WebFetch(domain:fishshell.com)",
+      "WebFetch(domain:formulae.brew.sh)",
+      "WebFetch(domain:ghostty.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:man.archlinux.org)",
+      "WebFetch(domain:manpages.debian.org)",
+      "WebFetch(domain:nodejs.org)",
+      "WebFetch(domain:npmjs.com)",
+      "WebFetch(domain:pnpm.io)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:samedwardes.com)",
+      "WebSearch",
+      "Write(~/SMS-Supercharge-My-Shell/**)"
     ],
     "deny": [
       "Read(./.env)",
@@ -161,41 +168,6 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "bunx -y ccstatusline@latest",
-    "padding": 0
-  },
-  "enabledPlugins": {
-    "clangd-lsp@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "lua-lsp@claude-plugins-official": true,
-    "terminal-icons@local-plugins": true
-  },
-  "sandbox": {
-    "enabled": true,
-    "autoAllowBashIfSandboxed": true,
-    "allowUnsandboxedCommands": false,
-    "network": {
-      "allowedDomains": [
-        "github.com",
-        "api.github.com",
-        "uploads.github.com",
-        "objects.githubusercontent.com",
-        "raw.githubusercontent.com",
-        "registry.npmjs.org",
-        "pypi.org",
-        "files.pythonhosted.org"
-      ],
-      "allowUnixSockets": [
-        "/Users/ah_merii/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-      ],
-      "allowLocalBinding": true
-    }
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -231,6 +203,10 @@
           {
             "type": "command",
             "command": "~/.config/claude/hooks/check-actions-versions.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/track-git-edits.sh"
           }
         ]
       }
@@ -248,6 +224,10 @@
             "type": "command",
             "command": "~/.config/claude/hooks/sync-webfetch-rules.sh",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/remind-git-docs.sh"
           }
         ]
       }
@@ -292,7 +272,38 @@
       }
     ]
   },
-  "pluginMarketplaces": [
-    "~/.config/claude/plugins/marketplace.json"
-  ]
+  "statusLine": {
+    "type": "command",
+    "command": "bunx -y ccstatusline@latest",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true,
+    "terminal-icons@local-plugins": true,
+    "slack@claude-plugins-official": true
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "uploads.github.com",
+        "objects.githubusercontent.com",
+        "raw.githubusercontent.com",
+        "registry.npmjs.org",
+        "pypi.org",
+        "files.pythonhosted.org"
+      ],
+      "allowUnixSockets": [
+        "/Users/ah_merii/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+      ],
+      "allowLocalBinding": true
+    }
+  },
+  "pluginMarketplaces": ["~/.config/claude/plugins/marketplace.json"]
 }

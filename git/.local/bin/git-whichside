@@ -1,0 +1,108 @@
+#!/bin/sh
+# git-whichside — show which side is "ours" vs "theirs" during conflicts
+# Placed on PATH as git-whichside so `git whichside` just works.
+
+set -e
+
+# Colors
+bold='\033[1m'
+red='\033[31m'
+green='\033[32m'
+yellow='\033[33m'
+blue='\033[34m'
+cyan='\033[36m'
+dim='\033[2m'
+reset='\033[0m'
+
+git_dir=$(git rev-parse --git-dir 2>/dev/null) || {
+    echo "${red}error:${reset} not a git repository" >&2
+    exit 1
+}
+
+if [ -d "$git_dir/rebase-merge" ]; then
+    onto_sha=$(cat "$git_dir/rebase-merge/onto")
+    onto_short=$(git rev-parse --short "$onto_sha")
+    onto_ref=$(git name-rev --name-only "$onto_sha" 2>/dev/null || echo "$onto_short")
+    branch=$(sed 's|refs/heads/||' "$git_dir/rebase-merge/head-name")
+
+    echo ""
+    echo "${bold}${yellow}  REBASE${reset} in progress"
+    echo "${dim}  rebasing ${bold}${cyan}$branch${reset} ${dim}onto ${bold}${blue}$onto_ref${reset} ${dim}($onto_short)${reset}"
+    echo ""
+    echo "  ${red}<<<<<<< HEAD ${dim}(top)${reset}"
+    echo "  ${bold}= $onto_ref${reset}  ${dim}— the base you're replaying onto${reset}"
+    echo ""
+    echo "  ${green}======= ${dim}(bottom)${reset}"
+    echo "  ${bold}= YOUR commits from $branch${reset}  ${dim}— being replayed one by one${reset}"
+    echo ""
+
+elif [ -d "$git_dir/rebase-apply" ]; then
+    branch="unknown"
+    if [ -f "$git_dir/rebase-apply/head-name" ]; then
+        branch=$(sed 's|refs/heads/||' "$git_dir/rebase-apply/head-name")
+    fi
+
+    echo ""
+    echo "${bold}${yellow}  REBASE ${dim}(apply mode)${reset} in progress"
+    echo ""
+    echo "  ${red}<<<<<<< HEAD ${dim}(top)${reset}"
+    echo "  ${bold}= the branch you're rebasing ONTO${reset}"
+    echo ""
+    echo "  ${green}======= ${dim}(bottom)${reset}"
+    echo "  ${bold}= YOUR commits from $branch${reset}"
+    echo ""
+
+elif [ -f "$git_dir/MERGE_HEAD" ]; then
+    current=$(git rev-parse --abbrev-ref HEAD)
+    merge_sha=$(cat "$git_dir/MERGE_HEAD")
+    merge_short=$(git rev-parse --short "$merge_sha")
+    merge_ref=$(git name-rev --name-only "$merge_sha" 2>/dev/null || echo "$merge_short")
+
+    echo ""
+    echo "${bold}${blue}  MERGE${reset} in progress"
+    echo "${dim}  merging ${bold}${cyan}$merge_ref${reset} ${dim}($merge_short) into ${bold}${blue}$current${reset}"
+    echo ""
+    echo "  ${red}<<<<<<< HEAD ${dim}(top)${reset}"
+    echo "  ${bold}= $current${reset}  ${dim}— the branch you're ON${reset}"
+    echo ""
+    echo "  ${green}======= ${dim}(bottom)${reset}"
+    echo "  ${bold}= $merge_ref${reset}  ${dim}— the branch being merged IN${reset}"
+    echo ""
+
+elif [ -f "$git_dir/CHERRY_PICK_HEAD" ]; then
+    current=$(git rev-parse --abbrev-ref HEAD)
+    pick_sha=$(cat "$git_dir/CHERRY_PICK_HEAD")
+    pick_short=$(git rev-parse --short "$pick_sha")
+    pick_ref=$(git name-rev --name-only "$pick_sha" 2>/dev/null || echo "$pick_short")
+
+    echo ""
+    echo "${bold}${blue}  CHERRY-PICK${reset} in progress"
+    echo "${dim}  picking ${bold}${cyan}$pick_ref${reset} ${dim}($pick_short) onto ${bold}${blue}$current${reset}"
+    echo ""
+    echo "  ${red}<<<<<<< HEAD ${dim}(top)${reset}"
+    echo "  ${bold}= $current${reset}  ${dim}— the branch you're ON${reset}"
+    echo ""
+    echo "  ${green}======= ${dim}(bottom)${reset}"
+    echo "  ${bold}= $pick_ref${reset}  ${dim}— the commit being cherry-picked${reset}"
+    echo ""
+
+elif git diff --name-only --diff-filter=U --quiet 2>/dev/null; then
+    echo ""
+    echo "  ${dim}No conflict in progress.${reset}"
+    echo "  ${dim}Run this when you hit a conflict!${reset}"
+    echo ""
+
+else
+    current=$(git rev-parse --abbrev-ref HEAD)
+
+    echo ""
+    echo "${bold}${yellow}  STASH POP${reset} ${dim}(or other conflict)${reset}"
+    echo "${dim}  conflicts on ${bold}${blue}$current${reset}"
+    echo ""
+    echo "  ${red}<<<<<<< HEAD ${dim}(top)${reset}"
+    echo "  ${bold}= $current${reset}  ${dim}— your current working tree${reset}"
+    echo ""
+    echo "  ${green}======= ${dim}(bottom)${reset}"
+    echo "  ${bold}= stashed changes${reset}  ${dim}— what you're popping${reset}"
+    echo ""
+fi
