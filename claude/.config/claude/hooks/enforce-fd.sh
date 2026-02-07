@@ -51,19 +51,26 @@ done <<< "$(echo "$COMMAND" | sed 's/&&/\n/g; s/||/\n/g; s/|/\n/g; s/;/\n/g')"
 
 if [ "$deny" = true ]; then
   if command -v fd &>/dev/null; then
-    reason="Use the built-in Glob tool instead of raw 'find'. If you need bash-level file finding, use 'fd'."
-  else
-    reason="Use the built-in Glob tool instead of raw 'find'. For bash-level file finding, install fd: 'brew install fd', then use 'fd'."
-  fi
-  cat <<EOF
+    cat <<'EOF'
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "$reason"
+    "permissionDecisionReason": "Use the built-in Glob tool instead of raw 'find'. If you need bash-level file finding, use 'fd'."
   }
 }
 EOF
+  else
+    cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Use the built-in Glob tool instead of raw 'find'. For bash-level file finding, install fd: 'brew install fd', then use 'fd'."
+  }
+}
+EOF
+  fi
   exit 0
 fi
 

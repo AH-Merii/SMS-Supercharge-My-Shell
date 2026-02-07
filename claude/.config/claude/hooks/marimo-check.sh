@@ -16,6 +16,12 @@ fi
 
 # File path from tool_response is already absolute, no need to modify it
 
+# Only process Python files
+case "$FILE_PATH" in
+  *.py) ;;
+  *) exit 0 ;;
+esac
+
 # Check if file exists and is a Python file
 if [ ! -f "$FILE_PATH" ]; then
   exit 0

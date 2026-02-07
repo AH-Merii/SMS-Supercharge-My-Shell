@@ -1,35 +1,46 @@
 #!/bin/bash
 # Setup hook: validate development environment
-# Runs on: claude --init, claude --init-only, claude --maintenance
 
 missing=()
+optional_missing=()
 
-# Check required tools
-for tool in bun uv fish git gh stow fd rg jq btca op; do
+# Required tools (exit 2 if missing)
+for tool in bun uv git gh stow fd rg jq; do
   if ! command -v "$tool" &>/dev/null; then
     missing+=("$tool")
   fi
 done
 
-# Check stow symlinks are intact
-if [ -L ~/.config/claude/settings.json ]; then
-  target=$(readlink ~/.config/claude/settings.json)
-  if [ ! -f "$target" ]; then
-    echo "WARNING: Broken symlink: ~/.config/claude/settings.json -> $target"
-    echo "Run: cd ~/SMS-Supercharge-My-Shell && stow -vt ~ claude"
+# Optional tools (warning only)
+for tool in fish btca op terminal-notifier; do
+  if ! command -v "$tool" &>/dev/null; then
+    optional_missing+=("$tool")
   fi
+done
+
+# Check stow symlinks are intact
+if [ -L ~/.config/claude/settings.json ] && [ ! -e ~/.config/claude/settings.json ]; then
+  echo "WARNING: Broken symlink: ~/.config/claude/settings.json"
+  echo "Run: cd ~/SMS-Supercharge-My-Shell && stow claude"
 fi
 
-# Check terminal-notifier for notifications
-if ! command -v terminal-notifier &>/dev/null; then
-  echo "OPTIONAL: terminal-notifier not installed. Run: brew install terminal-notifier"
-fi
+# Report optional missing tools
+for tool in "${optional_missing[@]}"; do
+  case "$tool" in
+    btca)
+      echo "OPTIONAL: btca not installed. Run: bun install -g btca" ;;
+    terminal-notifier)
+      echo "OPTIONAL: terminal-notifier not installed. Run: brew install terminal-notifier" ;;
+    *)
+      echo "OPTIONAL: $tool not installed" ;;
+  esac
+done
 
+# Block on required tools
 if [ ${#missing[@]} -gt 0 ]; then
   echo "MISSING TOOLS: ${missing[*]}"
   echo "Install with: brew install ${missing[*]}"
-  exit 2  # Exit code 2 = blocking error
+  exit 2
 fi
 
-echo "Environment OK: all required tools installed"
 exit 0

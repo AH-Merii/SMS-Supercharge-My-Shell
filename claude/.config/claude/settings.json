@@ -207,6 +207,10 @@
           {
             "type": "command",
             "command": "~/.config/claude/hooks/track-git-edits.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/marimo-check.sh"
           }
         ]
       }

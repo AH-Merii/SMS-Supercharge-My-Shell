@@ -6,6 +6,7 @@ CLAUDE_SKILLS="$HOME/.claude/skills"
 SKILL_EVAL="$HOME/.config/claude/hooks/skill-eval.sh"
 
 # A) Sync agent skill symlinks
+mkdir -p "$CLAUDE_SKILLS"
 if [ -d "$AGENTS_SKILLS" ]; then
   for skill_dir in "$AGENTS_SKILLS"/*/; do
     [ -d "$skill_dir" ] || continue
@@ -53,14 +54,7 @@ fi
 
 if [ ${#messages[@]} -gt 0 ]; then
   combined=$(printf '%s ' "${messages[@]}")
-  cat <<EOF
-{
-  "hookSpecificOutput": {
-    "hookEventName": "Setup",
-    "additionalContext": "$combined"
-  }
-}
-EOF
+  jq -n --arg ctx "$combined" '{hookSpecificOutput: {hookEventName: "Setup", additionalContext: $ctx}}'
 fi
 
 exit 0

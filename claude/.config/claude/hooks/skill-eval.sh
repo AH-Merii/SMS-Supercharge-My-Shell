@@ -3,7 +3,7 @@
 # Returns additionalContext suggesting which skills to activate
 
 INPUT=$(cat)
-PROMPT=$(echo "$INPUT" | jq -r '.tool_input.prompt // empty')
+PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
 
 if [ -z "$PROMPT" ]; then
   exit 0
@@ -45,13 +45,8 @@ case "$PROMPT_LOWER" in
 esac
 
 case "$PROMPT_LOWER" in
-  *"find skill"*|*"find a skill"*|*"is there a skill"*|*"search skill"*|*"install skill"*|*"skill for"*|*"extend capabilit"*|*"bunx skills"*)
-    suggestions+=("find-skills") ;;
-esac
-
-case "$PROMPT_LOWER" in
-  *btca*|*"better context"*|*"source-first"*|*"ask resource"*|*"btca ask"*)
-    suggestions+=("btca-cli") ;;
+  *"hook script"*|*"write hook"*|*"create hook"*|*"debug hook"*|*"audit hook"*|*"pretooluse"*|*"posttooluse"*|*"hook development"*|*"optimize hook"*|*"fix hook"*|*"hook fail"*|*"hook template"*|*"new hook"*)
+    suggestions+=("hook-development") ;;
 esac
 
 if [ ${#suggestions[@]} -gt 0 ]; then

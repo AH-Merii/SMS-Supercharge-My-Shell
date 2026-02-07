@@ -15,7 +15,7 @@ if [ -z "$COMMAND" ]; then
 fi
 
 # Only enforce rules when the command is SMS-related
-if ! echo "$COMMAND" | grep -qi 'SMS-Supercharge-My-Shell\|SMS'; then
+if ! echo "$COMMAND" | grep -q 'SMS-Supercharge-My-Shell'; then
   exit 0
 fi
 
@@ -63,12 +63,12 @@ while IFS= read -r subcmd; do
 done <<< "$(echo "$COMMAND" | sed 's/&&/\n/g; s/||/\n/g; s/|/\n/g; s/;/\n/g')"
 
 if [ "$deny" = true ]; then
-  cat <<EOF
+  cat <<'EOF'
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "$deny_reason"
+    "permissionDecisionReason": "Don't use -t/--target or -v/--verbose flags. Run stow from ~/SMS-Supercharge-My-Shell: cd ~/SMS-Supercharge-My-Shell && stow <package>."
   }
 }
 EOF

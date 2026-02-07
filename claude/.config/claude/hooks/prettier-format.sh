@@ -5,6 +5,13 @@
 
 INPUT=$(cat)
 
+# Skip formatting for Edit tool — reformatting would break old_string matching
+# on consecutive edits. Only format after Write.
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')
+if [ "$TOOL_NAME" = "Edit" ]; then
+  exit 0
+fi
+
 # Extract file path from JSON
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_response.filePath // empty')
 
@@ -27,7 +34,7 @@ fi
 # Check if bunx is available
 if ! command -v bunx &>/dev/null; then
   echo "bunx is not installed. Ask the user if they want you to install bun (https://bun.sh) or if they will install it manually." >&2
-  exit 2 # Block and show message to Claude
+  exit 2 # Show error to Claude (cannot block — tool already ran)
 fi
 
 # Format with prettier

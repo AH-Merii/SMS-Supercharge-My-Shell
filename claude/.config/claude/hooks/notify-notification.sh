@@ -3,6 +3,10 @@
 INPUT=$(cat)
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
 
+# Extract notification fields with fallbacks
+TITLE=$(echo "$INPUT" | jq -r '.title // "Claude Code"')
+MESSAGE=$(echo "$INPUT" | jq -r '.message // "Waiting for permission or response"')
+
 # Terminal bell
 printf '\a'
 
@@ -10,8 +14,8 @@ printf '\a'
 if command -v terminal-notifier &>/dev/null; then
   terminal-notifier \
     -title "Claude Code" \
-    -subtitle "Needs Input" \
-    -message "Waiting for permission or response" \
+    -subtitle "$TITLE" \
+    -message "$MESSAGE" \
     -sound "Ping" \
     -group "claude-$SESSION_ID"
 fi
