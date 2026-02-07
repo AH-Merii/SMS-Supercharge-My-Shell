@@ -43,11 +43,12 @@ The `[user]` section and `allowed_signers` file are stripped from commits via cl
 # Set your identity
 git config --file ~/.config/git/config user.email "you@example.com"
 git config --file ~/.config/git/config user.name "Your Name"
-git config --file ~/.config/git/config user.signingkey "ssh-ed25519 AAAA..."
 
 # Add your key to allowed_signers (for verifying signatures)
 echo "you@example.com ssh-ed25519 AAAA..." > ~/.config/git/allowed_signers
 ```
+
+> **Note:** The signing key is auto-detected from the 1Password SSH agent via `gpg.ssh.defaultKeyCommand = ssh-add -L`. No manual `user.signingkey` is needed.
 
 ### Commit signing with 1Password
 
@@ -151,6 +152,17 @@ git who -- path/to/file.js
 # See contributions in a date range
 git who --since="2024-01-01" --until="2024-12-31"
 ```
+
+## Utilities
+
+Scripts in `~/.local/bin/` that extend git:
+
+| Script          | Description                                                                   |
+| --------------- | ----------------------------------------------------------------------------- |
+| `op-ssh-sign`   | Cross-platform 1Password signing wrapper (detects macOS vs Linux)             |
+| `git-whichside` | Shows ours vs theirs during conflicts (rebase, merge, cherry-pick, stash pop) |
+
+Usage: `git whichside` — run it when you hit a conflict to see which side is which.
 
 ### Clone shortcuts
 

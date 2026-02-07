@@ -126,7 +126,7 @@
   prereleaseSuffix = .rc
 
 [filter "remove_gitconfig_user"]
-  clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # <email>, <name>, <signingkey> — see README for setup\"; next} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
+  clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # <email>, <name> — see README for setup\"; next} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
   smudge = cat
 
 [filter "remove_allowed_signers"]
@@ -134,10 +134,11 @@
   smudge = cat
 
 [user]
-    # <email>, <name>, <signingkey> — see README for setup
+    # <email>, <name> — see README for setup
 [gpg]
   format = ssh
 
 [gpg "ssh"]
+  defaultKeyCommand = ssh-add -L
   program = op-ssh-sign
   allowedSignersFile = ~/.config/git/allowed_signers
