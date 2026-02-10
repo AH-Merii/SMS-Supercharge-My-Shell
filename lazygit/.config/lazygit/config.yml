@@ -1,0 +1,40 @@
+gui:
+  theme:
+    # One Dark palette refs:
+    # bg  #282c34, fg #abb2bf, red #e06c75, green #98c379, yellow #e5c07b
+    # blue #61afef, magenta #c678dd, cyan #56b6c2, gutter #4b5263, comment #5c6370
+    # selection-ish bg #32363e
+
+    activeBorderColor:
+      - "#61afef"
+      - bold
+    inactiveBorderColor:
+      - "#5c6370"
+
+    searchingActiveBorderColor:
+      - "#56b6c2"
+      - bold
+
+    optionsTextColor:
+      - "#56b6c2"
+
+    selectedLineBgColor:
+      - "#32363e"
+    inactiveViewSelectedLineBgColor:
+      - "#4b5263"
+
+    cherryPickedCommitFgColor:
+      - "#61afef"
+    cherryPickedCommitBgColor:
+      - "#56b6c2"
+
+    markedBaseCommitFgColor:
+      - "#282c34"
+    markedBaseCommitBgColor:
+      - "#e5c07b"
+
+    unstagedChangesColor:
+      - "#e06c75"
+
+    defaultFgColor:
+      - "#abb2bf"
