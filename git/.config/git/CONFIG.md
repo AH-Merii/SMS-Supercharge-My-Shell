@@ -121,7 +121,6 @@ git clone gh:AH-Merii/dotfiles
 | `gpg.format`                 | `ssh`                           | Use SSH keys instead of GPG                          |
 | `gpg.ssh.defaultKeyCommand`  | `ssh-add -L`                    | Auto-detect signing key from SSH agent               |
 | `gpg.ssh.program`            | `op-ssh-sign`                   | Cross-platform 1Password wrapper (in `~/.local/bin`) |
-| `gpg.ssh.allowedSignersFile` | `~/.config/git/allowed_signers` | For signature verification                           |
 
 The `op-ssh-sign` wrapper detects the platform and dispatches to the correct 1Password binary (macOS: `/Applications/1Password.app/.../op-ssh-sign`, Linux: `/opt/1Password/op-ssh-sign`).
 
@@ -130,9 +129,8 @@ The `op-ssh-sign` wrapper detects the platform and dispatches to the correct 1Pa
 | Filter                   | File              | Effect                                     |
 | ------------------------ | ----------------- | ------------------------------------------ |
 | `remove_gitconfig_user`  | `config`          | Strips `[user]` section (email, name)      |
-| `remove_allowed_signers` | `allowed_signers` | Replaces contents with placeholder comment |
 
-Both files must be populated locally after cloning — see [README.md](README.md#post-clone-setup).
+The `config` file must have `[user]` populated locally after cloning — see [README.md](README.md#post-clone-setup).
 
 ## Requirements
 

@@ -37,15 +37,11 @@ See [CONFIG.md](CONFIG.md) for detailed settings documentation.
 
 ## Post-Clone Setup
 
-The `[user]` section and `allowed_signers` file are stripped from commits via clean filters. After cloning, populate them locally:
+The `[user]` section is stripped from commits via a clean filter. After cloning, populate it locally:
 
 ```bash
-# Set your identity
 git config --file ~/.config/git/config user.email "you@example.com"
 git config --file ~/.config/git/config user.name "Your Name"
-
-# Add your key to allowed_signers (for verifying signatures)
-echo "you@example.com ssh-ed25519 AAAA..." > ~/.config/git/allowed_signers
 ```
 
 > **Note:** The signing key is auto-detected from the 1Password SSH agent via `gpg.ssh.defaultKeyCommand = ssh-add -L`. No manual `user.signingkey` is needed.

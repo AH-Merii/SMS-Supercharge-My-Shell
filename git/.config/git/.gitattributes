@@ -1,2 +1,1 @@
 config filter=remove_gitconfig_user
-allowed_signers filter=remove_allowed_signers

@@ -129,9 +129,6 @@
   clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # <email>, <name> — see README for setup\"; next} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
   smudge = cat
 
-[filter "remove_allowed_signers"]
-  clean = "echo '# <email> <key-type> <base64-key> — see README for setup'"
-  smudge = cat
 
 [user]
     # <email>, <name> — see README for setup
@@ -141,4 +138,6 @@
 [gpg "ssh"]
   defaultKeyCommand = ssh-add -L
   program = op-ssh-sign
-  allowedSignersFile = ~/.config/git/allowed_signers
+
+[includeIf "hasconfig:remote.*.url:git@github-aecom:AECOM-AI-Engineering/**"]
+    path = ~/.config/git/config-aecom-ai-engineering

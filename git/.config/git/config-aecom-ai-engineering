@@ -1,0 +1,6 @@
+[user]
+    name = Abed Merii
+    email = AbdulHamid.Merii@aecom.com
+
+[gpg "ssh"]
+    defaultKeyCommand = sh -c 'ssh-add -L | grep AECOM-AI-Engineering'
