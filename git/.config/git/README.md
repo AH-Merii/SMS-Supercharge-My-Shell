@@ -37,25 +37,36 @@ See [CONFIG.md](CONFIG.md) for detailed settings documentation.
 
 ## Post-Clone Setup
 
-The `[user]` section is stripped from commits via a clean filter. After cloning, populate it locally:
+The `[user]`, `[gpg "ssh"]`, and `[url "..."]` sections are stripped from commits via a clean filter. After cloning, run `ggh` to configure:
 
 ```bash
-git config --file ~/.config/git/config user.email "you@example.com"
-git config --file ~/.config/git/config user.name "Your Name"
+# Standard SSH setup
+ggh init --name "Your Name" --email "you@example.com"
+
+# Or with 1Password
+ggh op init --name "Your Name" --email "you@example.com"
 ```
 
-> **Note:** The signing key is auto-detected from the 1Password SSH agent via `gpg.ssh.defaultKeyCommand = ssh-add -L`. No manual `user.signingkey` is needed.
+For org-specific accounts:
 
-### Commit signing with 1Password
+```bash
+# Standard SSH org
+ggh add --org MyOrg --name "Your Name" --email "you@work.com"
 
-The config uses SSH commit signing via 1Password. The cross-platform wrapper `op-ssh-sign` detects macOS vs Linux automatically.
+# 1Password org
+ggh op add --org MyOrg --name "Your Name" --email "you@work.com"
+```
+
+> **Note:** `ggh add`/`ggh op add` create a per-org SSH key, SSH host alias, and `url.insteadOf` rewrite. The URL rewrite means you can clone with standard `git@github.com:Org/repo.git` URLs — git transparently routes to the org-specific key. Two `includeIf` conditions are set (one for the host alias, one for `github.com:Org/**`) so both old and new clone URLs resolve the correct identity.
+
+### Commit signing
+
+The config uses SSH commit signing. `ggh` sets up signing automatically — it supports both standard SSH keys and 1Password-backed keys.
 
 **Requirements:**
 
-- [1Password](https://1password.com/) desktop app with SSH agent enabled
-- SSH key added to your 1Password vault and configured as a signing key
-
-The 1Password SSH agent socket is configured in fish (`conf.d/03-ssh-agent.fish`) and zsh (`.zprofile`), with a traditional ssh-agent fallback when 1Password isn't available.
+- `ggh` CLI (`~/.local/bin/ggh`)
+- For 1Password: desktop app with SSH agent enabled
 
 ## Example Workflows
 
@@ -155,6 +166,7 @@ Scripts in `~/.local/bin/` that extend git:
 
 | Script          | Description                                                                   |
 | --------------- | ----------------------------------------------------------------------------- |
+| `ggh`         | GitHub SSH setup CLI — manages keys, signing, org configs, allowed_signers    |
 | `op-ssh-sign`   | Cross-platform 1Password signing wrapper (detects macOS vs Linux)             |
 | `git-whichside` | Shows ours vs theirs during conflicts (rebase, merge, cherry-pick, stash pop) |
 

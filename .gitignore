@@ -6,3 +6,5 @@ zsh/.config/zsh/.zsh_history
 zsh/.config/zsh/.zshrc.old
 zsh/.config/zsh/zsh-extensions.txt
 install.log
+/git/.local/bin/__pycache__
+/git/.config/git/allowed_signers

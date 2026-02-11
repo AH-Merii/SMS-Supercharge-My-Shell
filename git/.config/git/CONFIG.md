@@ -100,6 +100,17 @@ git clone gh:AH-Merii/dotfiles
 # Equivalent to: git clone git@github.com:AH-Merii/dotfiles
 ```
 
+### Org URL Rewrites
+
+`ggh add` and `ggh op add` configure `url.<base>.insteadOf` rules so that standard `github.com` clone URLs transparently route to the correct SSH host alias:
+
+```ini
+[url "git@github-acme:Acme/"]
+    insteadOf = git@github.com:Acme/
+```
+
+This means `git clone git@github.com:Acme/repo.git` works directly — git rewrites the URL at connect time so SSH picks the org-specific key via the host alias. No need to remember custom hostnames when cloning.
+
 ## Help
 
 | Setting            | Value    | Description                         |
@@ -114,26 +125,51 @@ git clone gh:AH-Merii/dotfiles
 | `safe.directory`               | `*`                                            | Trust all directories    |
 | `versionsort.prereleaseSuffix` | `-pre`, `.pre`, `-beta`, `.beta`, `-rc`, `.rc` | Pre-release tag ordering |
 
-## Commit Signing (SSH via 1Password)
+## Commit Signing (SSH)
 
-| Setting                      | Value                           | Description                                          |
-| ---------------------------- | ------------------------------- | ---------------------------------------------------- |
-| `gpg.format`                 | `ssh`                           | Use SSH keys instead of GPG                          |
-| `gpg.ssh.defaultKeyCommand`  | `ssh-add -L`                    | Auto-detect signing key from SSH agent               |
-| `gpg.ssh.program`            | `op-ssh-sign`                   | Cross-platform 1Password wrapper (in `~/.local/bin`) |
+| Setting                      | Value                           | Description                                        |
+| ---------------------------- | ------------------------------- | -------------------------------------------------- |
+| `gpg.format`                 | `ssh`                           | Use SSH keys instead of GPG                        |
+| `user.signingkey`            | `<path>`                        | File path to public key, set by `ggh`              |
+| `gpg.ssh.program`            | (platform-specific)             | Direct path to op-ssh-sign binary (1Password only) |
+| `gpg.ssh.allowedSignersFile` | `~/.config/git/allowed_signers` | Local signature verification                       |
 
-The `op-ssh-sign` wrapper detects the platform and dispatches to the correct 1Password binary (macOS: `/Applications/1Password.app/.../op-ssh-sign`, Linux: `/opt/1Password/op-ssh-sign`).
+Signing is configured by `ggh init` or `ggh op init`. The `user.signingkey` points to a public key file on disk (e.g., `~/.ssh/github_jane`). Git reads the key from the file, so re-exporting the `.pub` file after key rotation is enough — no config change needed.
+
+### 1Password SSH Key Routing
+
+Standard SSH keys use `IdentityFile` pointing at the private key. 1Password keys have no private key on disk, but SSH accepts public key files as key selectors — it tells the agent "sign with the key matching this public key." Combined with `IdentitiesOnly yes`, this pins each Host to exactly one key.
+
+| Directive        | Purpose                                                        |
+| ---------------- | -------------------------------------------------------------- |
+| `IdentityFile`   | Points at public key file — selects which key the agent uses   |
+| `IdentitiesOnly` | Prevents agent from offering other keys                        |
+
+`ggh op init` saves the public key to `~/.ssh/github_<name>` (no `.pub` extension, `0o600` permissions) and configures the SSH host block. `ggh op add` reuses this key — it only adds per-org identity (name/email) via `includeIf`, with no additional key or SSH host setup.
+
+### 1Password Agent Config (`agent.toml`)
+
+`ggh op init` registers the key in 1Password's `agent.toml` allowlist. The file follows the XDG Base Directory spec: `$XDG_CONFIG_HOME/1Password/ssh/agent.toml` (defaults to `~/.config/1Password/ssh/agent.toml`). Each entry is a `[[ssh-keys]]` block:
+
+```toml
+[[ssh-keys]]
+item = "GitHub SSH Jane"
+vault = "Personal"
+```
+
+Use `ggh status` to see which keys are registered.
 
 ### Clean Filters
 
-| Filter                   | File              | Effect                                     |
-| ------------------------ | ----------------- | ------------------------------------------ |
-| `remove_gitconfig_user`  | `config`          | Strips `[user]` section (email, name)      |
+| Filter                  | Files              | Effect                                                      |
+| ----------------------- | ------------------ | ----------------------------------------------------------- |
+| `remove_gitconfig_user` | `config`, `config-*` | Strips `[user]`, `[gpg "ssh"]`, and `[url "..."]` sections |
 
-The `config` file must have `[user]` populated locally after cloning — see [README.md](README.md#post-clone-setup).
+These sections contain machine-specific values (identity, signing keys, org URL rewrites). After cloning, run `ggh init` to populate — see [README.md](README.md#post-clone-setup).
 
 ## Requirements
 
 - [delta](https://github.com/dandavison/delta) - Diff viewer with syntax highlighting
-- [1Password](https://1password.com/) desktop app with SSH agent enabled (for commit signing)
+- `ggh` - GitHub SSH setup CLI (included in `~/.local/bin`)
+- [1Password](https://1password.com/) desktop app with SSH agent enabled (for 1Password signing mode)
 - `git-whichside` - Conflict helper showing ours vs theirs (included in `~/.local/bin`)

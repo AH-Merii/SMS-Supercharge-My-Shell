@@ -111,12 +111,6 @@
 [transfer]
   fsckObjects = true
 
-[url "git@github.com:"]
-  insteadOf = gh:
-
-[url "git@gitlab.com:"]
-  insteadOf = gl:
-
 [versionsort]
   prereleaseSuffix = -pre
   prereleaseSuffix = .pre
@@ -124,20 +118,17 @@
   prereleaseSuffix = .beta
   prereleaseSuffix = -rc
   prereleaseSuffix = .rc
-
-[filter "remove_gitconfig_user"]
-  clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # <email>, <name> — see README for setup\"; next} /^\\[/ && !/^\\[user\\]/{skip=0} !skip'"
-  smudge = cat
-
-
 [user]
-    # <email>, <name> — see README for setup
+    # run ggh init to configure
 [gpg]
-  format = ssh
-
+	format = ssh
 [gpg "ssh"]
-  defaultKeyCommand = ssh-add -L
-  program = op-ssh-sign
+    # run ggh init to configure
+[filter "remove_gitconfig_user"]
+	clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # run ggh init to configure\"; next} /^\\[gpg \"ssh\"\\]/{skip=1; print \"[gpg \\\"ssh\\\"]\"; print \"    # run ggh init to configure\"; next} /^\\[url /{skip=1; next} /^\\[/ && !/^\\[user\\]/ && !/^\\[gpg \"ssh\"\\]/ && !/^\\[url /{skip=0} !skip'"
+	smudge = cat
+[includeIf "hasconfig:remote.*.url:git@github-aecom-ai-engineering:**"]
+    path = ~/.config/git/config-aecom-ai-engineering
 
-[includeIf "hasconfig:remote.*.url:git@github-aecom:AECOM-AI-Engineering/**"]
+[includeIf "hasconfig:remote.*.url:git@github.com:AECOM-AI-Engineering/**"]
     path = ~/.config/git/config-aecom-ai-engineering

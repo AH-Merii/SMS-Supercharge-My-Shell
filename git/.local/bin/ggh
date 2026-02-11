@@ -1,0 +1,1544 @@
+#!/usr/bin/env -S uv run --script --no-project --no-config
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["typer"]
+# ///
+"""ggh — GitHub SSH Setup CLI.
+
+Configure GitHub SSH authentication with standard keys or 1Password-backed keys.
+Supports multiple organizations with per-org git identity and signing config.
+"""
+from __future__ import annotations
+
+import difflib
+import os
+import platform
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import tomllib
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional, Protocol
+
+import typer
+from rich.console import Console
+
+# ── Section 2: Logger ────────────────────────────────────────────────────────
+
+_console = Console(stderr=True)
+
+
+class Logger:
+    """Structured logging to stderr with rich markup."""
+
+    def __init__(self, verbose: int = 0, dry_run: bool = False) -> None:
+        self.verbose = verbose
+        self.dry_run = dry_run
+        self.interactive = False
+
+    def step(self, n: int, total: int, msg: str) -> None:
+        _console.print(f"\n[bold cyan]\\[{n}/{total}][/] {msg}")
+
+    def success(self, msg: str) -> None:
+        _console.print(f"[green]✓[/] {msg}")
+
+    def info(self, msg: str) -> None:
+        _console.print(f"[blue]::[/] {msg}")
+
+    def warn(self, msg: str) -> None:
+        _console.print(f"[bold dark_orange]![/] [dark_orange]{msg}[/]")
+
+    def error(self, msg: str) -> None:
+        _console.print(f"[red]✗[/] {msg}")
+
+    def debug(self, msg: str) -> None:
+        if self.verbose >= 2:
+            _console.print(f"[dim]… {msg}[/]")
+
+
+# ── Section 3: run() helper ─────────────────────────────────────────────────
+
+# Commands that mutate state — dry-run should skip these
+_MUTATING_COMMANDS = frozenset(
+    {
+        "ssh-keygen",
+        "ssh-add",
+        "gh",
+        "op",
+        "git",
+        "mkdir",
+        "chmod",
+        "touch",
+    }
+)
+
+
+def _is_readonly_cmd(cmd: list[str]) -> bool:
+    """Determine if a command is read-only (safe for dry-run)."""
+    if not cmd:
+        return True
+
+    prog = Path(cmd[0]).name
+
+    # git config --get is read-only; git config --set/--replace-all is not
+    if prog == "git" and len(cmd) >= 2 and cmd[1] == "config":
+        if "--get" in cmd or "--get-all" in cmd:
+            return True
+        return False
+
+    # gh auth status is read-only; gh ssh-key add is not
+    if prog == "gh" and len(cmd) >= 2:
+        if cmd[1] == "auth" and len(cmd) >= 3 and cmd[2] == "status":
+            return True
+        return False
+
+    # op read / op item get|list / op vault get|list are read-only
+    if prog == "op" and len(cmd) >= 2:
+        if cmd[1] == "read":
+            return True
+        if cmd[1] in ("item", "vault") and len(cmd) >= 3 and cmd[2] in ("get", "list"):
+            return True
+        return False
+
+    if prog in _MUTATING_COMMANDS:
+        return False
+
+    return True
+
+
+def run(
+    cmd: list[str],
+    *,
+    check: bool = True,
+    capture: bool = True,
+    logger: Logger | None = None,
+) -> subprocess.CompletedProcess:
+    """Execute a subprocess command with logging and dry-run support."""
+    if logger:
+        logger.debug(f"$ {' '.join(cmd)}")
+
+    if logger and logger.dry_run and not _is_readonly_cmd(cmd):
+        logger.info(f"[DRY RUN] Would run: {' '.join(cmd)}")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    return subprocess.run(
+        cmd,
+        check=check,
+        capture_output=capture,
+        text=True,
+    )
+
+
+# ── Section 4: KeyBackend protocol + implementations ────────────────────────
+
+
+class KeyBackend(Protocol):
+    """Protocol for SSH key backend implementations."""
+
+    def check_deps(self, logger: Logger) -> None: ...
+    def generate_key(self, logger: Logger) -> None: ...
+    def get_public_key(self, logger: Logger) -> str: ...
+    def configure_signing(self, cfg_path: Path, pub_key: str, logger: Logger) -> None: ...
+    def ssh_host_extras(self) -> list[str]: ...
+
+
+@dataclass
+class StandardSSH:
+    """Standard SSH key backend using ssh-keygen."""
+
+    email: str
+    key_path: Path
+
+    def check_deps(self, logger: Logger) -> None:
+        if not shutil.which("ssh-keygen"):
+            logger.error("ssh-keygen not found")
+            logger.info("ssh-keygen is part of OpenSSH — install with: brew install openssh")
+            raise typer.Exit(1)
+        logger.success("ssh-keygen is available")
+
+    def generate_key(self, logger: Logger) -> None:
+        if self.key_path.exists():
+            logger.warn(f"Key already exists at {self.key_path}")
+
+            _console.print(f"\n  [bold]What would you like to do?[/]")
+            _console.print(f"  [cyan]1[/] Overwrite — delete existing key and regenerate")
+            _console.print(f"  [cyan]2[/] Use existing — keep the current key as-is")
+
+            while True:
+                choice = input("\n  Choose [1/2]: ").strip()
+                if choice in ("1", "2"):
+                    break
+                _console.print("  [red]Invalid choice — enter 1 or 2[/]")
+
+            if choice == "1":
+                self.key_path.unlink(missing_ok=True)
+                Path(f"{self.key_path}.pub").unlink(missing_ok=True)
+                logger.info(f"Deleted existing key at {self.key_path}")
+            else:
+                logger.info(f"Using existing key at {self.key_path}")
+                return
+
+        self.key_path.parent.mkdir(parents=True, exist_ok=True)
+        run(
+            [
+                "ssh-keygen",
+                "-t",
+                "ed25519",
+                "-C",
+                self.email,
+                "-f",
+                str(self.key_path),
+                "-N",
+                "",
+            ],
+            logger=logger,
+        )
+        run(["ssh-add", str(self.key_path)], logger=logger, check=False)
+        logger.success(f"Generated ed25519 key at {self.key_path}")
+
+    def get_public_key(self, logger: Logger) -> str:
+        pub = Path(f"{self.key_path}.pub")
+        if not pub.exists():
+            if logger.dry_run:
+                logger.info(f"[DRY RUN] Public key would be at {pub}")
+                return ""
+            logger.error(f"Public key not found at {pub}")
+            raise typer.Exit(1)
+        return pub.read_text().strip()
+
+    def configure_signing(self, cfg_path: Path, pub_key: str, logger: Logger) -> None:
+        git_config_set(cfg_path, "gpg.format", "ssh", logger)
+        if pub_key:
+            git_config_set(cfg_path, "user.signingkey", f"{self.key_path}.pub", logger)
+
+    def ssh_host_extras(self) -> list[str]:
+        return [
+            f"IdentityFile {self.key_path}",
+            "IdentitiesOnly yes",
+        ]
+
+
+@dataclass
+class OnePassword:
+    """1Password SSH key backend."""
+
+    vault: str
+    key_name: str
+    pub_key_path: Path
+    host: str = "github.com"
+
+    def _agent_socket(self) -> Path:
+        env = os.environ.get("SSH_AUTH_SOCK")
+        if env:
+            return Path(env)
+        if platform.system() == "Darwin":
+            return Path.home() / "Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+        return Path.home() / ".1password/agent.sock"
+
+    def _sign_binary(self) -> str:
+        return resolve_op_ssh_sign_path()
+
+    def check_deps(self, logger: Logger) -> None:
+        if not shutil.which("op"):
+            logger.error("1Password CLI (op) is not installed")
+            logger.info("Install with: brew install 1password-cli")
+            raise typer.Exit(1)
+        logger.success("1Password CLI is available")
+
+        sock = self._agent_socket()
+        if not sock.exists():
+            logger.error(f"1Password SSH agent socket not found at: {sock}")
+            logger.info("Open 1Password → Settings → Developer → Enable SSH Agent")
+            raise typer.Exit(1)
+        logger.success("1Password SSH agent socket found")
+
+        binary = self._sign_binary()
+        if not Path(binary).exists():
+            logger.error(f"op-ssh-sign binary not found at: {binary}")
+            logger.info("Ensure the 1Password desktop app is installed (not just the CLI)")
+            raise typer.Exit(1)
+        logger.success("op-ssh-sign binary found")
+
+    def _ensure_vault(self, logger: Logger) -> None:
+        """Check vault exists, list available vaults if not found."""
+        result = run(
+            ["op", "vault", "get", self.vault, "--format", "json"],
+            check=False,
+            logger=logger,
+        )
+        if result.returncode == 0:
+            return
+
+        # List available vaults for context
+        vaults = run(["op", "vault", "list", "--format", "json"], check=False, logger=logger)
+        if vaults.returncode == 0 and vaults.stdout.strip():
+            import json as _json
+            try:
+                vault_list = _json.loads(vaults.stdout)
+                names = [v.get("name", "?") for v in vault_list]
+                logger.error(f'Vault "{self.vault}" not found. Available vaults: {", ".join(names)}')
+            except Exception:
+                logger.error(f'Vault "{self.vault}" not found')
+        else:
+            logger.error(f'Vault "{self.vault}" not found')
+
+        logger.info("Retry with: --vault <vault-name>")
+        raise typer.Exit(1)
+
+    def _find_existing_keys(self, logger: Logger) -> list[dict]:
+        """Find existing 1Password items matching key_name in vault. Returns list of {id, title}."""
+        import json as _json
+
+        result = run(
+            ["op", "item", "list", "--vault", self.vault, "--categories", "SSH Key", "--format", "json"],
+            check=False,
+            logger=logger,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return []
+
+        try:
+            items = _json.loads(result.stdout)
+        except Exception:
+            return []
+
+        return [
+            {"id": item["id"], "title": item.get("title", "")}
+            for item in items
+            if item.get("title") == self.key_name
+        ]
+
+    def generate_key(self, logger: Logger) -> None:
+        if not logger.dry_run:
+            self._ensure_vault(logger)
+
+            # Check if item(s) with this name already exist
+            existing = self._find_existing_keys(logger)
+            if existing:
+                count = len(existing)
+                suffix = "s" if count > 1 else ""
+                logger.warn(f'Found {count} existing key{suffix} named "{self.key_name}" in vault "{self.vault}"')
+
+                _console.print(f"\n  [bold]What would you like to do?[/]")
+                _console.print(f"  [cyan]1[/] Overwrite — delete existing key{suffix} and create a new one")
+                _console.print(f"  [cyan]2[/] Keep — use the existing key as-is")
+
+                while True:
+                    choice = input("\n  Choose [1/2]: ").strip()
+                    if choice in ("1", "2"):
+                        break
+                    _console.print("  [red]Invalid choice — enter 1 or 2[/]")
+
+                if choice == "1":
+                    # Delete all matches by UUID to avoid ambiguity
+                    for item in existing:
+                        logger.info(f'Deleting key "{item["title"]}" ({item["id"]})...')
+                        del_result = run(
+                            ["op", "item", "delete", item["id"], "--vault", self.vault],
+                            check=False,
+                            logger=logger,
+                        )
+                        if del_result.returncode != 0:
+                            stderr = del_result.stderr.strip() if del_result.stderr else ""
+                            logger.error(f'Failed to delete key {item["id"]}')
+                            if stderr:
+                                logger.info(stderr)
+                            raise typer.Exit(1)
+                    logger.success(f'Deleted {count} existing key{suffix}')
+                    # Fall through to creation
+                else:
+                    logger.info(f'Using existing key "{self.key_name}"')
+                    return
+
+        self._create_op_key(logger)
+
+    def _create_op_key(self, logger: Logger) -> None:
+        """Create SSH key in 1Password and set bookmark URL."""
+        result = run(
+            [
+                "op",
+                "item",
+                "create",
+                "--category",
+                "ssh",
+                "--title",
+                self.key_name,
+                "--vault",
+                self.vault,
+            ],
+            check=False,
+            logger=logger,
+        )
+        if result.returncode != 0:
+            stderr = result.stderr.strip() if result.stderr else ""
+            logger.error(f'Failed to create SSH key in vault "{self.vault}"')
+            if stderr:
+                logger.info(stderr)
+            raise typer.Exit(1)
+        logger.success(f'Created SSH key "{self.key_name}" in vault "{self.vault}"')
+
+    def get_public_key(self, logger: Logger) -> str:
+        if logger.dry_run:
+            logger.info("[DRY RUN] Would read public key from 1Password")
+            return "ssh-ed25519 AAAA_DRY_RUN_PLACEHOLDER"
+        result = run(
+            ["op", "read", f"op://{self.vault}/{self.key_name}/public key"],
+            check=False,
+            logger=logger,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            logger.error("Could not read public key from 1Password")
+            logger.warn(
+                "This is a known issue on Apple Silicon — the 1Password CLI "
+                "may not expose the public key field"
+            )
+            logger.info(
+                f'Upload manually: open 1Password → find "{self.key_name}" '
+                "→ copy public key → github.com/settings/keys"
+            )
+            return ""
+        return result.stdout.strip()
+
+    def configure_signing(self, cfg_path: Path, pub_key: str, logger: Logger) -> None:
+        git_config_set(cfg_path, "gpg.format", "ssh", logger)
+        if pub_key:
+            git_config_set(cfg_path, "user.signingkey", str(self.pub_key_path), logger)
+        git_config_set(cfg_path, "gpg.ssh.program", self._sign_binary(), logger)
+
+    def ssh_host_extras(self) -> list[str]:
+        return [
+            f"IdentityFile {self.pub_key_path}",
+            "IdentitiesOnly yes",
+        ]
+
+
+# ── Section 5: Config helpers ────────────────────────────────────────────────
+
+
+def _ensure_trailing_newline(path: Path) -> None:
+    """Ensure file ends with exactly one newline (no double blank lines at EOF)."""
+    if not path.exists():
+        return
+    text = path.read_text()
+    if not text:
+        return
+    stripped = text.rstrip("\n")
+    if stripped != text:
+        path.write_text(stripped + "\n")
+
+
+def resolve_git_config_dir() -> Path:
+    """XDG-aware: $XDG_CONFIG_HOME/git or ~/.config/git."""
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    if xdg:
+        return Path(xdg) / "git"
+    return Path.home() / ".config/git"
+
+
+def resolve_op_ssh_sign_path() -> str:
+    """Platform-specific direct binary path for op-ssh-sign."""
+    if platform.system() == "Darwin":
+        return "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+    return "/opt/1Password/op-ssh-sign"
+
+
+def ssh_host_exists(host: str) -> bool:
+    """Check if Host <host> exists in ~/.ssh/config."""
+    ssh_config = Path.home() / ".ssh/config"
+    if not ssh_config.exists():
+        return False
+    text = ssh_config.read_text()
+    return bool(re.search(rf"^Host\s+{re.escape(host)}\b", text, re.MULTILINE))
+
+
+def _read_ssh_host_block(host: str) -> str | None:
+    """Extract the full Host block from ~/.ssh/config. Returns None if not found."""
+    ssh_config = Path.home() / ".ssh/config"
+    if not ssh_config.exists():
+        return None
+    text = ssh_config.read_text()
+    # Match "Host <host>" line and all following indented lines (until next Host/Match or EOF)
+    pattern = rf"^(Host\s+{re.escape(host)}\b[^\n]*\n(?:[ \t]+[^\n]*\n)*)"
+    m = re.search(pattern, text, re.MULTILINE)
+    if not m:
+        return None
+    return m.group(1)
+
+
+def _remove_ssh_host_block(host: str) -> None:
+    """Remove the Host block for <host> from ~/.ssh/config."""
+    ssh_config = Path.home() / ".ssh/config"
+    if not ssh_config.exists():
+        return
+    text = ssh_config.read_text()
+    # Remove the Host block and any leading blank lines before it
+    pattern = rf"\n*^Host\s+{re.escape(host)}\b[^\n]*\n(?:[ \t]+[^\n]*\n)*"
+    new_text = re.sub(pattern, "", text, count=1, flags=re.MULTILINE)
+    ssh_config.write_text(new_text)
+
+
+def add_ssh_host(
+    host: str,
+    hostname: str,
+    user: str,
+    extra_lines: list[str],
+    logger: Logger,
+) -> None:
+    """Append Host block to ~/.ssh/config. Compare and prompt if exists with differences."""
+    proposed = f"Host {host}\n    HostName {hostname}\n    User {user}\n"
+    for line in extra_lines:
+        proposed += f"    {line}\n"
+
+    existing_block = _read_ssh_host_block(host)
+    if existing_block is not None:
+        if existing_block.strip() == proposed.strip():
+            logger.info(f"Host {host} already up to date in ~/.ssh/config — skipping")
+            return
+        if logger.dry_run:
+            logger.warn(f"Host {host} in ~/.ssh/config differs — would prompt to update")
+            return
+        if not _confirm_overwrite(f"SSH Host {host} (~/.ssh/config)", existing_block.strip(), proposed.strip()):
+            logger.info(f"Keeping existing Host {host} in ~/.ssh/config")
+            return
+        _remove_ssh_host_block(host)
+
+    ssh_dir = Path.home() / ".ssh"
+    ssh_dir.mkdir(mode=0o700, exist_ok=True)
+    ssh_config = ssh_dir / "config"
+    if not ssh_config.exists():
+        ssh_config.touch(mode=0o600)
+
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would append Host {host} to ~/.ssh/config")
+        return
+
+    _ensure_trailing_newline(ssh_config)
+    with ssh_config.open("a") as f:
+        f.write("\n" + proposed)
+    logger.success(f"Added Host {host} to ~/.ssh/config")
+
+
+def add_ssh_include(line: str, logger: Logger) -> None:
+    """Prepend Include line to ~/.ssh/config if not present."""
+    ssh_dir = Path.home() / ".ssh"
+    ssh_dir.mkdir(mode=0o700, exist_ok=True)
+    ssh_config = ssh_dir / "config"
+    if not ssh_config.exists():
+        ssh_config.touch(mode=0o600)
+
+    text = ssh_config.read_text()
+    if line in text:
+        logger.info(f"Include already present in ~/.ssh/config")
+        return
+
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would prepend '{line}' to ~/.ssh/config")
+        return
+
+    new_text = line + "\n\n" + text.lstrip("\n")
+    ssh_config.write_text(new_text)
+    ssh_config.chmod(0o600)
+    logger.success(f"Added {line} to ~/.ssh/config")
+
+
+def _find_include_if(main_cfg: Path, condition: str) -> tuple[str | None, str | None]:
+    """Find an includeIf block matching condition (or related host pattern).
+
+    Returns (matched_condition, path_value) or (None, None) if not found.
+    """
+    if not main_cfg.exists():
+        return None, None
+    text = main_cfg.read_text()
+
+    # Check exact condition first
+    m = re.search(
+        rf'^\[includeIf\s+"{re.escape(condition)}"\]\s*\n\s*path\s*=\s*(.+)',
+        text,
+        re.MULTILINE,
+    )
+    if m:
+        return condition, m.group(1).strip()
+
+    # For host-scoped patterns, also check old org-scoped variants
+    host_m = re.search(r"git@([^:]+):\*\*", condition)
+    if host_m:
+        host = host_m.group(1)
+        m2 = re.search(
+            rf'^\[includeIf\s+"(hasconfig:remote\.\*\.url:git@{re.escape(host)}:[^"]+)"\]\s*\n\s*path\s*=\s*(.+)',
+            text,
+            re.MULTILINE,
+        )
+        if m2:
+            return m2.group(1), m2.group(2).strip()
+
+    return None, None
+
+
+def _replace_include_if_block(main_cfg: Path, old_condition: str, new_block: str) -> None:
+    """Replace an existing includeIf block in git config."""
+    text = main_cfg.read_text()
+    # Match the full [includeIf "..."] block (header + indented lines)
+    pattern = re.compile(
+        rf'^\[includeIf\s+"{re.escape(old_condition)}"\][^\n]*\n(?:[ \t]+[^\n]*\n)*',
+        re.MULTILINE,
+    )
+    new_text = pattern.sub(new_block, text, count=1)
+    main_cfg.write_text(new_text)
+
+
+def add_include_if(
+    main_cfg: Path,
+    condition: str,
+    org_cfg_path: str,
+    logger: Logger,
+) -> None:
+    """Append includeIf block to git config. Compare and prompt if exists with differences."""
+    proposed_block = f'[includeIf "{condition}"]\n    path = {org_cfg_path}\n'
+
+    matched_condition, existing_path = _find_include_if(main_cfg, condition)
+    if matched_condition is not None:
+        # Build what the existing block looks like for comparison
+        existing_block = f'[includeIf "{matched_condition}"]\n    path = {existing_path}\n'
+        if existing_block.strip() == proposed_block.strip():
+            logger.info(f"includeIf already up to date — skipping")
+            return
+        if logger.dry_run:
+            logger.warn(f"includeIf block differs — would prompt to update")
+            return
+        if not _confirm_overwrite(
+            f"includeIf ({main_cfg.name})",
+            existing_block.strip(),
+            proposed_block.strip(),
+        ):
+            logger.info(f"Keeping existing includeIf block")
+            return
+        _replace_include_if_block(main_cfg, matched_condition, proposed_block)
+        logger.success(f"Updated includeIf in {main_cfg}")
+        return
+
+    if logger.dry_run:
+        logger.info(f'[DRY RUN] Would append includeIf "{condition}" to {main_cfg}')
+        return
+
+    _ensure_trailing_newline(main_cfg)
+    with main_cfg.open("a") as f:
+        f.write("\n" + proposed_block)
+    logger.success(f"Added includeIf to {main_cfg}")
+
+
+def add_url_rewrite(main_cfg: Path, org: str, host: str, logger: Logger) -> None:
+    """Add url insteadOf so git@github.com:org/ transparently routes via host alias."""
+    key = f"url.git@{host}:{org}/.insteadOf"
+    value = f"git@github.com:{org}/"
+    git_config_set(main_cfg, key, value, logger)
+
+
+def write_org_config(
+    org_cfg: Path,
+    name: str,
+    email: str,
+    logger: Logger,
+) -> None:
+    """Write [user] section. Warn on mismatch if file exists."""
+    expected = f"[user]\n    name = {name}\n    email = {email}\n"
+    if org_cfg.exists():
+        existing = org_cfg.read_text()
+        if existing.strip() == expected.strip():
+            logger.info(f"{org_cfg} already up to date — skipping")
+            return
+        if logger.dry_run:
+            logger.warn(f"{org_cfg} exists with different content — would not overwrite")
+            return
+        if not _confirm_overwrite(f"Org config ({org_cfg.name})", existing.strip(), expected.strip()):
+            logger.info(f"Keeping existing {org_cfg}")
+            return
+
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would write org config to {org_cfg}")
+        return
+
+    org_cfg.parent.mkdir(parents=True, exist_ok=True)
+    org_cfg.write_text(expected)
+    logger.success(f"Wrote {org_cfg} with name/email")
+
+
+def setup_clean_filter(main_cfg: Path, logger: Logger) -> None:
+    """Set up expanded awk filter for [user] + [gpg "ssh"] + [url] stripping."""
+    awk_script = (
+        r"""/^\[user\]/{skip=1; print "[user]"; print "    # run ggh init to configure"; next} """
+        r"""/^\[gpg "ssh"\]/{skip=1; print "[gpg \"ssh\"]"; print "    # run ggh init to configure"; next} """
+        r"""/^\[url /{skip=1; next} """
+        r"""/^\[/ && !/^\[user\]/ && !/^\[gpg "ssh"\]/ && !/^\[url /{skip=0} !skip"""
+    )
+
+    expected_filter = f"awk '{awk_script}'"
+    current = git_config_get(main_cfg, "filter.remove_gitconfig_user.clean")
+    if current and current.strip() == expected_filter.strip():
+        logger.info("Clean filter already configured — skipping")
+        return
+
+    git_config_set(main_cfg, "filter.remove_gitconfig_user.clean", f"awk '{awk_script}'", logger)
+    git_config_set(main_cfg, "filter.remove_gitconfig_user.smudge", "cat", logger)
+
+
+def setup_gitattributes(git_config_dir: Path, logger: Logger) -> None:
+    """Ensure config and config-* entries in .gitattributes."""
+    attrs_path = git_config_dir / ".gitattributes"
+
+    existing = attrs_path.read_text() if attrs_path.exists() else ""
+    lines_to_add = []
+
+    if "config filter=remove_gitconfig_user" not in existing:
+        lines_to_add.append("config filter=remove_gitconfig_user")
+    if "config-* filter=remove_gitconfig_user" not in existing:
+        lines_to_add.append("config-* filter=remove_gitconfig_user")
+
+    if not lines_to_add:
+        logger.info(".gitattributes already configured — skipping")
+        return
+
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would update .gitattributes at {attrs_path}")
+        return
+
+    _ensure_trailing_newline(attrs_path)
+    with attrs_path.open("a") as f:
+        for line in lines_to_add:
+            f.write(line + "\n")
+    logger.success(f"Updated .gitattributes at {attrs_path}")
+
+
+def update_allowed_signers(
+    signers_path: Path,
+    email: str,
+    pub_key: str,
+    logger: Logger,
+) -> None:
+    """Idempotent: email not present → append; same key → skip; different key → update."""
+    if not pub_key:
+        logger.warn("No public key available — skipping allowed_signers update")
+        return
+
+    entry = f"{email} {pub_key}"
+    signers_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if signers_path.exists():
+        text = signers_path.read_text()
+        for line in text.splitlines():
+            if line.startswith(f"{email} "):
+                if line.strip() == entry:
+                    logger.info(f"allowed_signers already has correct key for {email} — skipping")
+                    return
+                # Different key — prompt before update
+                if logger.dry_run:
+                    logger.info(f"[DRY RUN] Would update key for {email} in allowed_signers")
+                    return
+                if not _confirm_overwrite(f"Signing key for {email}", line.strip(), entry):
+                    logger.info(f"Keeping existing key for {email} in allowed_signers")
+                    return
+                new_text = text.replace(line, entry)
+                signers_path.write_text(new_text)
+                logger.success(f"Updated key for {email} in allowed_signers")
+                return
+
+    # Email not present — append
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would add {email} to allowed_signers")
+        return
+
+    _ensure_trailing_newline(signers_path)
+    with signers_path.open("a") as f:
+        f.write(entry + "\n")
+    logger.success(f"Added {email} to allowed_signers")
+
+
+def save_public_key(pub_key: str, path: Path, logger: Logger) -> None:
+    """Idempotent write of public key to disk for SSH IdentityFile pinning."""
+    if not pub_key:
+        logger.warn("No public key available — skipping .pub save")
+        return
+
+    if path.exists():
+        existing = path.read_text().strip()
+        if existing == pub_key:
+            logger.info(f"Public key already saved at {path} — skipping")
+            return
+        if logger.dry_run:
+            logger.warn(f"Public key at {path} differs — would overwrite")
+            return
+        if not _confirm_overwrite(f"Public key ({path.name})", existing, pub_key):
+            logger.info(f"Keeping existing public key at {path}")
+            return
+
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would save public key to {path}")
+        return
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(pub_key + "\n")
+    path.chmod(0o600)
+    logger.success(f"Saved public key to {path}")
+
+
+def resolve_agent_toml_path() -> Path:
+    """Path to 1Password SSH agent config (follows XDG Base Directory spec)."""
+    xdg = os.environ.get("XDG_CONFIG_HOME", "")
+    config_home = Path(xdg) if xdg else Path.home() / ".config"
+    return config_home / "1Password/ssh/agent.toml"
+
+
+def _update_agent_toml_entry(item: str, old_vault: str, new_vault: str, path: Path) -> None:
+    """Replace the vault value in the [[ssh-keys]] block matching item."""
+    text = path.read_text()
+    # Match the [[ssh-keys]] block containing this item and replace its vault line
+    pattern = re.compile(
+        r"(\[\[ssh-keys\]\]\s*\n"
+        rf"item\s*=\s*\"{re.escape(item)}\"\s*\n)"
+        rf"vault\s*=\s*\"{re.escape(old_vault)}\"",
+    )
+    new_text = pattern.sub(rf'\1vault = "{new_vault}"', text, count=1)
+    if new_text == text:
+        # Try reversed order (vault before item)
+        pattern2 = re.compile(
+            r"(\[\[ssh-keys\]\]\s*\n)"
+            rf"vault\s*=\s*\"{re.escape(old_vault)}\"\s*\n"
+            rf"(item\s*=\s*\"{re.escape(item)}\")",
+        )
+        new_text = pattern2.sub(rf'\1vault = "{new_vault}"\n\2', text, count=1)
+    path.write_text(new_text)
+
+
+def update_agent_toml(item: str, vault: str, logger: Logger) -> None:
+    """Idempotent: ensure [[ssh-keys]] entry exists in 1Password agent.toml."""
+    toml_path = resolve_agent_toml_path()
+
+    if toml_path.exists():
+        with toml_path.open("rb") as f:
+            data = tomllib.load(f)
+        for entry in data.get("ssh-keys", []):
+            if entry.get("item") == item:
+                existing_vault = entry.get("vault", "")
+                if existing_vault == vault:
+                    logger.info(f"agent.toml already has entry for {item} — skipping")
+                    return
+                # Item matches but vault differs
+                if logger.dry_run:
+                    logger.warn(f"agent.toml entry for {item} has vault '{existing_vault}', would update to '{vault}'")
+                    return
+                if not _confirm_overwrite(
+                    f"agent.toml entry for {item}",
+                    f"vault = \"{existing_vault}\"",
+                    f"vault = \"{vault}\"",
+                ):
+                    logger.info(f"Keeping existing agent.toml entry for {item}")
+                    return
+                _update_agent_toml_entry(item, existing_vault, vault, toml_path)
+                logger.success(f"Updated vault for {item} in {toml_path}")
+                return
+
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would add [[ssh-keys]] entry to {toml_path}")
+        return
+
+    block = f'\n[[ssh-keys]]\nitem = "{item}"\nvault = "{vault}"\n'
+    toml_path.parent.mkdir(parents=True, exist_ok=True)
+    with toml_path.open("a") as f:
+        f.write(block)
+    logger.success(f"Added {item} to {toml_path}")
+
+
+def git_config_get(cfg_path: Path, key: str) -> str | None:
+    """Read a git config value. Returns None if not set."""
+    result = run(
+        ["git", "config", "--file", str(cfg_path), "--get", key],
+        check=False,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        return result.stdout.strip()
+    return None
+
+
+def git_config_set(
+    cfg_path: Path,
+    key: str,
+    value: str,
+    logger: Logger,
+) -> None:
+    """Check-then-set: skip if matches, warn+update if differs, set if missing."""
+    current = git_config_get(cfg_path, key)
+
+    if current == value:
+        logger.debug(f"{key} already set to {value} — skipping")
+        return
+
+    if current is not None:
+        if logger.dry_run:
+            logger.warn(f"{key} is '{current}', would update to '{value}'")
+            return
+        elif not _confirm_overwrite(key, current, value):
+            logger.info(f"Keeping {key} = {current}")
+            return
+
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would set {key} = {value}")
+        return
+
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    run(
+        ["git", "config", "--file", str(cfg_path), key, value],
+        logger=logger,
+    )
+
+
+# ── Section 6: Shared pipeline helpers ───────────────────────────────────────
+
+
+def check_github_auth(logger: Logger) -> None:
+    """Authenticate with GitHub via gh CLI (always runs login for scope refresh)."""
+    if not shutil.which("gh"):
+        logger.error("GitHub CLI (gh) is not installed")
+        logger.info("Install with: brew install gh")
+        raise typer.Exit(1)
+
+    logger.info("A browser window will open for authentication")
+    run(
+        [
+            "gh",
+            "auth",
+            "login",
+            "--hostname",
+            "github.com",
+            "--git-protocol",
+            "ssh",
+            "--web",
+            "--skip-ssh-key",
+            "--scopes",
+            "admin:public_key,admin:ssh_signing_key",
+        ],
+        capture=False,
+        check=False,
+        logger=logger,
+    )
+
+
+def upload_ssh_key(pub_key_text: str, title: str, logger: Logger) -> None:
+    """Upload SSH public key to GitHub as both authentication and signing key."""
+    if not pub_key_text:
+        logger.warn("No public key to upload — skipping")
+        return
+
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would upload SSH key '{title}' to GitHub (authentication + signing)")
+        return
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".pub", delete=False) as f:
+        f.write(pub_key_text)
+        tmp_path = f.name
+
+    try:
+        for key_type in ("authentication", "signing"):
+            result = run(
+                [
+                    "gh",
+                    "ssh-key",
+                    "add",
+                    tmp_path,
+                    "--title",
+                    title,
+                    "--type",
+                    key_type,
+                ],
+                check=False,
+                logger=logger,
+            )
+            if result.returncode == 0:
+                logger.success(f"SSH key uploaded to GitHub as '{title}' ({key_type})")
+            else:
+                logger.warn(f"Key ({key_type}) may already be uploaded — check [link=https://github.com/settings/keys]github.com/settings/keys[/link]")
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+
+# ── Section 7: Typer app and commands ────────────────────────────────────────
+
+app = typer.Typer(help="GitHub SSH Setup CLI", no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
+op_app = typer.Typer(help="1Password-backed key management", no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
+app.add_typer(op_app, name="op")
+
+
+@dataclass
+class AppContext:
+    """Shared context passed through commands."""
+
+    logger: Logger
+    git_config_dir: Path
+    main_cfg: Path
+    signers_path: Path
+
+
+_ctx = AppContext(
+    logger=Logger(),
+    git_config_dir=resolve_git_config_dir(),
+    main_cfg=resolve_git_config_dir() / "config",
+    signers_path=resolve_git_config_dir() / "allowed_signers",
+)
+
+
+@app.callback()
+def main(
+    ctx: typer.Context,
+    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Increase verbosity (-v info, -vv debug)"),
+    dry_run: bool = typer.Option(False, "-n", "--dry-run", help="Show what would be done without making changes"),
+    interactive: bool = typer.Option(False, "-i", "--interactive", help="Prompt for values interactively"),
+) -> None:
+    """GitHub SSH Setup CLI — configure SSH authentication for GitHub."""
+    _ctx.logger = Logger(verbose=verbose, dry_run=dry_run)
+    _ctx.logger.interactive = interactive
+
+
+# ── init command (standard SSH) ──────────────────────────────────────────────
+
+
+@app.command()
+def init(
+    name: Optional[str] = typer.Option(None, "--name", help="Git author name"),
+    email: Optional[str] = typer.Option(None, "--email", help="Git author email"),
+) -> None:
+    """Set up primary GitHub SSH authentication with a standard key.
+
+    Examples:
+        ggh init --name "Jane Doe" --email "jane@example.com"
+        ggh init -i
+    """
+    log = _ctx.logger
+    total = 9
+
+    if log.interactive:
+        default_name = git_config_get(_ctx.main_cfg, "user.name") or ""
+        default_email = git_config_get(_ctx.main_cfg, "user.email") or ""
+        name = _prompt("Git author name", name or default_name)
+        email = _prompt("Git author email", email or default_email)
+    else:
+        name = _require(name, "--name", log)
+        email = _require(email, "--email", log)
+
+    name_lower = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    key_path = Path.home() / f".ssh/github_{name_lower}"
+    backend = StandardSSH(email=email, key_path=key_path)
+
+    log.step(1, total, "Checking dependencies")
+    backend.check_deps(log)
+
+    log.step(2, total, "Generating SSH key")
+    backend.generate_key(log)
+
+    log.step(3, total, "Authenticating with GitHub")
+    check_github_auth(log)
+
+    log.step(4, total, "Uploading SSH key to GitHub")
+    pub_key = backend.get_public_key(log)
+    upload_ssh_key(pub_key, name, log)
+
+    log.step(5, total, "Configuring git identity")
+    git_config_set(_ctx.main_cfg, "user.name", name, log)
+    git_config_set(_ctx.main_cfg, "user.email", email, log)
+    git_config_set(_ctx.main_cfg, "commit.gpgSign", "true", log)
+    git_config_set(_ctx.main_cfg, "tag.gpgSign", "true", log)
+
+    log.step(6, total, "Configuring commit signing")
+    backend.configure_signing(_ctx.main_cfg, pub_key, log)
+
+    log.step(7, total, "Updating allowed_signers")
+    update_allowed_signers(_ctx.signers_path, email, pub_key, log)
+    git_config_set(_ctx.main_cfg, "gpg.ssh.allowedSignersFile", str(_ctx.signers_path), log)
+
+    log.step(8, total, "Setting up clean filter")
+    setup_clean_filter(_ctx.main_cfg, log)
+
+    log.step(9, total, "Configuring .gitattributes")
+    setup_gitattributes(_ctx.git_config_dir, log)
+
+    _print_init_summary(name, email)
+
+
+# ── add command (standard SSH) ───────────────────────────────────────────────
+
+
+@app.command()
+def add(
+    org: Optional[str] = typer.Option(None, "--org", help="GitHub organization name"),
+    name: Optional[str] = typer.Option(None, "--name", help="Git author name for this org"),
+    email: Optional[str] = typer.Option(None, "--email", help="Git author email for this org"),
+    host: Optional[str] = typer.Option(None, "--host", help="SSH host alias (default: github-<org>)"),
+) -> None:
+    """Add a GitHub organization with a standard SSH key.
+
+    Examples:
+        ggh add --org Acme --name "Jane Doe" --email "jane@acme.com"
+        ggh add --org Acme --name "Jane" --email "jane@acme.com" --host github-acme
+        ggh add -i
+    """
+    log = _ctx.logger
+    total = 10
+
+    if log.interactive:
+        org = _prompt("Organization", org or "")
+        org_lower = org.lower()
+        host = _prompt("Host alias", host or f"github-{org_lower}")
+        default_name = git_config_get(_ctx.main_cfg, "user.name") or ""
+        default_email = git_config_get(_ctx.main_cfg, "user.email") or ""
+        name = _prompt("Git author name", name or default_name)
+        email = _prompt("Git author email", email or default_email)
+    else:
+        org = _require(org, "--org", log)
+        name = _require(name, "--name", log)
+        email = _require(email, "--email", log)
+
+    org_lower = org.lower()
+    if host is None:
+        host = f"github-{org_lower}"
+    key_path = Path.home() / f".ssh/github_{org_lower}"
+
+    backend = StandardSSH(email=email, key_path=key_path)
+    org_cfg = _ctx.git_config_dir / f"config-{org_lower}"
+    org_cfg_rel = f"~/{_ctx.git_config_dir.relative_to(Path.home())}/config-{org_lower}"
+
+    log.step(1, total, "Checking dependencies")
+    backend.check_deps(log)
+
+    log.step(2, total, "Generating SSH key")
+    backend.generate_key(log)
+
+    log.step(3, total, "Authenticating with GitHub")
+    check_github_auth(log)
+
+    log.step(4, total, "Uploading SSH key to GitHub")
+    pub_key = backend.get_public_key(log)
+    upload_ssh_key(pub_key, f"GitHub {org}", log)
+
+    log.step(5, total, "Configuring SSH host")
+    add_ssh_host(host, "github.com", "git", backend.ssh_host_extras(), log)
+
+    log.step(6, total, "Configuring URL rewrite")
+    add_url_rewrite(_ctx.main_cfg, org, host, log)
+
+    log.step(7, total, "Adding includeIf to git config")
+    condition = f"hasconfig:remote.*.url:git@{host}:**"
+    add_include_if(_ctx.main_cfg, condition, org_cfg_rel, log)
+    gh_condition = f"hasconfig:remote.*.url:git@github.com:{org}/**"
+    add_include_if(_ctx.main_cfg, gh_condition, org_cfg_rel, log)
+
+    log.step(8, total, "Writing org git config")
+    write_org_config(org_cfg, name, email, log)
+    if pub_key:
+        git_config_set(org_cfg, "user.signingkey", f"{key_path}.pub", log)
+
+    log.step(9, total, "Updating allowed_signers")
+    update_allowed_signers(_ctx.signers_path, email, pub_key, log)
+
+    log.step(10, total, "Configuring .gitattributes")
+    setup_gitattributes(_ctx.git_config_dir, log)
+
+    _print_add_summary(org, host)
+
+
+# ── op init command (1Password) ──────────────────────────────────────────────
+
+
+@op_app.command("init")
+def op_init(
+    name: Optional[str] = typer.Option(None, "--name", help="Git author name"),
+    email: Optional[str] = typer.Option(None, "--email", help="Git author email"),
+    vault: str = typer.Option("Personal", "--vault", help="1Password vault"),
+    key_name: Optional[str] = typer.Option(None, "--key-name", help="1Password item name (default: 'GitHub SSH <name>')"),
+) -> None:
+    """Set up primary GitHub SSH authentication with 1Password.
+
+    Examples:
+        ggh op init --name "Jane Doe" --email "jane@example.com"
+        ggh op init --name "Jane" --email "jane@example.com" --vault Work
+        ggh op init -i
+    """
+    log = _ctx.logger
+    total = 13
+
+    if log.interactive:
+        default_name = git_config_get(_ctx.main_cfg, "user.name") or ""
+        default_email = git_config_get(_ctx.main_cfg, "user.email") or ""
+        name = _prompt("Git author name", name or default_name)
+        email = _prompt("Git author email", email or default_email)
+        vault = _prompt("1Password vault", vault)
+        key_name = _prompt("1Password key name", key_name or f"GitHub SSH {name}")
+    else:
+        name = _require(name, "--name", log)
+        email = _require(email, "--email", log)
+        if key_name is None:
+            key_name = f"GitHub SSH {name}"
+
+    name_lower = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    pub_key_path = Path.home() / f".ssh/github_{name_lower}"
+    backend = OnePassword(vault=vault, key_name=key_name, pub_key_path=pub_key_path)
+
+    log.step(1, total, "Checking dependencies")
+    backend.check_deps(log)
+
+    log.step(2, total, "Configuring SSH include")
+    add_ssh_include("Include ~/.ssh/1Password/config", log)
+
+    log.step(3, total, "Creating SSH key in 1Password")
+    backend.generate_key(log)
+
+    log.step(4, total, "Authenticating with GitHub")
+    check_github_auth(log)
+
+    log.step(5, total, "Uploading SSH key to GitHub")
+    pub_key = backend.get_public_key(log)
+    upload_ssh_key(pub_key, key_name, log)
+
+    log.step(6, total, "Saving public key to disk")
+    save_public_key(pub_key, backend.pub_key_path, log)
+
+    log.step(7, total, "Configuring SSH host")
+    add_ssh_host("github.com", "github.com", "git", backend.ssh_host_extras(), log)
+
+    log.step(8, total, "Registering key in agent.toml")
+    update_agent_toml(key_name, vault, log)
+
+    log.step(9, total, "Configuring git identity")
+    git_config_set(_ctx.main_cfg, "user.name", name, log)
+    git_config_set(_ctx.main_cfg, "user.email", email, log)
+    git_config_set(_ctx.main_cfg, "commit.gpgSign", "true", log)
+    git_config_set(_ctx.main_cfg, "tag.gpgSign", "true", log)
+
+    log.step(10, total, "Configuring commit signing")
+    backend.configure_signing(_ctx.main_cfg, pub_key, log)
+
+    log.step(11, total, "Updating allowed_signers")
+    update_allowed_signers(_ctx.signers_path, email, pub_key, log)
+    git_config_set(_ctx.main_cfg, "gpg.ssh.allowedSignersFile", str(_ctx.signers_path), log)
+
+    log.step(12, total, "Setting up clean filter")
+    setup_clean_filter(_ctx.main_cfg, log)
+
+    log.step(13, total, "Configuring .gitattributes")
+    setup_gitattributes(_ctx.git_config_dir, log)
+
+    _print_init_summary(name, email)
+
+
+# ── op add command (1Password org) ───────────────────────────────────────────
+
+
+@op_app.command("add")
+def op_add(
+    org: Optional[str] = typer.Option(None, "--org", help="GitHub organization name"),
+    name: Optional[str] = typer.Option(None, "--name", help="Git author name for this org"),
+    email: Optional[str] = typer.Option(None, "--email", help="Git author email for this org"),
+    vault: str = typer.Option("Personal", "--vault", help="1Password vault"),
+    key_name: Optional[str] = typer.Option(None, "--key-name", help="1Password item name (default: 'GitHub <org>')"),
+    host: Optional[str] = typer.Option(None, "--host", help="SSH host alias (default: github-<org>)"),
+) -> None:
+    """Add a GitHub organization with a 1Password SSH key.
+
+    Examples:
+        ggh op add --org Acme --name "Jane Doe" --email "jane@acme.com"
+        ggh op add --org Acme --name "Jane" --email "jane@acme.com" --vault Work
+        ggh op add -i
+    """
+    log = _ctx.logger
+    total = 13
+
+    if log.interactive:
+        org = _prompt("Organization", org or "")
+        org_lower = org.lower()
+        host = _prompt("Host alias", host or f"github-{org_lower}")
+        vault = _prompt("1Password vault", vault)
+        key_name_default = key_name or f"GitHub {org}"
+        key_name = _prompt("1Password key name", key_name_default)
+        default_name = git_config_get(_ctx.main_cfg, "user.name") or ""
+        default_email = git_config_get(_ctx.main_cfg, "user.email") or ""
+        name = _prompt("Git author name", name or default_name)
+        email = _prompt("Git author email", email or default_email)
+    else:
+        org = _require(org, "--org", log)
+        name = _require(name, "--name", log)
+        email = _require(email, "--email", log)
+
+    org_lower = org.lower()
+    if host is None:
+        host = f"github-{org_lower}"
+    if key_name is None:
+        key_name = f"GitHub {org}"
+
+    pub_key_path = Path.home() / f".ssh/github_{org_lower}"
+    backend = OnePassword(vault=vault, key_name=key_name, host=host, pub_key_path=pub_key_path)
+    org_cfg = _ctx.git_config_dir / f"config-{org_lower}"
+    org_cfg_rel = f"~/{_ctx.git_config_dir.relative_to(Path.home())}/config-{org_lower}"
+
+    log.step(1, total, "Checking dependencies")
+    backend.check_deps(log)
+
+    log.step(2, total, "Configuring SSH include")
+    add_ssh_include("Include ~/.ssh/1Password/config", log)
+
+    log.step(3, total, "Creating SSH key in 1Password")
+    backend.generate_key(log)
+
+    log.step(4, total, "Authenticating with GitHub")
+    check_github_auth(log)
+
+    log.step(5, total, "Uploading SSH key to GitHub")
+    pub_key = backend.get_public_key(log)
+    upload_ssh_key(pub_key, f"{key_name} (1Password)", log)
+
+    log.step(6, total, "Saving public key to disk")
+    save_public_key(pub_key, backend.pub_key_path, log)
+
+    log.step(7, total, "Configuring SSH host")
+    add_ssh_host(host, "github.com", "git", backend.ssh_host_extras(), log)
+
+    log.step(8, total, "Registering key in agent.toml")
+    update_agent_toml(key_name, vault, log)
+
+    log.step(9, total, "Configuring URL rewrite")
+    add_url_rewrite(_ctx.main_cfg, org, host, log)
+
+    log.step(10, total, "Adding includeIf to git config")
+    condition = f"hasconfig:remote.*.url:git@{host}:**"
+    add_include_if(_ctx.main_cfg, condition, org_cfg_rel, log)
+    gh_condition = f"hasconfig:remote.*.url:git@github.com:{org}/**"
+    add_include_if(_ctx.main_cfg, gh_condition, org_cfg_rel, log)
+
+    log.step(11, total, "Writing org git config")
+    write_org_config(org_cfg, name, email, log)
+    if pub_key:
+        git_config_set(org_cfg, "user.signingkey", str(backend.pub_key_path), log)
+
+    log.step(12, total, "Updating allowed_signers")
+    update_allowed_signers(_ctx.signers_path, email, pub_key, log)
+
+    log.step(13, total, "Configuring .gitattributes")
+    setup_gitattributes(_ctx.git_config_dir, log)
+
+    _print_add_summary(org, host)
+
+
+# ── status command ───────────────────────────────────────────────────────────
+
+
+@app.command()
+def status() -> None:
+    """Show current GitHub SSH configuration status."""
+    log = _ctx.logger
+    console = Console()
+
+    console.print("\n[bold]GitHub SSH Configuration Status[/]\n")
+
+    # Git identity
+    cfg = _ctx.main_cfg
+    uname = git_config_get(cfg, "user.name")
+    uemail = git_config_get(cfg, "user.email")
+    console.print("[bold cyan]Identity[/]")
+    console.print(f"  name:  {uname or '[dim]not set[/]'}")
+    console.print(f"  email: {uemail or '[dim]not set[/]'}")
+
+    # Signing config
+    gpg_format = git_config_get(cfg, "gpg.format")
+    commit_sign = git_config_get(cfg, "commit.gpgSign")
+    tag_sign = git_config_get(cfg, "tag.gpgSign")
+    sign_program = git_config_get(cfg, "gpg.ssh.program")
+
+    console.print("\n[bold cyan]Signing[/]")
+    console.print(f"  format:      {gpg_format or '[dim]not set[/]'}")
+    console.print(f"  commit.sign: {commit_sign or '[dim]not set[/]'}")
+    console.print(f"  tag.sign:    {tag_sign or '[dim]not set[/]'}")
+    if sign_program:
+        backend_type = "1Password" if "op-ssh-sign" in sign_program else "standard"
+        console.print(f"  program:     {sign_program} ({backend_type})")
+
+    # SSH keys
+    ssh_dir = Path.home() / ".ssh"
+    console.print("\n[bold cyan]SSH Keys[/]")
+    found_keys = False
+    for key_file in sorted(ssh_dir.glob("github_*")):
+        if key_file.suffix == ".pub":
+            continue
+        console.print(f"  {key_file.name}: {key_file}")
+        found_keys = True
+    if not found_keys:
+        console.print("  [dim]No standard GitHub SSH keys found[/]")
+
+    # 1Password agent
+    console.print("\n[bold cyan]1Password Agent[/]")
+    env = os.environ.get("SSH_AUTH_SOCK")
+    if env:
+        sock = Path(env)
+    elif platform.system() == "Darwin":
+        sock = Path.home() / "Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    else:
+        sock = Path.home() / ".1password/agent.sock"
+    if sock.exists():
+        console.print(f"  [green]✓[/] Agent socket: {sock}")
+    else:
+        console.print(f"  [dim]Agent socket not found[/]")
+
+    # 1Password Agent Config (agent.toml)
+    toml_path = resolve_agent_toml_path()
+    console.print("\n[bold cyan]1Password Agent Config[/]")
+    if toml_path.exists():
+        with toml_path.open("rb") as f:
+            toml_data = tomllib.load(f)
+        entries = toml_data.get("ssh-keys", [])
+        if entries:
+            for entry in entries:
+                item_name = entry.get("item", "?")
+                vault_name = entry.get("vault", "?")
+                console.print(f"  {item_name} (vault: {vault_name})")
+        else:
+            console.print("  [dim]No ssh-keys entries[/]")
+    else:
+        console.print("  [dim]No agent.toml configured[/]")
+
+    # SSH config hosts
+    ssh_config = ssh_dir / "config"
+    console.print("\n[bold cyan]SSH Config Hosts[/]")
+    if ssh_config.exists():
+        text = ssh_config.read_text()
+        hosts = re.findall(r"^Host\s+(github\S+)", text, re.MULTILINE)
+        if hosts:
+            for h in hosts:
+                console.print(f"  {h}")
+        else:
+            console.print("  [dim]No GitHub host aliases found[/]")
+    else:
+        console.print("  [dim]~/.ssh/config not found[/]")
+
+    # includeIf blocks
+    console.print("\n[bold cyan]Organization Configs[/]")
+    if cfg.exists():
+        text = cfg.read_text()
+        includes = re.findall(
+            r'\[includeIf "([^"]+)"\]\s*\n\s*path\s*=\s*(.+)',
+            text,
+        )
+        if includes:
+            for condition, path in includes:
+                console.print(f"  {condition}")
+                console.print(f"    → {path}")
+        else:
+            console.print("  [dim]No includeIf blocks found[/]")
+    else:
+        console.print("  [dim]Git config not found[/]")
+
+    # Allowed signers
+    console.print("\n[bold cyan]Allowed Signers[/]")
+    if _ctx.signers_path.exists():
+        text = _ctx.signers_path.read_text().strip()
+        if text:
+            for line in text.splitlines():
+                parts = line.split(None, 1)
+                if parts:
+                    console.print(f"  {parts[0]}")
+        else:
+            console.print("  [dim]File is empty[/]")
+    else:
+        console.print(f"  [dim]Not found at {_ctx.signers_path}[/]")
+
+    console.print()
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+
+def _show_diff(current: str, proposed: str) -> None:
+    """Show a colored unified diff (like git diff) for multi-line values."""
+    old = current.splitlines(keepends=True)
+    new = proposed.splitlines(keepends=True)
+    for line in difflib.unified_diff(old, new, fromfile="current", tofile="proposed", lineterm=""):
+        line = line.rstrip()
+        if line.startswith("+++") or line.startswith("---"):
+            _console.print(f"  [bold]{line}[/]")
+        elif line.startswith("+"):
+            _console.print(f"  [green]{line}[/]")
+        elif line.startswith("-"):
+            _console.print(f"  [red]{line}[/]")
+        elif line.startswith("@@"):
+            _console.print(f"  [cyan]{line}[/]")
+        else:
+            _console.print(f"  {line}")
+
+
+def _confirm_overwrite(label: str, current: str, proposed: str) -> bool:
+    """Prompt: overwrite existing value? Returns True to overwrite, False to keep."""
+    def _trunc(s: str, n: int = 60) -> str:
+        return s if len(s) <= n else s[:n] + "…"
+
+    _console.print(f"\n  [bold]{label}[/]")
+    if "\n" in current or "\n" in proposed:
+        _show_diff(current, proposed)
+    else:
+        _console.print(f"  Current: [dim]{_trunc(current)}[/]")
+        _console.print(f"  New:     {_trunc(proposed)}")
+    _console.print(f"\n  [cyan]1[/] Update — use the new value")
+    _console.print(f"  [cyan]2[/] Keep — leave as-is")
+
+    while True:
+        choice = input("\n  Choose [1/2]: ").strip()
+        if choice in ("1", "2"):
+            break
+        _console.print("  [red]Invalid choice — enter 1 or 2[/]")
+
+    return choice == "1"
+
+
+def _require(value: str | None, flag: str, logger: Logger) -> str:
+    """Require a value, exit with helpful message if missing (non-interactive mode)."""
+    if value is not None:
+        return value
+    logger.error(f"Missing required option: {flag}")
+    logger.info(f"Provide {flag} <value>, or use -i for interactive mode")
+    raise typer.Exit(1)
+
+
+def _prompt(label: str, default: str = "") -> str:
+    """Interactive prompt with optional default value."""
+    if default:
+        value = input(f"  {label} [{default}]: ").strip()
+        return value or default
+    while True:
+        value = input(f"  {label}: ").strip()
+        if value:
+            return value
+        _console.print(f"  [red]{label} is required[/]")
+
+
+def _print_init_summary(name: str, email: str) -> None:
+    """Print setup completion summary for init commands."""
+    _console.print("\n[bold green]── Setup complete ──────────────────────────────────────[/]\n")
+    _console.print(f"  name:  {name}")
+    _console.print(f"  email: {email}")
+    _console.print("\n[blue]::[/] Test the connection:")
+    _console.print("[dim]  ssh -T git@github.com[/]\n")
+
+
+def _print_add_summary(org: str, host: str) -> None:
+    """Print setup completion summary for add commands."""
+    _console.print("\n[bold green]── Setup complete ──────────────────────────────────────[/]\n")
+    _console.print(f"  [bold cyan]org:[/]  {org}")
+    _console.print(f"  [bold cyan]host:[/] {host}")
+    _console.print(f"\n[bold dark_orange]![/] [dark_orange]If your org uses SAML/SSO, authorize the key at:[/]")
+    _console.print("[cyan]  https://github.com/settings/keys[/]")
+    _console.print(f"\n[blue]::[/] Clone a repo (URL rewrite routes to the right key automatically):")
+    _console.print(f"[dim]  git clone git@github.com:{org}/<repo>.git[/]")
+    _console.print(f"\n[blue]::[/] Test the connection:")
+    _console.print(f"[dim]  ssh -T git@{host}[/]")
+    _console.print(f"\n[blue]::[/] Test commit signing:")
+    _console.print(f"[dim]  cd <repo> && echo \"test\" | git commit-tree HEAD^{{tree}} -S[/]")
+    _console.print(f"  [dim]Success → prints a 40-char commit SHA (e.g. a1b2c3d4e5f6...)[/]\n")
+
+
+if __name__ == "__main__":
+    app()
