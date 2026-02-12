@@ -12,7 +12,7 @@ See [CONFIG.md](CONFIG.md) for detailed settings documentation.
 | `co`        | `checkout`                    | Checkout branch                              |
 | `sw`        | `switch`                      | Switch branch (modern)                       |
 | `ci`        | `commit`                      | Commit changes                               |
-| `lg`        | `log --graph...`              | Pretty graph log                             |
+| `lg`        | `log --graph...`              | Pretty graph log with signature status       |
 | `dog`       | `log --all --oneline --graph` | Full graph view                              |
 | `last`      | `log -1 HEAD`                 | Show last commit                             |
 | `oops`      | `commit --amend --no-edit`    | Amend without editing message                |

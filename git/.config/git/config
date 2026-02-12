@@ -4,7 +4,7 @@
   co = checkout
   sw = switch
   st = status
-  lg = log --graph --date=relative --pretty=tformat:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%an %ad)%Creset'
+  lg = "!f() { g=$(printf '\\033[32m󰏪\\033[0m'); n=$(printf '\\033[38;5;208m󰷤\\033[0m'); git log --color=always --graph --date=relative --pretty=tformat:'%Cred%h%Creset %G? -%C(auto)%d%Creset %s %Cgreen(%an %ad)%Creset' \"$@\" | sed -e \"s/ G -/ $g -/\" -e \"s/ N -/ $n -/\" -e \"s/ U -/ $g -/\" -e \"s/ B -/ $n -/\" -e \"s/ E -/ $n -/\" -e \"s/ X -/ $n -/\" -e \"s/ Y -/ $g -/\" -e \"s/ R -/ $n -/\"; }; f"
   dog = log --all --decorate --oneline --graph
   last = log -1 HEAD
   oops = commit --amend --no-edit

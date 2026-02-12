@@ -181,23 +181,75 @@ class StandardSSH:
                 logger.info(f"Using existing key at {self.key_path}")
                 return
 
-        self.key_path.parent.mkdir(parents=True, exist_ok=True)
-        run(
-            [
-                "ssh-keygen",
-                "-t",
-                "ed25519",
-                "-C",
-                self.email,
-                "-f",
-                str(self.key_path),
-                "-N",
-                "",
-            ],
-            logger=logger,
-        )
-        run(["ssh-add", str(self.key_path)], logger=logger, check=False)
+        # Passphrase prompt
+        use_passphrase = False
+        if logger.dry_run:
+            logger.info("[DRY RUN] Would prompt for passphrase")
+        else:
+            _console.print(f"\n  [bold]Passphrase protection[/]")
+            _console.print(f"  [cyan]1[/] Set a passphrase (Recommended) — encrypts the key at rest")
+            _console.print(f"  [cyan]2[/] No passphrase — key stored unencrypted on disk")
+
+            while True:
+                pp_choice = input("\n  Choose [1/2]: ").strip()
+                if pp_choice in ("1", "2"):
+                    break
+                _console.print("  [red]Invalid choice — enter 1 or 2[/]")
+
+            use_passphrase = pp_choice == "1"
+            if not use_passphrase:
+                logger.warn("Key will be stored without passphrase protection")
+
+        self.key_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+
+        if use_passphrase:
+            # Let ssh-keygen prompt interactively for passphrase
+            run(
+                [
+                    "ssh-keygen",
+                    "-t",
+                    "ed25519",
+                    "-C",
+                    self.email,
+                    "-f",
+                    str(self.key_path),
+                ],
+                capture=False,
+                logger=logger,
+            )
+        else:
+            run(
+                [
+                    "ssh-keygen",
+                    "-t",
+                    "ed25519",
+                    "-C",
+                    self.email,
+                    "-f",
+                    str(self.key_path),
+                    "-N",
+                    "",
+                ],
+                logger=logger,
+            )
+
         logger.success(f"Generated ed25519 key at {self.key_path}")
+
+        # Add key to SSH agent
+        ssh_add_cmd = ["ssh-add"]
+        if use_passphrase and platform.system() == "Darwin":
+            ssh_add_cmd.append("--apple-use-keychain")
+        ssh_add_cmd.append(str(self.key_path))
+
+        result = run(ssh_add_cmd, capture=False, check=False, logger=logger)
+        if result.returncode == 0:
+            msg = "Added key to SSH agent"
+            if use_passphrase and platform.system() == "Darwin":
+                msg += " (passphrase saved to Keychain)"
+            logger.success(msg)
+        else:
+            logger.warn("Could not add key to SSH agent")
+            logger.info(f"Add manually: ssh-add {self.key_path}")
 
     def get_public_key(self, logger: Logger) -> str:
         pub = Path(f"{self.key_path}.pub")
