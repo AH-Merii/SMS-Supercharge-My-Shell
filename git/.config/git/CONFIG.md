@@ -172,4 +172,5 @@ These sections contain machine-specific values (identity, signing keys, org URL 
 - [delta](https://github.com/dandavison/delta) - Diff viewer with syntax highlighting
 - `ggh` - GitHub SSH setup CLI (included in `~/.local/bin`)
 - [1Password](https://1password.com/) desktop app with SSH agent enabled (for 1Password signing mode)
+- `git-reword` - Reword any commit message, latest or by hash (included in `~/.local/bin`)
 - `git-whichside` - Conflict helper showing ours vs theirs (included in `~/.local/bin`)

@@ -8,7 +8,6 @@
   dog = log --all --decorate --oneline --graph
   last = log -1 HEAD
   oops = commit --amend --no-edit
-  reword = commit --amend
   fixup = commit --fixup
   wip = "!f() { git commit -am \"WIP: ${1:-work in progress}\"; }; f"
   ws = "!f() { count=$(git log --oneline --format='%s' | awk '/^WIP:/{c++} !/^WIP:/{exit} END{print c+0}'); if [ \"$count\" -eq 0 ]; then echo 'No WIP commits found'; return 1; fi; if [ \"$1\" = '-m' ] && [ -n \"$2\" ]; then git reset --soft HEAD~$count && git commit -m \"$2\"; else git rebase -i HEAD~$((count + 1)); fi; }; f"
