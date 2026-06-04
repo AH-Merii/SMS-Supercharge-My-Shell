@@ -2,7 +2,7 @@
 
 add_newline = false
 scan_timeout = 20
-command_timeout = 800
+command_timeout = 1000
 
 format = """
 $username\
@@ -283,6 +283,7 @@ style = "blue"
 format = "[$symbol$context]($style) "
 
 [custom.podman_connection]
+detect_files = ["Containerfile", "Dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"]
 command = 'name=$(podman machine list --format "{{if eq .Running true}}{{.Name}}{{end}}" | tr -d "\n*" | sed "s/podman-machine-//"); [ "$name" != "default" ] && echo "$name"'
 when = 'podman machine list --format "{{.Running}}" 2>/dev/null | grep -q true'
 symbol = " "

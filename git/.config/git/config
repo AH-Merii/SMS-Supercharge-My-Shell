@@ -131,3 +131,14 @@
 
 [includeIf "hasconfig:remote.*.url:git@github.com:AECOM-AI-Engineering/**"]
     path = ~/.config/git/config-aecom-ai-engineering
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential

@@ -24,6 +24,9 @@ cursor-style-blink = true
 
 copy-on-select = clipboard
 
+# Desktop notifications via OSC 9/777 (used by Claude Code hooks)
+desktop-notifications = true
+
 background-opacity = 0.95
 background-blur = 20
 
@@ -40,3 +43,5 @@ keybind = ctrl+arrow_up=jump_to_prompt:-1
 keybind = performable:ctrl+c=copy_to_clipboard
 keybind = performable:ctrl+v=paste_from_clipboard
 keybind = shift+enter=text:\x1b\r
+
+quit-after-last-window-closed = true

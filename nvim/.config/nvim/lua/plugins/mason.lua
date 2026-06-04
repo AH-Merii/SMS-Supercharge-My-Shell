@@ -53,6 +53,7 @@ local ensure_installed_lsps = {
   "marksman",
   "ts_ls",
   "tinymist", -- Typst
+  "terraformls",
 }
 
 return {
@@ -78,6 +79,14 @@ return {
     dependencies = {
       "mason-org/mason.nvim",
       "neovim/nvim-lspconfig",
+    },
+    keys = {
+      {
+        "<leader>lr",
+        function() vim.lsp.buf.rename() end,
+        mode = "n",
+        desc = "LSP Rename",
+      },
     },
     opts = {
       -- LSP *server* names (not Mason package names)

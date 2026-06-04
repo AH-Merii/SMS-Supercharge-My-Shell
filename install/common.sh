@@ -40,6 +40,7 @@ BREW_PACKAGES=(
   bat
   fzf
   eza
+  gnupg
   git-delta
   tmux
   csvlens

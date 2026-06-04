@@ -40,6 +40,8 @@ return {
       "TmuxNavigatorProcessList",
     },
     init = function()
+      vim.g.tmux_navigator_no_wrap = 1
+
       -- Reusable function to register keymaps in different contexts
       local function set_keymaps()
         vim.keymap.set({ "n", "t" }, "<C-h>", "<cmd>TmuxNavigateLeft<cr>")

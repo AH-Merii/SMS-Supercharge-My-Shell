@@ -12,6 +12,13 @@ return {
   },
 
   opts = {
+    formatters = {
+      shfmt = {
+        -- Use 2-space indentation and preserve manual alignment padding.
+        prepend_args = { "-i", "2", "-kp" },
+      },
+    },
+
     formatters_by_ft = {
       -- Web technologies (Biome for JS/TS/JSON, Prettier for markup/config)
       javascript = { "biome" },
@@ -46,7 +53,10 @@ return {
       lua = { "stylua" },
       rust = { "rustfmt" },
       zig = { "zigfmt" },
-      mojo = { "lsp" },
+
+      terraform = { "terraform_fmt" },
+      tf = { "terraform_fmt" },
+      ["terraform-vars"] = { "terraform_fmt" },
 
       cmake = { "gersemi" },
       typst = { "typstyle" },

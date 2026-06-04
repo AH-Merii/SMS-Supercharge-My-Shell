@@ -129,9 +129,21 @@ return {
     local cached_formatters = ""
     local cached_linters = ""
 
-    local function update_statusline_cache()
-      -- LSP clients
-      local clients = vim.lsp.get_clients({ bufnr = 0 })
+    local function update_statusline_cache(args)
+      -- Resolve which buffer this update is for. Autocmd events give us the
+      -- triggering buffer in `args.buf`; fall back to the focused buffer when
+      -- the function is called manually. Skip non-file / scratch / popup
+      -- buffers so transient windows don't clobber the cache.
+      local bufnr = (args and args.buf) or vim.api.nvim_get_current_buf()
+      if not vim.api.nvim_buf_is_valid(bufnr) then
+        return
+      end
+      if vim.bo[bufnr].buftype ~= "" then
+        return
+      end
+
+      -- LSP clients attached to this buffer specifically
+      local clients = vim.lsp.get_clients({ bufnr = bufnr })
       if clients and next(clients) then
         local names_seen, names = {}, {}
         for _, client in ipairs(clients) do
@@ -148,8 +160,7 @@ return {
       -- Formatters
       local ok_conform, conform = pcall(require, "conform")
       if ok_conform then
-        local buf = vim.api.nvim_get_current_buf()
-        local formatters = conform.list_formatters_to_run(buf)
+        local formatters = conform.list_formatters_to_run(bufnr)
         if formatters and not vim.tbl_isempty(formatters) then
           cached_formatters = table.concat(vim.tbl_map(function(f) return f.name end, formatters), ", ")
         else
@@ -162,7 +173,7 @@ return {
       -- Linters
       local ok_lint, lint = pcall(require, "lint")
       if ok_lint then
-        local ft = vim.bo.filetype
+        local ft = vim.bo[bufnr].filetype
         local configured = lint.linters_by_ft[ft]
         if configured and not vim.tbl_isempty(configured) then
           cached_linters = table.concat(configured, ", ")
@@ -174,8 +185,8 @@ return {
       end
     end
 
-    -- Update cache on buffer/window changes and LSP lifecycle events
-    vim.api.nvim_create_autocmd({ "BufEnter", "FileType", "LspAttach", "LspDetach" }, {
+    -- Update cache on buffer/window changes, LSP lifecycle events, and after save
+    vim.api.nvim_create_autocmd({ "BufEnter", "FileType", "LspAttach", "LspDetach", "BufWritePost" }, {
       callback = update_statusline_cache,
     })
 

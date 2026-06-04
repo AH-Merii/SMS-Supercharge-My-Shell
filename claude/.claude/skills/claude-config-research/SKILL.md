@@ -1,6 +1,6 @@
 ---
 description: Trusted sources and methodology for researching Claude Code configuration, workflows, sandbox settings, and permissions
-autoActivateWhen: user asks about Claude Code configuration, sandbox permissions, settings.json, allowedDomains, hooks, or Claude Code workflows
+autoActivateWhen: user asks about Claude Code configuration, sandbox permissions, settings.json, allowedDomains, hooks, Claude Code workflows, custom agents, subagents, agent teams, or agent design best practices
 ---
 
 # Claude Code Configuration Research
