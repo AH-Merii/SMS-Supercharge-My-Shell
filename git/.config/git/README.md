@@ -175,10 +175,3 @@ Usage:
 # See which side is which during a conflict
 git whichside
 ```
-
-### Clone shortcuts
-
-```bash
-git clone gh:user/repo         # Expands to git@github.com:user/repo
-git clone gl:user/repo         # Expands to git@gitlab.com:user/repo
-```

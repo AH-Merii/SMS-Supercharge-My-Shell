@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script --no-project --no-config
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["typer"]
+# dependencies = ["typer", "rich"]
 # ///
 """ggh — GitHub SSH Setup CLI.
 
@@ -478,8 +478,9 @@ def _ensure_trailing_newline(path: Path) -> None:
     if not text:
         return
     stripped = text.rstrip("\n")
-    if stripped != text:
-        path.write_text(stripped + "\n")
+    expected = stripped + "\n"
+    if text != expected:
+        path.write_text(expected)
 
 
 def resolve_git_config_dir() -> Path:

@@ -86,21 +86,7 @@ Side-by-side is defined as a named feature (`[delta "side-by-side"]`) and toggle
 
 `interactive.diffFilter = delta --color-only` enables delta syntax highlighting during `git add -p`.
 
-## URL Shortcuts
-
-| Shortcut       | Expands To                 |
-| -------------- | -------------------------- |
-| `gh:user/repo` | `git@github.com:user/repo` |
-| `gl:user/repo` | `git@gitlab.com:user/repo` |
-
-Example:
-
-```bash
-git clone gh:AH-Merii/dotfiles
-# Equivalent to: git clone git@github.com:AH-Merii/dotfiles
-```
-
-### Org URL Rewrites
+## Org URL Rewrites
 
 `ggh add` and `ggh op add` configure `url.<base>.insteadOf` rules so that standard `github.com` clone URLs transparently route to the correct SSH host alias:
 

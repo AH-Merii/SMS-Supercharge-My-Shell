@@ -12,7 +12,7 @@ for tool in bun uv git gh stow fd rg jq; do
 done
 
 # Optional tools (warning only)
-for tool in fish btca op; do
+for tool in fish btca op direnv; do
   if ! command -v "$tool" &>/dev/null; then
     optional_missing+=("$tool")
   fi
@@ -29,6 +29,8 @@ for tool in "${optional_missing[@]}"; do
   case "$tool" in
     btca)
       echo "OPTIONAL: btca not installed. Run: bun install -g btca" ;;
+    direnv)
+      echo "OPTIONAL: direnv not installed. Run: brew install direnv" ;;
     *)
       echo "OPTIONAL: $tool not installed" ;;
   esac
