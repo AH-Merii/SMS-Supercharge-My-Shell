@@ -11,4 +11,3 @@ end
 # Enable Starship prompt
 starship init fish | source
 direnv hook fish | source
-direnv hook fish | source

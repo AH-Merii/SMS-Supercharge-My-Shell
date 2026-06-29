@@ -11,9 +11,6 @@
     "allow": [
       "Bash(bun --version)",
       "Bash(bun pm ls *)",
-      "Bash(curl https://hooks.slack.com/triggers/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 *)",
-      "Bash(curl -* https://hooks.slack.com/triggers/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 *)",
-      "Bash(curl -* -* https://hooks.slack.com/triggers/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 *)",
       "Bash(gh api *)",
       "Bash(gh auth status *)",
       "Bash(gh issue list *)",
