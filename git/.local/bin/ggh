@@ -155,7 +155,7 @@ class StandardSSH:
     def check_deps(self, logger: Logger) -> None:
         if not shutil.which("ssh-keygen"):
             logger.error("ssh-keygen not found")
-            logger.info("ssh-keygen is part of OpenSSH — install with: brew install openssh")
+            logger.info("ssh-keygen is part of OpenSSH — install it with your system package manager")
             raise typer.Exit(1)
         logger.success("ssh-keygen is available")
 
@@ -296,7 +296,7 @@ class OnePassword:
     def check_deps(self, logger: Logger) -> None:
         if not shutil.which("op"):
             logger.error("1Password CLI (op) is not installed")
-            logger.info("Install with: brew install 1password-cli")
+            logger.info("Install the 1Password CLI for your operating system")
             raise typer.Exit(1)
         logger.success("1Password CLI is available")
 
@@ -952,7 +952,7 @@ def check_github_auth(logger: Logger) -> None:
     """Authenticate with GitHub via gh CLI (always runs login for scope refresh)."""
     if not shutil.which("gh"):
         logger.error("GitHub CLI (gh) is not installed")
-        logger.info("Install with: brew install gh")
+        logger.info("Install GitHub CLI for your operating system")
         raise typer.Exit(1)
 
     logger.info("A browser window will open for authentication")

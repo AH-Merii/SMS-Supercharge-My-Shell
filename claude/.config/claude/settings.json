@@ -310,8 +310,7 @@
         "raw.githubusercontent.com",
         "registry.npmjs.org",
         "pypi.org",
-        "files.pythonhosted.org",
-        "hooks.slack.com"
+        "files.pythonhosted.org"
       ],
       "allowUnixSockets": [],
       "allowLocalBinding": true

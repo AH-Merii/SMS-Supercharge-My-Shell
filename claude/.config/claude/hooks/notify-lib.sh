@@ -22,8 +22,6 @@ load_config() {
     # Defaults for anything not set by the config file
     : "${NOTIFY_BELL:=true}"
     : "${NOTIFY_OSC:=true}"
-    : "${NOTIFY_SLACK:=false}"
-    : "${SLACK_WEBHOOK_URL:=}"
 }
 
 # ---------------------------------------------------------------------------
@@ -93,65 +91,6 @@ send_osc() {
 }
 
 # ---------------------------------------------------------------------------
-# send_slack — Slack incoming webhook notification
-#   $1 = title
-#   $2 = message
-#   $3 = urgency (low/medium/high)
-#   $4 = pane_label
-# ---------------------------------------------------------------------------
-send_slack() {
-    local title="${1:-}" message="${2:-}" urgency="${3:-low}" pane_label="${4:-}"
-
-    # Guard: Slack must be enabled with a valid webhook URL
-    [[ "${NOTIFY_SLACK}" == "true" ]] || return 0
-    [[ -n "${SLACK_WEBHOOK_URL}" ]] || return 0
-    command -v curl &>/dev/null || return 0
-    command -v jq &>/dev/null || return 0
-
-    # Map urgency to emoji
-    local emoji
-    case "$urgency" in
-        high)   emoji=":rotating_light:" ;;
-        medium) emoji=":hourglass:" ;;
-        *)      emoji=":white_check_mark:" ;;
-    esac
-
-    local timestamp
-    timestamp="$(date -u +%H:%M:%S)"
-
-    local payload
-    payload="$(jq -n \
-        --arg emoji "$emoji" \
-        --arg title "$title" \
-        --arg message "$message" \
-        --arg pane "$pane_label" \
-        --arg time "$timestamp" \
-        '{
-            text: "\($emoji) \($title): \($message)",
-            blocks: [
-                {
-                    type: "section",
-                    text: {
-                        type: "mrkdwn",
-                        text: "\($emoji) *\($title)*\n\($message)"
-                    }
-                },
-                {
-                    type: "context",
-                    elements: [
-                        { type: "mrkdwn", text: ":computer: *Pane:* \($pane)" },
-                        { type: "mrkdwn", text: ":clock1: \($time) UTC" }
-                    ]
-                }
-            ]
-        }'
-    )"
-
-    curl -s -X POST -H 'Content-Type: application/json' \
-        -d "$payload" "$SLACK_WEBHOOK_URL" &>/dev/null &
-}
-
-# ---------------------------------------------------------------------------
 # notify — orchestrator: dispatches to all enabled channels
 #   $1 = title
 #   $2 = message
@@ -182,11 +121,6 @@ notify() {
     if [[ "${NOTIFY_OSC}" == "true" ]]; then
         # OSC title includes pane label for multi-session context
         send_osc "Claude [$pane_label]" "$message" &
-    fi
-
-    if [[ "${NOTIFY_SLACK}" == "true" ]]; then
-        send_slack "$rich_title" "$message" "$urgency" "$pane_label"
-        # send_slack already backgrounds itself
     fi
 
     wait 2>/dev/null
