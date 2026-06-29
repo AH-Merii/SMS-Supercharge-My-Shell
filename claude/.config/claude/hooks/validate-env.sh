@@ -12,7 +12,7 @@ for tool in bun uv git gh stow fd rg jq; do
 done
 
 # Optional tools (warning only)
-for tool in fish btca op terminal-notifier; do
+for tool in fish btca op; do
   if ! command -v "$tool" &>/dev/null; then
     optional_missing+=("$tool")
   fi
@@ -29,8 +29,6 @@ for tool in "${optional_missing[@]}"; do
   case "$tool" in
     btca)
       echo "OPTIONAL: btca not installed. Run: bun install -g btca" ;;
-    terminal-notifier)
-      echo "OPTIONAL: terminal-notifier not installed. Run: brew install terminal-notifier" ;;
     *)
       echo "OPTIONAL: $tool not installed" ;;
   esac

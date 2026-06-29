@@ -22,10 +22,8 @@ load_config() {
     # Defaults for anything not set by the config file
     : "${NOTIFY_BELL:=true}"
     : "${NOTIFY_OSC:=true}"
-    : "${NOTIFY_MACOS:=true}"
     : "${NOTIFY_SLACK:=false}"
     : "${SLACK_WEBHOOK_URL:=}"
-    : "${MACOS_SENDER:=com.mitchellh.ghostty}"
 }
 
 # ---------------------------------------------------------------------------
@@ -92,58 +90,6 @@ send_osc() {
     else
         printf '\033]777;notify;%s;%s\007' "$title" "$body" > /dev/tty 2>/dev/null || true
     fi
-}
-
-# ---------------------------------------------------------------------------
-# send_macos — macOS Notification Center via terminal-notifier
-#   $1 = title
-#   $2 = subtitle (can be empty)
-#   $3 = message
-#   $4 = sound
-#   $5 = group_id
-#
-# Banner auto-closes after NOTIFY_MACOS_TIMEOUT seconds (default 5) and the
-# process is fully detached so it never blocks the parent shell or leaks.
-# ---------------------------------------------------------------------------
-send_macos() {
-    local title="${1:-}" subtitle="${2:-}" message="${3:-}"
-    local sound="${4:-Glass}" group_id="${5:-claude}"
-
-    local tn_cmd=""
-    if command -v terminal-notifier &>/dev/null; then
-        tn_cmd="terminal-notifier"
-    elif [[ -x /opt/homebrew/bin/terminal-notifier ]]; then
-        tn_cmd="/opt/homebrew/bin/terminal-notifier"
-    elif [[ -x /usr/local/bin/terminal-notifier ]]; then
-        tn_cmd="/usr/local/bin/terminal-notifier"
-    else
-        return 0
-    fi
-
-    local args=(
-        -title "$title"
-        -message "$message"
-        -sound "$sound"
-        -group "$group_id"
-        -sender "$MACOS_SENDER"
-        -activate "$MACOS_SENDER"
-        -timeout "${NOTIFY_MACOS_TIMEOUT:-5}"
-    )
-
-    if [[ -n "$subtitle" ]]; then
-        args+=(-subtitle "$subtitle")
-    fi
-
-    # terminal-notifier 2.0.0's -timeout flag is broken on recent macOS — the
-    # process hangs forever. We pass -timeout anyway (defense in depth) and add
-    # an external watchdog that SIGTERMs the notifier after N seconds. Killing
-    # the process also drops its entry from Notification Center.
-    local timeout="${NOTIFY_MACOS_TIMEOUT:-5}"
-    "$tn_cmd" "${args[@]}" </dev/null &>/dev/null &
-    local tn_pid=$!
-    disown 2>/dev/null || true
-    ( sleep "$timeout" && kill "$tn_pid" 2>/dev/null ) &>/dev/null &
-    disown 2>/dev/null || true
 }
 
 # ---------------------------------------------------------------------------
@@ -224,14 +170,6 @@ notify() {
     local pane_label
     pane_label="$(get_pane_label "$cwd" "$session_id")"
 
-    # Map urgency to macOS sound
-    local sound
-    case "$urgency" in
-        high)   sound="Ping" ;;
-        medium) sound="Ping" ;;
-        *)      sound="Glass" ;;
-    esac
-
     # Enriched title for channels that support longer text
     local rich_title="Claude [$pane_label] — $title"
 
@@ -244,11 +182,6 @@ notify() {
     if [[ "${NOTIFY_OSC}" == "true" ]]; then
         # OSC title includes pane label for multi-session context
         send_osc "Claude [$pane_label]" "$message" &
-    fi
-
-    if [[ "${NOTIFY_MACOS}" == "true" ]]; then
-        send_macos "$rich_title" "" "$message" "$sound" "$group_id"
-        # send_macos already backgrounds itself
     fi
 
     if [[ "${NOTIFY_SLACK}" == "true" ]]; then

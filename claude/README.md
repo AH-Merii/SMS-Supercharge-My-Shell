@@ -65,7 +65,7 @@ Skills auto-activate based on `autoActivateWhen` frontmatter when the user's pro
 
 **Formatting (PostToolUse)** -- auto-runs prettier and action version checks on every file write/edit.
 
-**Notifications (Stop/Notification)** -- terminal bell (tmux -> Ghostty dock bounce) + macOS notification via terminal-notifier.
+**Notifications (Stop/Notification)** -- terminal bell and OSC notifications.
 
 **Environment (Setup)** -- validates all required tools are installed on `claude --init`.
 
@@ -83,10 +83,10 @@ Skills auto-activate based on `autoActivateWhen` frontmatter when the user's pro
 Checked by `validate-env.sh` on init:
 
 ```
-bun uv fish git gh stow fd rg jq btca
+bun uv git gh stow fd rg jq
 ```
 
-Optional: `terminal-notifier` (macOS notifications)
+Optional: `fish`, `btca`, `op`
 
 Install missing tools: `brew install <tool>`
 Install btca: `bun add -g btca`

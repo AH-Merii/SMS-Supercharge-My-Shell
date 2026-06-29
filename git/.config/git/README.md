@@ -16,7 +16,6 @@ See [CONFIG.md](CONFIG.md) for detailed settings documentation.
 | `dog`       | `log --all --oneline --graph` | Full graph view                              |
 | `last`      | `log -1 HEAD`                 | Show last commit                             |
 | `oops`      | `commit --amend --no-edit`    | Amend without editing message                |
-| `reword`    | `git-reword` script           | Reword any commit (see Utilities)            |
 | `fixup`     | `commit --fixup`              | Create fixup commit                          |
 | `wip`       | `commit -am 'WIP: ...'`       | Quick WIP commit (with optional description) |
 | `ws`        | wipsquash                     | Squash WIP commits                           |
@@ -168,24 +167,11 @@ Scripts in `~/.local/bin/` that extend git:
 | --------------- | ----------------------------------------------------------------------------- |
 | `ggh`         | GitHub SSH setup CLI — manages keys, signing, org configs, allowed_signers    |
 | `op-ssh-sign`   | Cross-platform 1Password signing wrapper (detects macOS vs Linux)             |
-| `git-reword`    | Reword any commit message — latest or by hash, with optional `-m`             |
 | `git-whichside` | Shows ours vs theirs during conflicts (rebase, merge, cherry-pick, stash pop) |
 
 Usage:
 
 ```bash
-# Reword the latest commit (opens editor)
-git reword
-
-# Reword the latest commit inline
-git reword -m "better message"
-
-# Reword an older commit (opens editor, uses interactive rebase)
-git reword abc1234
-
-# Reword an older commit inline
-git reword abc1234 -m "better message"
-
 # See which side is which during a conflict
 git whichside
 ```
