@@ -3,7 +3,7 @@
 ## About
 
 This directory contains all the dotfiles for a supercharged development environment. It includes an easy way to make sure that all the necessary programs are installed using the `setup.sh` script.
-**NOTE**: This setup only works on Arch Linux as it makes heavy use of the AUR.
+**NOTE**: This setup supports Arch-based and Debian-based Linux distributions.
 
 _Table of Contents_
 
