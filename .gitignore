@@ -1,6 +1,5 @@
 helix/.config/helix/runtime
 .claude/
 !claude/.claude/
-install.log
 /git/.local/bin/__pycache__
 /git/.config/git/allowed_signers
