@@ -122,7 +122,7 @@ cleanup_homebrew_installation() {
 
 stow_all_configs_to_home_dir() {
   # Directories that should use --no-folding to create file symlinks instead of directory symlinks
-  local no_folding_dirs=("tmux" "ghostty" "karabiner")
+  local no_folding_dirs=("tmux" "herdr" "ghostty" "karabiner")
   local dir_name
   local stow_opts=()
 
