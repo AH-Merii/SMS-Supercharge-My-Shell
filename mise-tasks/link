@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#MISE description="Stow the layers for this machine's profile (STOW_FLAGS=-n to dry-run)"
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+
+flags=${STOW_FLAGS:-}
+if [[ -z $flags && $PWD == */.claude/worktrees/* ]]; then
+  echo "refusing to link from a worktree ($PWD); run from the main checkout" >&2
+  exit 1
+fi
+
+echo "profile: $profile"
+for layer in "${layers[@]}"; do
+  mapfile -t pkgs < <(ls -1 "$layer")
+  echo "$layer: ${pkgs[*]}"
+  # .stowrc supplies --target and --no-folding
+  # shellcheck disable=SC2086
+  stow $flags -d "$layer" -R "${pkgs[@]}"
+done
+
+# niri includes noctalia.kdl, which Noctalia generates on first run
+if [[ -z $flags && " ${layers[*]} " == *" desktop "* ]]; then
+  mkdir -p ~/.config/niri
+  touch ~/.config/niri/noctalia.kdl
+fi

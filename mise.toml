@@ -1,0 +1,16 @@
+# Task runner for this repo: `mise tasks` lists everything, `mise run <task>` runs it.
+# File tasks live in mise-tasks/. Tools are NOT declared here; a [tools] block in this file
+# would shadow the global config (base/mise/.config/mise/config.toml) whenever the cwd is
+# inside the repo.
+
+[tasks.setup]
+description = "Fresh machine: deps, link, tools, plugins"
+run = ["mise run deps", "mise run link", "mise run tools", "mise run plugins"]
+
+[tasks.tools]
+description = "Install every tool in the global mise config"
+run = "mise install --yes"
+
+[tasks.check]
+description = "Dry-run stow for this machine's profile"
+run = "STOW_FLAGS=-n mise run link"
