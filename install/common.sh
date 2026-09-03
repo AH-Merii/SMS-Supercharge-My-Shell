@@ -77,3 +77,10 @@ BREW_PACKAGES=(
   # Terminal emulators
   # kitty
 )
+
+# Tools installed as global npm packages (node comes from BREW_PACKAGES above).
+# Pinned: `npm -g` resolves under mise's node prefix, so these need reinstalling
+# after a node major bump.
+NPM_GLOBAL_PACKAGES=(
+  ccstatusline@2.2.28
+)

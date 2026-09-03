@@ -1,0 +1,134 @@
+{
+  "version": 3,
+  "colorLevel": 3,
+  "flexMode": "full-minus-40",
+  "compactThreshold": 60,
+  "defaultSeparator": "  ",
+  "defaultPaddingSide": "both",
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "gitCacheTtlSeconds": 5,
+  "minimalistMode": false,
+  "powerline": {
+    "enabled": false,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "autoAlign": false,
+    "continueThemeAcrossLines": false
+  },
+  "installation": {
+    "method": "pinned",
+    "installedVersion": "2.2.28"
+  },
+  "lines": [
+    [
+      {
+        "id": "cwd",
+        "type": "current-working-dir",
+        "color": "cyan",
+        "bold": true,
+        "rawValue": true,
+        "character": "󰉋",
+        "metadata": {
+          "fishStyle": "true"
+        }
+      },
+      {
+        "id": "branch",
+        "type": "git-branch",
+        "color": "white",
+        "bold": true,
+        "character": "",
+        "maxWidth": 24
+      },
+      {
+        "id": "git-status",
+        "type": "git-status",
+        "color": "yellow"
+      },
+      {
+        "id": "git-ins",
+        "type": "git-insertions",
+        "color": "green"
+      },
+      {
+        "id": "git-del",
+        "type": "git-deletions",
+        "color": "red"
+      },
+      {
+        "id": "context",
+        "type": "custom-command",
+        "commandPath": "$HOME/.config/ccstatusline/context-bar.sh",
+        "preserveColors": true,
+        "timeout": 300
+      },
+      {
+        "id": "model-icon",
+        "type": "custom-symbol",
+        "customSymbol": "󰷑 ",
+        "color": "cyan",
+        "merge": true
+      },
+      {
+        "id": "model",
+        "type": "model",
+        "color": "cyan",
+        "rawValue": true
+      },
+      {
+        "id": "effort",
+        "type": "thinking-effort",
+        "color": "magenta",
+        "rawValue": true
+      },
+      {
+        "id": "clock-icon",
+        "type": "custom-symbol",
+        "customSymbol": " ",
+        "color": "yellow",
+        "merge": true
+      },
+      {
+        "id": "clock",
+        "type": "session-clock",
+        "color": "yellow",
+        "rawValue": true
+      },
+      {
+        "id": "usage-5h-label",
+        "type": "custom-text",
+        "customText": "5h ",
+        "color": "brightBlue",
+        "merge": true
+      },
+      {
+        "id": "usage-5h",
+        "type": "session-usage",
+        "color": "brightBlue",
+        "rawValue": true
+      },
+      {
+        "id": "usage-7d-label",
+        "type": "custom-text",
+        "customText": "7d ",
+        "color": "brightBlue",
+        "merge": true
+      },
+      {
+        "id": "usage-7d",
+        "type": "weekly-usage",
+        "color": "brightBlue",
+        "rawValue": true
+      }
+    ],
+    [],
+    []
+  ]
+}
