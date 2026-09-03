@@ -1,97 +1,132 @@
 # Claude Code Configuration
 
-Global Claude Code configuration managed via [GNU Stow](https://www.gnu.org/software/stow/) from `~/SMS-Supercharge-My-Shell/claude/`.
+Global settings, managed via [GNU Stow](https://www.gnu.org/software/stow/) from
+`~/SMS-Supercharge-My-Shell/claude/`.
 
-Apply changes: `cd ~/SMS-Supercharge-My-Shell && stow -vt ~ claude`
+Apply changes:
+
+```bash
+cd ~/SMS-Supercharge-My-Shell && stow claude
+```
 
 ## Directory Structure
 
 ```
 claude/
-├── .claude/                          # -> ~/.claude/
-│   ├── CLAUDE.md                     # Global instructions (loaded every session)
-│   ├── agents/
-│   │   └── code-searcher.md          # Read-only code analysis agent
-│   ├── commands/                     # Slash commands (/command-name)
-│   │   ├── review-pr.md              # /review-pr <number>
-│   │   ├── setup.md                  # /setup
-│   │   └── spec.md                   # /spec <task description>
-│   └── skills/                       # Auto-activating skills (on-demand context)
-│       ├── ci-workflow/SKILL.md      # GitHub Actions conventions
-│       ├── debugging/SKILL.md        # Systematic debugging pattern
-│       ├── fish-shell/SKILL.md       # Fish shell scripting
-│       ├── git-workflow/SKILL.md     # Conventional commits, PR workflow
-│       └── stow-config/SKILL.md     # Dotfile management via stow
-└── .config/claude/                   # -> ~/.config/claude/
-    ├── settings.json                 # Permissions, hooks, sandbox, plugins, status line
-    └── hooks/
-        ├── enforce-uv.sh            # Blocks raw python/pip -> use uv
-        ├── enforce-rg.sh            # Blocks raw grep -> use Grep tool or rg
-        ├── enforce-fd.sh            # Blocks raw find -> use Glob tool or fd
-        ├── prettier-format.sh       # Auto-formats files on write/edit
-        ├── check-actions-versions.sh # Validates GH Action versions on save
-        ├── notify-stop.sh           # Bell + notification when Claude finishes
-        ├── notify-notification.sh   # Bell + notification when Claude needs input
-        ├── validate-env.sh          # Checks required tools on init/maintenance
-        └── skill-eval.sh            # Suggests skills based on prompt keywords
+└── .config/claude/
+    └── settings.json    # the entire config -- one file
 ```
 
-## How It Works
+`CLAUDE_CONFIG_DIR` is set to `$XDG_CONFIG_HOME/claude` by both
+`fish/.config/fish/conf.d/00-env.fish` and `zsh/.zshenv`, so `~/.config/claude/` is the
+active config root.
 
-### CLAUDE.md (always loaded)
-Minimal instructions Claude can't infer on its own: runtime preferences (bun, uv, rg, fd), workflow patterns (task tracking, parallel agents), and stow conventions. Everything else is handled by hooks or skills.
+There is deliberately **no `.claude/` half** to this package. Files placed at `~/.claude/`
+would sit outside `CLAUDE_CONFIG_DIR` and never be read. This package previously carried a
+`.claude/` tree (CLAUDE.md, agents, commands, skills) that was inert for exactly this reason.
 
-### Skills (loaded on demand)
-Skills auto-activate based on `autoActivateWhen` frontmatter when the user's prompt matches keywords. This keeps the context window lean -- only relevant instructions load.
+## What's Configured
 
-| Skill | Activates when you mention... |
-|-------|-------------------------------|
-| stow-config | stow, dotfiles, shell config, symlink |
-| ci-workflow | CI, GitHub Actions, workflows |
-| fish-shell | fish, fish functions, conf.d |
-| git-workflow | commit, PR, git workflow |
-| debugging | bug, error, debug, investigate |
-
-### Slash Commands
-| Command | Usage |
-|---------|-------|
-| `/review-pr 123` | Comprehensive PR review with checks |
-| `/setup` | Scan project, check tools, list targets |
-| `/spec add auth` | Write spec.md with plan before coding |
-
-### Hooks
-
-**Enforcement (PreToolUse)** -- deterministic guardrails that block bad commands and inject context reminders for allowed-but-suboptimal ones.
-
-**Formatting (PostToolUse)** -- auto-runs prettier and action version checks on every file write/edit.
-
-**Notifications (Stop/Notification)** -- terminal bell and OSC notifications.
-
-**Environment (Setup)** -- validates all required tools are installed on `claude --init`.
-
-**Skill Suggestions (UserPromptSubmit)** -- evaluates every prompt against skill keywords and injects reminders.
-
-### Status Line
-`statusLine` runs `ccstatusline`, a pinned global npm package. Its widget layout lives in a
-separate stow package -- see `../ccstatusline/README.md`. Both packages must be stowed, and the
-binary installed (`install/` handles it via `NPM_GLOBAL_PACKAGES`), for the status line to appear.
+| Group | Settings |
+|-------|----------|
+| Privacy | `DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING`, `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `feedbackSurveyRate: 0` |
+| Context | `cleanupPeriodDays: 365` — a year of transcript history vs. the 30-day default |
+| Updates | `autoUpdatesChannel: stable` — ~1 week behind `latest`, skips major regressions |
+| Token limits | `CLAUDE_CODE_MAX_OUTPUT_TOKENS`, `MAX_THINKING_TOKENS`, `MAX_MCP_OUTPUT_TOKENS`, `TASK_MAX_OUTPUT_LENGTH` |
+| Permissions | `defaultMode: auto`, a git/npm/node allow list, `.env` deny rules |
+| Git | `attribution: { commit: "", pr: "" }` — no assistant byline in commits or PRs |
+| Ergonomics | `editorMode: vim`, `theme: dark`, `tui: fullscreen`, `agentPushNotifEnabled` |
+| Spinner | `spinnerVerbs` — 45 custom verbs, `replace` mode |
+| Status line | `ccstatusline` (see below) |
+| Plugins | `terminal-icons` via the local marketplace (see below) |
 
 ### Permissions
-- **defaultMode**: `acceptEdits` -- file edits auto-accept
-- Sandbox enabled with auto-allow for bash
-- gh CLI: read operations auto-allowed, write operations require confirmation
-- Denied: sudo, curl, wget, ssh, eval, chmod 777, scp, rsync, git reset/clean
-- Ask: git add/commit/push, package installs, destructive rm
 
-## Required Tools
+`defaultMode: auto` auto-approves tool calls with background safety checks that verify
+actions align with the request. The `allow` list additionally pre-approves read-only git,
+npm/pnpm/node, and common shell inspection commands. `deny` covers `.env` files across
+Read, Edit and the usual shell readers.
 
-Checked by `validate-env.sh` on init:
+Deny rules are **not a hard security boundary** — they reduce accidents, not determined
+access. This config intentionally runs lean: there is no `sandbox` block and no denials on
+credential paths (`~/.ssh`, `~/.aws`, `*.pem`, `op` commands). If you want those back,
+adding them to `permissions.deny` is self-contained and touches nothing else.
 
+### Status Line
+
+`statusLine` runs `ccstatusline`, a pinned global npm package (`ccstatusline@2.2.28`,
+declared in `install/common.sh` as `NPM_GLOBAL_PACKAGES`). Its widget layout lives in a
+separate stow package — see `../ccstatusline/README.md`.
+
+Both the package and the binary are required for the status line to render:
+
+```bash
+bun install -g ccstatusline@2.2.28
+cd ~/SMS-Supercharge-My-Shell && stow claude ccstatusline
 ```
-bun uv git gh stow fd rg jq
+
+### Plugins
+
+The `terminal-icons` plugin lives at the repo root in `plugins/`, **not** inside this
+package. `~/.config/claude/plugins/` is a directory Claude Code owns and writes to itself
+(`known_marketplaces.json`, `marketplaces/`), so stowing into it invites conflicts.
+
+Instead, `extraKnownMarketplaces` points at the repo path directly:
+
+```json
+"extraKnownMarketplaces": {
+  "local-plugins": {
+    "source": { "source": "directory", "path": "~/SMS-Supercharge-My-Shell/plugins" }
+  }
+}
 ```
 
-Optional: `fish`, `btca`, `op`
+`plugins/` carries a `.stow-local-ignore` containing `.*` (the same trick `install/` uses),
+so `stow */` never tries to link it into `~/`. The plugin works straight from the repo with
+no stow step.
 
-Install missing tools: `brew install <tool>`
-Install btca: `bun add -g btca`
+## Gotchas
+
+Things that cost time here before, worth not rediscovering:
+
+- **Unknown keys are silently ignored.** There is no warning and no error — the setting
+  just does nothing. The previous config carried three dead keys for months:
+  `pluginMarketplaces` (the real key is `extraKnownMarketplaces`),
+  `skipAutoPermissionPrompt`, and a `modelSettings` block. Validate after editing.
+- **`includeCoAuthoredBy` is deprecated.** Use the `attribution` object instead; it can
+  strip the commit trailer and the PR footer independently.
+- **The env var for suppressing non-essential model calls is
+  `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`.** Plausible-looking alternatives like
+  `DISABLE_NON_ESSENTIAL_MODEL_CALLS` are not real and fail silently.
+- **`stow` only reads `.stow-local-ignore` from inside a package**, never from the stow
+  root. The repo-root `.stow-local-ignore` does not apply to `claude/`, `ccstatusline/`,
+  or any other package — those fall back to stow's built-in default list. To exclude a
+  top-level directory from `stow */`, give it its own `.stow-local-ignore` containing `.*`.
+
+## Validating Changes
+
+After editing `settings.json`, check it against the published schema:
+
+```bash
+curl -sL https://www.schemastore.org/claude-code-settings.json -o /tmp/cc-schema.json
+
+jq empty claude/.config/claude/settings.json          # valid JSON?
+
+jq -r 'keys[]' claude/.config/claude/settings.json |
+  while read -r k; do
+    jq -e --arg k "$k" '.properties[$k]' /tmp/cc-schema.json >/dev/null ||
+      echo "INVALID KEY: $k"
+  done
+
+jq -r '.env | keys[]' claude/.config/claude/settings.json |
+  while read -r k; do
+    jq -e --arg k "$k" '.properties.env.properties[$k]' /tmp/cc-schema.json >/dev/null ||
+      echo "UNDOCUMENTED ENV: $k"
+  done
+```
+
+To preview what stow will link without touching the filesystem:
+
+```bash
+stow -n -v --no-folding --target=/tmp/stowtest claude
+```
