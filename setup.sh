@@ -1,15 +1,22 @@
 #!/bin/sh
-# Bootstrap a fresh machine, then hand over to `mise run setup`.
+# Set up a machine end to end. Safe to re-run; every step converges.
 #
-#   curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh
+#   fresh machine:      curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/setup.sh | sh
+#   existing checkout:  ./setup.sh
 #
-# Arch:          pacman for git, stow, fish, mise
-# macOS / WSL:   Homebrew for the same
-# other Linux:   apt/dnf for git, stow, fish; mise from mise.run
+# 1. git, stow, fish, mise from the OS package manager (Homebrew on macOS and WSL)
+# 2. clone to ~/SMS-Supercharge-My-Shell unless already running from a checkout
+# 3. mise run setup  ->  deps, link, tools, plugins
 set -eu
 
 REPO=https://github.com/AH-Merii/SMS-Supercharge-My-Shell.git
 DEST="$HOME/SMS-Supercharge-My-Shell"
+
+# Running from inside a checkout (./setup.sh)? Use it instead of cloning.
+script_dir=$(cd "$(dirname "$0")" 2>/dev/null && pwd) || script_dir=""
+if [ -n "$script_dir" ] && [ -f "$script_dir/mise.toml" ]; then
+  DEST=$script_dir
+fi
 
 os=$(uname -s)
 wsl=0
@@ -52,9 +59,12 @@ if [ ! -d "$DEST/.git" ]; then
 fi
 cd "$DEST"
 
-mise trust
+mise trust --yes
 mise run setup
 
 echo
-echo "Done. Make fish the login shell:  chsh -s \"\$(command -v fish)\""
-echo "On macOS add \$(command -v fish) to /etc/shells first."
+if [ "$(basename "$SHELL")" != fish ]; then
+  echo "Make fish the login shell:  chsh -s \"\$(command -v fish)\""
+  echo "On macOS add \$(command -v fish) to /etc/shells first."
+fi
+echo "Git identity and signing: run ggh (fish will remind you until it is set)."

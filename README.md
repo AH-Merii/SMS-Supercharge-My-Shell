@@ -15,7 +15,7 @@ plugins/     Claude Code local plugin marketplace (referenced by path, not stowe
 pkglist/     pacman / AUR / apt package lists
 Brewfile     Homebrew packages for macOS and WSL
 mise.toml    tasks (see below); mise-tasks/ holds the scripts
-bootstrap.sh one-liner for a fresh machine
+setup.sh     the one command: OS packages, clone, then `mise run setup`
 .stowrc      --target=$HOME --no-folding --dir=base
 ```
 
@@ -31,26 +31,26 @@ forced with `DOTFILES_PROFILE=`.
 | Profile   | Layers           | Detected when                          |
 | --------- | ---------------- | -------------------------------------- |
 | `base`    | base             | Linux without niri (servers), WSL      |
-| `desktop` | base + desktop   | Linux with `niri` on `PATH`            |
+| `desktop` | base + desktop   | Linux with niri installed              |
 | `macos`   | base + macos     | macOS                                  |
 
 ## Install
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh
-```
-
-`bootstrap.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
-macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` and runs `mise run setup`.
-Afterwards make fish the login shell: `chsh -s "$(command -v fish)"`.
-
-On an existing checkout:
+One command, on a fresh machine or an existing checkout, and safe to re-run:
 
 ```bash
-cd ~/SMS-Supercharge-My-Shell
-mise trust
-mise run setup
+curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/setup.sh | sh   # fresh machine
+./setup.sh                                                                                          # existing checkout
 ```
+
+`setup.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
+macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` if needed, and runs
+`mise run setup`: OS packages, symlinks, tools, plugins. Files already sitting where a link
+belongs are moved to `<name>.bak`, never overwritten.
+
+Two things stay manual because they need you: `chsh -s "$(command -v fish)"` for the login
+shell, and `ggh op init` (or `ggh init`) for git identity and commit signing. fish prints a
+reminder until the latter is done.
 
 ## Tasks
 
@@ -58,7 +58,7 @@ mise run setup
 | --------- | ------------------------------------------------------------------- |
 | `setup`   | `deps`, `link`, `tools`, `plugins` in order                         |
 | `deps`    | OS packages: pacman/paru on Arch, apt on Debian, `brew bundle` on macOS/WSL |
-| `link`    | Stow the layers for this profile (`STOW_FLAGS=-n` to dry-run)       |
+| `link`    | Stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run) |
 | `unlink`  | Remove those symlinks                                               |
 | `check`   | Dry-run `link`                                                      |
 | `tools`   | `mise install` everything in the global mise config                 |
@@ -93,9 +93,9 @@ stow -D fish              # unlink
 stow -n fish              # dry-run
 ```
 
-Stow refuses to overwrite a real file. Move the existing config aside
-(`mv ~/.config/fish ~/.config/fish.bak`) and link again; do not use `--adopt`, it copies the
-old file into the repo.
+Stow refuses to overwrite a real file. `mise run link` moves such files to `<name>.bak`
+first; when calling `stow` by hand, move them aside yourself. Do not use `--adopt`, it copies
+the old file into the repo.
 
 ## Machine notes
 
