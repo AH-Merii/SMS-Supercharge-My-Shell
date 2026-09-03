@@ -1,5 +1,0 @@
-#compdef terraform
-
-# Use Terraform’s own binary for completion
-complete -o nospace -C "$(command -v terraform)" terraform
-
