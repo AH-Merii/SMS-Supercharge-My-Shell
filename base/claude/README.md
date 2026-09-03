@@ -1,7 +1,7 @@
 # Claude Code Configuration
 
 Global settings, managed via [GNU Stow](https://www.gnu.org/software/stow/) from
-`~/SMS-Supercharge-My-Shell/claude/`.
+`~/SMS-Supercharge-My-Shell/base/claude/`.
 
 Apply changes:
 
@@ -17,8 +17,8 @@ claude/
     └── settings.json    # the entire config -- one file
 ```
 
-`CLAUDE_CONFIG_DIR` is set to `$XDG_CONFIG_HOME/claude` by both
-`fish/.config/fish/conf.d/00-env.fish` and `zsh/.zshenv`, so `~/.config/claude/` is the
+`CLAUDE_CONFIG_DIR` is set to `$XDG_CONFIG_HOME/claude` by
+`base/fish/.config/fish/conf.d/01-env.fish`, so `~/.config/claude/` is the
 active config root.
 
 There is deliberately **no `.claude/` half** to this package. Files placed at `~/.claude/`
@@ -81,9 +81,8 @@ Instead, `extraKnownMarketplaces` points at the repo path directly:
 }
 ```
 
-`plugins/` carries a `.stow-local-ignore` containing `.*` (the same trick `install/` uses),
-so `stow */` never tries to link it into `~/`. The plugin works straight from the repo with
-no stow step.
+`plugins/` sits at the repo root, outside the stow layers, so it is never linked into `~/`.
+The plugin works straight from the repo with no stow step.
 
 ## Gotchas
 
@@ -99,9 +98,9 @@ Things that cost time here before, worth not rediscovering:
   `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`.** Plausible-looking alternatives like
   `DISABLE_NON_ESSENTIAL_MODEL_CALLS` are not real and fail silently.
 - **`stow` only reads `.stow-local-ignore` from inside a package**, never from the stow
-  root. The repo-root `.stow-local-ignore` does not apply to `claude/`, `ccstatusline/`,
-  or any other package — those fall back to stow's built-in default list. To exclude a
-  top-level directory from `stow */`, give it its own `.stow-local-ignore` containing `.*`.
+  root, and a package-local list *replaces* the built-in defaults. This repo has none:
+  the root `.stowrc` sets `--no-folding`, so runtime files written next to a config never
+  land in the repo, and anything that must not be stowed lives outside the layers.
 
 ## Validating Changes
 
@@ -110,15 +109,15 @@ After editing `settings.json`, check it against the published schema:
 ```bash
 curl -sL https://www.schemastore.org/claude-code-settings.json -o /tmp/cc-schema.json
 
-jq empty claude/.config/claude/settings.json          # valid JSON?
+jq empty base/claude/.config/claude/settings.json          # valid JSON?
 
-jq -r 'keys[]' claude/.config/claude/settings.json |
+jq -r 'keys[]' base/claude/.config/claude/settings.json |
   while read -r k; do
     jq -e --arg k "$k" '.properties[$k]' /tmp/cc-schema.json >/dev/null ||
       echo "INVALID KEY: $k"
   done
 
-jq -r '.env | keys[]' claude/.config/claude/settings.json |
+jq -r '.env | keys[]' base/claude/.config/claude/settings.json |
   while read -r k; do
     jq -e --arg k "$k" '.properties.env.properties[$k]' /tmp/cc-schema.json >/dev/null ||
       echo "UNDOCUMENTED ENV: $k"
@@ -128,5 +127,5 @@ jq -r '.env | keys[]' claude/.config/claude/settings.json |
 To preview what stow will link without touching the filesystem:
 
 ```bash
-stow -n -v --no-folding --target=/tmp/stowtest claude
+stow -n -v --target=/tmp/stowtest claude
 ```

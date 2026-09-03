@@ -129,8 +129,8 @@ only genuine deviations produces a much smaller, cleaner file.
 `BREW_PACKAGES` in `install/common.sh` — unlike `sesh`, which `plugins.tmux.conf` lazily
 `brew install`s at tmux startup.
 
-The `herdr` package **must** use `--no-folding` (it is registered in `no_folding_dirs` in
-`install/helper-funcs.sh` alongside `tmux`, `ghostty`, `karabiner`). herdr writes
+The `herdr` package **must** use `--no-folding` (the root `.stowrc` applies it to every
+package). herdr writes
 `herdr.log`, `herdr-client.log`, `herdr-server.log` and plugin state directly into
 `~/.config/herdr/`. With default folding that directory becomes a symlink into this repo, and
 herdr would write its logs into the git working tree.
