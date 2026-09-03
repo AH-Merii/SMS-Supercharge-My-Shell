@@ -23,7 +23,7 @@ wsl=0
 if grep -qi microsoft /proc/version 2>/dev/null; then wsl=1; fi
 
 if command -v pacman >/dev/null 2>&1; then
-  sudo pacman -S --needed --noconfirm git stow fish mise
+  sudo pacman -Syu --needed --noconfirm git stow fish mise
 elif [ "$os" = Darwin ] || [ "$wsl" = 1 ]; then
   if [ "$os" = Darwin ]; then
     xcode-select -p >/dev/null 2>&1 || xcode-select --install

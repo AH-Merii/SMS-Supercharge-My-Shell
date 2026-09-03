@@ -11,11 +11,13 @@ pkgs() { grep -hv '^#' "$@" | grep -v '^$'; }
 if command -v pacman >/dev/null 2>&1; then
   lists=(pkglist/arch.txt)
   [[ $profile == desktop ]] && lists+=(pkglist/arch-desktop.txt)
+  # -Syu: sync the package database and upgrade first; a plain -S against a stale
+  # database 404s on mirrors, and a partial -Sy install is unsupported on Arch.
   # shellcheck disable=SC2046
-  sudo pacman -S --needed $(pkgs "${lists[@]}")
+  sudo pacman -Syu --needed $(pkgs "${lists[@]}")
   if [[ $profile == desktop ]] && command -v paru >/dev/null 2>&1; then
     # shellcheck disable=SC2046
-    paru -S --needed $(pkgs pkglist/aur.txt)
+    paru -Syu --needed $(pkgs pkglist/aur.txt)
   fi
 elif command -v apt-get >/dev/null 2>&1; then
   sudo apt-get update
