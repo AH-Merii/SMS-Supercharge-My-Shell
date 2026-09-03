@@ -197,7 +197,7 @@ custom_palette = "wallhaven-2em38y-fs"
 source = "community"
 
     [theme.templates]
-    builtin_ids = [ "ghostty", "niri", "starship" ]
+    builtin_ids = [ "niri" ]
     community_ids = [ "pi-agent", "zen-browser", "neovim", "vscode", "zed", "rofi", "steam", "yazi" ]
 
 [wallpaper]
