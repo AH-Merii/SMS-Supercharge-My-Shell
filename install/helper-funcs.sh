@@ -93,6 +93,26 @@ install_homebrew_package() {
   fi
 }
 
+# Function to install a global npm package (e.g. ccstatusline@2.2.28)
+install_npm_global_package() {
+  local spec="${1}"
+  local name="${spec%@*}"
+
+  if ! command -v npm &>/dev/null; then
+    echo -e "$CWR - npm not found, skipping ${name}."
+    return 0
+  fi
+
+  if npm list -g --depth=0 "${spec}" &>/dev/null; then
+    echo -e "$COK - $spec is already installed."
+  else
+    echo -en "$CNT - Now installing $spec"
+    npm install -g "${spec}" >>"${INSTLOG}" 2>&1 &
+    local install_pid=$!
+    show_progress "$install_pid" "${spec} was installed."
+  fi
+}
+
 cleanup_homebrew_installation() {
   echo -en "$CNT - Cleaning up Homebrew installation..."
   brew cleanup >>"${INSTLOG}" &

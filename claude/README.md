@@ -23,7 +23,7 @@ claude/
 │       ├── git-workflow/SKILL.md     # Conventional commits, PR workflow
 │       └── stow-config/SKILL.md     # Dotfile management via stow
 └── .config/claude/                   # -> ~/.config/claude/
-    ├── settings.json                 # Permissions, hooks, sandbox, plugins
+    ├── settings.json                 # Permissions, hooks, sandbox, plugins, status line
     └── hooks/
         ├── enforce-uv.sh            # Blocks raw python/pip -> use uv
         ├── enforce-rg.sh            # Blocks raw grep -> use Grep tool or rg
@@ -70,6 +70,11 @@ Skills auto-activate based on `autoActivateWhen` frontmatter when the user's pro
 **Environment (Setup)** -- validates all required tools are installed on `claude --init`.
 
 **Skill Suggestions (UserPromptSubmit)** -- evaluates every prompt against skill keywords and injects reminders.
+
+### Status Line
+`statusLine` runs `ccstatusline`, a pinned global npm package. Its widget layout lives in a
+separate stow package -- see `../ccstatusline/README.md`. Both packages must be stowed, and the
+binary installed (`install/` handles it via `NPM_GLOBAL_PACKAGES`), for the status line to appear.
 
 ### Permissions
 - **defaultMode**: `acceptEdits` -- file edits auto-accept

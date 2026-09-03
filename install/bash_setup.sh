@@ -19,6 +19,11 @@ if [[ $INST == "Y" || $INST == "y" ]]; then
   done
 
   cleanup_homebrew_installation
+
+  # Global npm packages (needs node, installed above)
+  for PACKAGE in "${NPM_GLOBAL_PACKAGES[@]}"; do
+    install_npm_global_package "${PACKAGE}"
+  done
 fi
 
 # Copy Config Files
