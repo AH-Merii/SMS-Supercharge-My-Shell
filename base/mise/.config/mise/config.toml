@@ -1,0 +1,43 @@
+# Global mise config, identical on every machine.
+#
+# Rule: if `mise registry <tool>` (or a github:/npm:/cargo: backend) can install it, it lives
+# here and nowhere else. Packages mise cannot build (fish, stow, tmux, gnupg, GUI apps)
+# go in the Brewfile (macOS, WSL) or pkglist/ (Arch, Debian).
+#
+# Python is deliberately absent: uv manages interpreters.
+
+[tools]
+# runtimes
+node = "lts"
+bun = "latest"
+go = "latest"
+rust = "stable"
+uv = "latest"
+
+# editor, prompt, multiplexers
+neovim = "latest"
+starship = "latest"
+herdr = "latest"
+worktrunk = "latest"
+"github:joshmedeski/sesh" = "latest"
+
+# cli
+lazygit = "latest"
+gh = "latest"
+fzf = "latest"
+ripgrep = "latest"
+fd = "latest"
+bat = "latest"
+eza = "latest"
+delta = "latest"
+zoxide = "latest"
+jq = "latest"
+direnv = "latest"
+bottom = "latest"
+fastfetch = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+"github:YS-L/csvlens" = "latest"
+
+# pinned: `npx -y ccstatusline@latest` re-resolves on every status line repaint (~430ms)
+"npm:ccstatusline" = "2.2.28"

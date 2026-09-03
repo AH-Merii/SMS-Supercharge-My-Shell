@@ -1,0 +1,14 @@
+# pacman packages for the base profile (any Arch box, desktop or server).
+# CLI tools come from mise; this is only what mise cannot install.
+#   sudo pacman -S --needed $(grep -v '^#' pkglist/arch.txt)   # or: mise run deps
+base-devel
+git
+stow
+mise
+fish
+tmux
+gnupg
+luarocks
+wget
+unzip
+openssh

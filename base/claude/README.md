@@ -54,15 +54,15 @@ adding them to `permissions.deny` is self-contained and touches nothing else.
 
 ### Status Line
 
-`statusLine` runs `ccstatusline`, a pinned global npm package (`ccstatusline@2.2.28`,
-declared in `install/common.sh` as `NPM_GLOBAL_PACKAGES`). Its widget layout lives in a
-separate stow package — see `../ccstatusline/README.md`.
+`statusLine` runs `ccstatusline`, pinned as `npm:ccstatusline = "2.2.28"` in the global
+mise config (`../mise/.config/mise/config.toml`). The command uses the absolute shim path
+because Claude Code launched from a desktop launcher has no shell-activated `PATH`. Its
+widget layout lives in a separate stow package — see `../ccstatusline/README.md`.
 
-Both the package and the binary are required for the status line to render:
+Both packages and the binary are required for the status line to render:
 
 ```bash
-bun install -g ccstatusline@2.2.28
-cd ~/SMS-Supercharge-My-Shell && stow claude ccstatusline
+cd ~/SMS-Supercharge-My-Shell && stow mise claude ccstatusline && mise install
 ```
 
 ### Plugins

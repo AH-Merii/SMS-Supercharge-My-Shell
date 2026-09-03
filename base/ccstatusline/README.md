@@ -21,13 +21,9 @@ ccstatusline/
 
 ## Setup
 
-1. **Install the binary.** Handled by `install/` (`NPM_GLOBAL_PACKAGES` in `install/common.sh`), or by hand:
+1. **Install the binary.** Declared as `"npm:ccstatusline" = "2.2.28"` in the global mise config (`../mise/.config/mise/config.toml`), so `mise install` provides it at `~/.local/share/mise/shims/ccstatusline`.
 
-   ```bash
-   npm install -g ccstatusline@2.2.28
-   ```
-
-   The version is pinned deliberately. `npx -y ccstatusline@latest` re-resolves the package on every repaint, which upstream measures at ~430ms; a pinned global binary avoids it. Note that `npm -g` installs under mise's node prefix, so this needs re-running after a node major bump.
+   The version is pinned deliberately. `npx -y ccstatusline@latest` re-resolves the package on every repaint, which upstream measures at ~430ms; a pinned binary avoids it.
 
 2. **Stow this package**, so `~/.config/ccstatusline/settings.json` points back here.
 
