@@ -43,6 +43,7 @@ BREW_PACKAGES=(
   gnupg
   git-delta
   tmux
+  herdr
   csvlens
   ripgrep
   stow

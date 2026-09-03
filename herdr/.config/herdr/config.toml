@@ -1,0 +1,42 @@
+# herdr — agent multiplexer (https://herdr.dev)
+#
+# tmux remains the default multiplexer on this machine. herdr is here for agent-heavy
+# work, where its per-pane agent state (working / blocked / done / idle) is the point.
+# See docs/herdr-evaluation.md for the full tmux -> herdr coverage analysis.
+#
+# This file carries ONLY deviations from `herdr --default-config`. herdr enables mouse,
+# clipboard, truecolor, focus-events and vi-style copy mode out of the box, so most of
+# what tmux/.config/tmux/settings.tmux.conf configures has no counterpart here by design.
+# Print the annotated upstream defaults with:  herdr --default-config
+# Reload after editing with:                   herdr server reload-config
+
+[keys]
+# Matches `set -g prefix M-t` in tmux/.config/tmux/settings.tmux.conf.
+# (The "Prefix key (Ctrl-Space)" comment in that file is stale — the prefix is Alt+t.)
+prefix = "alt+t"
+
+# Replaces omerxx/tmux-floax (prefix+f, 80%x80%, follows cwd) with the native popup.
+# Inherits the active pane's cwd via [terminal] new_cwd below, matching @floax-change-path.
+[[keys.command]]
+key = "prefix+f"
+type = "popup"
+command = "$SHELL"
+description = "floating terminal"
+width = "80%"
+height = "80%"
+
+[terminal]
+# Mirrors the `-c "#{pane_current_path}"` that every tmux split and new-window binding
+# carries, so new panes/tabs open in the current directory rather than $HOME.
+new_cwd = "follow"
+
+# No [theme] section: running herdr's default palette (catppuccin mocha) for now.
+# This already replaces the manual `git clone` of catppuccin/tmux in plugins.tmux.conf.
+# Worth knowing if this is revisited — herdr bundles catppuccin (mocha), catppuccin-latte,
+# tokyo-night, tokyo-night-day, dracula, terminal and vesper. There is NO frappe, which is
+# what theme.tmux.conf pins via `@catppuccin_flavor "frappe"`; matching it would mean
+# hand-writing [theme.custom] hex overrides.
+
+[ui]
+# Matches `set -g status-position top`.
+tab_bar_position = "top"
