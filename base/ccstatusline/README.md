@@ -1,8 +1,8 @@
 # ccstatusline
 
-Claude Code status line, managed via [GNU Stow](https://www.gnu.org/software/stow/) from `~/SMS-Supercharge-My-Shell/ccstatusline/`.
+Claude Code status line, managed via [GNU Stow](https://www.gnu.org/software/stow/) from `~/SMS-Supercharge-My-Shell/base/ccstatusline/`.
 
-Apply changes: `cd ~/SMS-Supercharge-My-Shell && stow -vt ~ ccstatusline`
+Apply changes: `cd ~/SMS-Supercharge-My-Shell && stow ccstatusline`
 
 ## What it looks like
 

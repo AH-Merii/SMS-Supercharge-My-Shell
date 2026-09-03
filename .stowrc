@@ -1,0 +1,3 @@
+--target=$HOME
+--no-folding
+--dir=base
