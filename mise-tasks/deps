@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#MISE description="Install OS packages: pacman/paru on Arch, apt on Debian, brew bundle on macOS/WSL"
+#MISE raw=true
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+
+pkgs() { grep -hv '^#' "$@" | grep -v '^$'; }
+
+if command -v pacman >/dev/null 2>&1; then
+  lists=(pkglist/arch.txt)
+  [[ $profile == desktop ]] && lists+=(pkglist/arch-desktop.txt)
+  # shellcheck disable=SC2046
+  sudo pacman -S --needed $(pkgs "${lists[@]}")
+  if [[ $profile == desktop ]] && command -v paru >/dev/null 2>&1; then
+    # shellcheck disable=SC2046
+    paru -S --needed $(pkgs pkglist/aur.txt)
+  fi
+elif command -v apt-get >/dev/null 2>&1; then
+  sudo apt-get update
+  # shellcheck disable=SC2046
+  sudo apt-get install -y $(pkgs pkglist/debian.txt)
+fi
+
+if command -v brew >/dev/null 2>&1; then
+  brew bundle --file=Brewfile
+fi

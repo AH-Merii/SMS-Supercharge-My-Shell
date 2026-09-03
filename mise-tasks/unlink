@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#MISE description="Remove the symlinks for this machine's profile"
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+
+echo "profile: $profile"
+for layer in "${layers[@]}"; do
+  mapfile -t pkgs < <(ls -1 "$layer")
+  echo "$layer: ${pkgs[*]}"
+  stow -d "$layer" -D "${pkgs[@]}"
+done

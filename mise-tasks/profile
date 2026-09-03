@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+#MISE description="Print the detected profile (override with DOTFILES_PROFILE=base|desktop|macos)"
+#
+# Also sourced by the other tasks, which use $profile and $layers.
+#   base     any Linux without a desktop: servers, WSL
+#   desktop  Linux with niri
+#   macos    macOS
+set -euo pipefail
+
+detect_profile() {
+  if [[ -n "${DOTFILES_PROFILE:-}" ]]; then
+    echo "$DOTFILES_PROFILE"
+    return
+  fi
+  case "$(uname -s)" in
+    Darwin) echo macos ;;
+    Linux)
+      if grep -qi microsoft /proc/version 2>/dev/null; then
+        echo base
+      elif command -v niri >/dev/null 2>&1; then
+        echo desktop
+      else
+        echo base
+      fi
+      ;;
+    *) echo base ;;
+  esac
+}
+
+profile=$(detect_profile)
+# shellcheck disable=SC2034  # layers is consumed by the tasks that source this file
+case "$profile" in
+  base) layers=(base) ;;
+  desktop) layers=(base desktop) ;;
+  macos) layers=(base macos) ;;
+  *)
+    echo "unknown profile: $profile (expected base, desktop or macos)" >&2
+    exit 1
+    ;;
+esac
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  echo "$profile"
+fi

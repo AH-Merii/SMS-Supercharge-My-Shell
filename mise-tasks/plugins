@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#MISE description="Install fisher with its plugins, and tmux plugins via TPM"
+set -euo pipefail
+
+if command -v fish >/dev/null 2>&1; then
+  fish -c '
+    if not functions -q fisher
+      curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
+      and fisher install jorgebucaran/fisher
+    end
+    fisher update'
+fi
+
+tpm="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm"
+if [[ ! -d $tpm ]]; then
+  git clone --depth 1 https://github.com/tmux-plugins/tpm "$tpm"
+fi
+"$tpm/bin/install_plugins"
