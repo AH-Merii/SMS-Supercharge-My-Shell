@@ -1,0 +1,3 @@
+# AUR packages for the desktop profile, installed with paru when available.
+1password
+phinger-cursors

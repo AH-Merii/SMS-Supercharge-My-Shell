@@ -110,7 +110,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "ccstatusline",
+    "command": "~/.local/share/mise/shims/ccstatusline",
     "padding": 0
   },
   "editorMode": "vim",
