@@ -1,109 +1,126 @@
 # SMS Supercharge-My-Shell
 
-## About
+Dotfiles for fish, neovim, tmux, git and a niri desktop. Configs are linked into `~` with
+[GNU Stow](https://www.gnu.org/software/stow/); tools are installed with
+[mise](https://mise.jdx.dev). Runs on Arch (CachyOS), macOS, WSL2 and headless Linux servers.
 
-This directory contains all the dotfiles for a supercharged development environment.
+## Layout
 
-_Table of Contents_
+```
+base/        stow packages every machine gets: fish git nvim tmux starship lazygit ghostty
+             herdr claude ccstatusline mise
+desktop/     Linux desktop only: niri noctalia
+macos/       macOS only: karabiner
+plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)
+pkglist/     pacman / AUR / apt package lists
+Brewfile     Homebrew packages for macOS and WSL
+mise.toml    tasks (see below); mise-tasks/ holds the scripts
+bootstrap.sh one-liner for a fresh machine
+.stowrc      --target=$HOME --no-folding --dir=base
+```
 
-- [About](#about)
-  - [Modern Unix Tools](#modern-unix-tools)
-  - [Terminal Setup](#terminal-setup)
-  - [Zsh](#zsh)
-- [Install](#install)
-  - [Prerequisites](#prerequisites)
-  - [Dotfiles](#dotfiles)
-  - [Programs](#programs)
+Each package mirrors `~`: `base/fish/.config/fish/...` links to `~/.config/fish/...`.
+Package READMEs: [claude](base/claude/README.md), [ccstatusline](base/ccstatusline/README.md),
+[git](base/git/README.md), [nvim](base/nvim/README.md), [karabiner](macos/karabiner/README.md).
 
-## Modern Unix Tools
+## Profiles
 
-The setup adds the following modern unix tools and creates aliases for their GNU counterparts:
+A profile is the set of layers a machine links. It is detected automatically and can be
+forced with `DOTFILES_PROFILE=`.
 
-- [`cat:bat`](https://github.com/sharkdp/bat) - _A `cat` clone with syntax highlighting and Git integration._
-- [`grep:ripgrep`](https://github.com/BurntSushi/ripgrep) - _An extremely fast alternative to `grep` that respects your gitignore_
-- [`ls:exa`](https://github.com/ogham/exa) - _A modern replacement for `ls`_
-- [`diff:delta`](https://github.com/dandavison/delta) - _A viewer for `git` and `diff` output_
-
-### Terminal Setup
-
-The setup adds the following tools to terminal gui tools:
-
-- [`lazygit`](https://github.com/jesseduffield/lazygit) - _A simple terminal UI for git commands, written in Go with the gocui library._
-- [`fzf`](https://github.com/junegunn/fzf) - _A general purpose command-line fuzzy finder._
-- [`powerlevel10k`](https://github.com/romkatv/powerlevel10k) - _A minimal, blazing-fast, and highly customizable prompt for any shell_
-- [`neovim`](https://neovim.io/) - _Vim-fork focused on extensibility and usability_ ---> An alternative to Vim
-
-### Zsh
-
-The setup installs `zsh` and sets it as the default shell. The following `zsh` extensions are also installed using [zap](https://github.com/zap-zsh/zap):
-
-- [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
-- [zsh-autopair](https://github.com/hlissner/zsh-autopair)
-- [zsh-you-should-use](https://github.com/MichaelAquilina/zsh-you-should-use)
-- [zsh-shift-select](https://github.com/jirutka/zsh-shift-select)
-- [fast-syntax-highlighting](https://github.com/zdharma-continuum/fast-syntax-highlighting)
-- [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
-- [zsh-completions](https://github.com/zsh-users/zsh-completions)
-- [fzf-tab](https://github.com/Aloxaf/fzf-tab)
-
-### Navigation
-
-This setup also includes all the shortcuts for selecting text that you would use on a normal text editor such as:
-
-- `ctrl + ->` move one word right
-- `ctrl + <-` move one word left
-- `ctrl + shift + ->` select one word right
-- `ctrl + shift + <-` select one word left
-- `home` go to start of line
-- `end` go to end of line
-- `shift + home` select to start of line
-- `shift + end` select to end of line
-- `ctrl + c` during selection copy
-- `ctrl + x` during selection cut
-- `ctrl + v` paste
+| Profile   | Layers           | Detected when                          |
+| --------- | ---------------- | -------------------------------------- |
+| `base`    | base             | Linux without niri (servers), WSL      |
+| `desktop` | base + desktop   | Linux with `niri` on `PATH`            |
+| `macos`   | base + macos     | macOS                                  |
 
 ## Install
 
-### Prerequisites
-
-- [NerdFonts](https://www.nerdfonts.com/font-downloads) compatible font
-
-### Dotfiles
-
-Run `stow` from the repo root to symlink packages:
-
 ```bash
-stow */                  # symlink all config packages
-stow zsh                 # symlink only zsh configs
-stow --no-folding fish   # use when target dir has non-stow files (caches, history, plugin state)
+curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh
 ```
 
-### Systemd Services
+`bootstrap.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
+macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` and runs `mise run setup`.
+Afterwards make fish the login shell: `chsh -s "$(command -v fish)"`.
 
-In addition to managing your dotfiles, this setup allows you to manage custom `systemd` services. These services are stored in the `services/systemd` directory, and to activate them, you can simply copy them to `/etc/systemd/system`. A better approach is to create a dedicated directory like `/etc/systemd/system/custom-services` to keep track of which services are custom.
-
-#### How It Works:
-
-1. **Store your custom services** under `services/systemd/`.
-   - Example structure: `services/systemd/nvidia-pm.service`
-2. **Copy the services** to `/etc/systemd/system/`:
-   ```bash
-   sudo cp services/systemd/* /etc/systemd/system/custom-services/
-   ```
-
-#### Enabling and Starting Services:
-
-After copying the service files, you'll need to reload `systemd` to recognize them:
+On an existing checkout:
 
 ```bash
-sudo systemctl daemon-reload
+cd ~/SMS-Supercharge-My-Shell
+mise trust
+mise run setup
 ```
 
-You can now enable and start the service:
+## Tasks
+
+| Task      | What it does                                                        |
+| --------- | ------------------------------------------------------------------- |
+| `setup`   | `deps`, `link`, `tools`, `plugins` in order                         |
+| `deps`    | OS packages: pacman/paru on Arch, apt on Debian, `brew bundle` on macOS/WSL |
+| `link`    | Stow the layers for this profile (`STOW_FLAGS=-n` to dry-run)       |
+| `unlink`  | Remove those symlinks                                               |
+| `check`   | Dry-run `link`                                                      |
+| `tools`   | `mise install` everything in the global mise config                 |
+| `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
+| `profile` | Print the detected profile                                          |
+
+Run with `mise run <task>`; `mise tasks` lists them.
+
+## Where a dependency goes
+
+1. **mise** (`base/mise/.config/mise/config.toml`) for anything `mise registry <tool>` or a
+   `github:`/`npm:`/`cargo:` backend can install: runtimes (node, bun, go, rust, uv) and CLI
+   tools (neovim, starship, ripgrep, fzf, ...). Same versions on every OS, no root needed.
+   `mise use -g <tool>` edits the stowed file, so commit the result.
+2. **`pkglist/`** on Arch and Debian, **`Brewfile`** on macOS and WSL, for what mise cannot
+   build: fish, stow, tmux, gnupg, luarocks, GUI apps and fonts. Desktop-only packages go in
+   `pkglist/arch-desktop.txt`; AUR packages in `pkglist/aur.txt`.
+
+Homebrew is not installed on Arch: `brew shellenv` would put its own python, perl and git in
+front of pacman's.
+
+## Stow
+
+`.stowrc` sets the target to `~`, defaults the package dir to `base/`, and turns off folding
+so directories in `~` stay real directories and runtime files (fish history, tmux plugins,
+Noctalia's generated files) never land in the repo.
 
 ```bash
-sudo systemctl enable nvidia-pm.service
-sudo systemctl start nvidia-pm.service
+stow fish                 # link one base package
+stow -d desktop niri      # link a package from another layer
+stow -D fish              # unlink
+stow -n fish              # dry-run
 ```
 
-This way, you can easily keep track of all your custom services and only activate the ones you need.
+Stow refuses to overwrite a real file. Move the existing config aside
+(`mv ~/.config/fish ~/.config/fish.bak`) and link again; do not use `--adopt`, it copies the
+old file into the repo.
+
+## Machine notes
+
+- **Arch desktop (CachyOS niri + Noctalia).** GPU drivers come from the installer (`chwd`);
+  enable persistence with `sudo systemctl enable nvidia-persistenced` if wanted.
+  `~/.config/noctalia/settings.json` is a symlink, so changes made in the Noctalia GUI show
+  up in `git status`; commit the ones you mean to keep. niri includes `noctalia.kdl`, which
+  Noctalia generates; `mise run link` creates an empty placeholder for the first login.
+- **macOS.** Homebrew installs the casks in the `Brewfile` (ghostty, karabiner-elements,
+  1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`.
+- **WSL2.** apt covers the base packages, Homebrew supplies mise and a current fish. The
+  clipboard goes through `clip.exe` in fish and tmux automatically.
+- **Servers.** `base` profile only; nothing desktop-related is linked or installed.
+
+## Shell
+
+fish with [starship](https://starship.rs), [fisher](https://github.com/jorgebucaran/fisher)
+plugins from `fish_plugins`, and these replacements:
+
+| Command | Replacement                                    |
+| ------- | ---------------------------------------------- |
+| `cat`   | [bat](https://github.com/sharkdp/bat)          |
+| `grep`  | [ripgrep](https://github.com/BurntSushi/ripgrep) |
+| `ls`    | [eza](https://github.com/eza-community/eza)    |
+| `diff`  | [delta](https://github.com/dandavison/delta)   |
+
+`$OS_KIND` (`linux`, `macos`, `wsl`) is set once in `conf.d/00-os.fish`; Homebrew, the
+1Password SSH agent socket and the clipboard command branch on it.

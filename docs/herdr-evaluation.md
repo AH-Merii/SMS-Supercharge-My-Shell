@@ -125,9 +125,8 @@ only genuine deviations produces a much smaller, cleaner file.
 
 ## Packaging notes
 
-`herdr` is in homebrew/core (0.8.2 at time of writing, Apache-2.0), so it is a plain entry in
-`BREW_PACKAGES` in `install/common.sh` — unlike `sesh`, which `plugins.tmux.conf` lazily
-`brew install`s at tmux startup.
+`herdr` (0.8.2 at time of writing, Apache-2.0) is installed by mise, as a plain entry in the
+global config at `base/mise/.config/mise/config.toml`, the same way as `sesh`.
 
 The `herdr` package **must** use `--no-folding` (the root `.stowrc` applies it to every
 package). herdr writes
