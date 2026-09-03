@@ -1,8 +1,8 @@
 #!/bin/sh
 # Set up a machine end to end. Safe to re-run; every step converges.
 #
-#   fresh machine:      curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/setup.sh | sh
-#   existing checkout:  ./setup.sh
+#   fresh machine:      curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh
+#   existing checkout:  ./bootstrap.sh
 #
 # 1. git, stow, fish, mise from the OS package manager (Homebrew on macOS and WSL)
 # 2. clone to ~/SMS-Supercharge-My-Shell unless already running from a checkout
@@ -12,7 +12,7 @@ set -eu
 REPO=https://github.com/AH-Merii/SMS-Supercharge-My-Shell.git
 DEST="$HOME/SMS-Supercharge-My-Shell"
 
-# Running from inside a checkout (./setup.sh)? Use it instead of cloning.
+# Running from inside a checkout (./bootstrap.sh)? Use it instead of cloning.
 script_dir=$(cd "$(dirname "$0")" 2>/dev/null && pwd) || script_dir=""
 if [ -n "$script_dir" ] && [ -f "$script_dir/mise.toml" ]; then
   DEST=$script_dir

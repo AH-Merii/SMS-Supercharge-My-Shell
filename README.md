@@ -15,7 +15,7 @@ plugins/     Claude Code local plugin marketplace (referenced by path, not stowe
 pkglist/     pacman / AUR / apt package lists
 Brewfile     Homebrew packages for macOS and WSL
 mise.toml    tasks (see below); mise-tasks/ holds the scripts
-setup.sh     the one command: OS packages, clone, then `mise run setup`
+bootstrap.sh     the one command: OS packages, clone, then `mise run setup`
 .stowrc      --target=$HOME --no-folding --dir=base
 ```
 
@@ -39,11 +39,11 @@ forced with `DOTFILES_PROFILE=`.
 One command, on a fresh machine or an existing checkout, and safe to re-run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/setup.sh | sh   # fresh machine
-./setup.sh                                                                                          # existing checkout
+curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh   # fresh machine
+./bootstrap.sh                                                                                          # existing checkout
 ```
 
-`setup.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
+`bootstrap.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
 macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` if needed, and runs
 `mise run setup`: OS packages, symlinks, tools, plugins. Files already sitting where a link
 belongs are moved to `<name>.bak`, never overwritten.
