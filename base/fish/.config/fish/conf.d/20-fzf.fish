@@ -17,15 +17,20 @@ end
 set -gx fzf_directory_opts \
     --bind 'page-up:preview-up,page-down:preview-down,ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-/:change-preview-window(down|hidden|)'
 
-# Detect clipboard command for history copy feature (store as list: cmd + args)
-if type -q pbcopy
-    set -g _clip_cmd pbcopy
-else if type -q wl-copy
-    set -g _clip_cmd wl-copy
-else if type -q xclip
-    set -g _clip_cmd xclip -selection clipboard
-else
-    set -g _clip_cmd cat
+# Clipboard command for the history copy feature (stored as list: cmd + args)
+switch $OS_KIND
+    case macos
+        set -g _clip_cmd pbcopy
+    case wsl
+        set -g _clip_cmd clip.exe
+    case '*'
+        if type -q wl-copy
+            set -g _clip_cmd wl-copy
+        else if type -q xclip
+            set -g _clip_cmd xclip -selection clipboard
+        else
+            set -g _clip_cmd cat
+        end
 end
 
 # History search options with copy-to-clipboard support

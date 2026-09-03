@@ -9,7 +9,9 @@ if set -q GHOSTTY_RESOURCES_DIR
 end
 
 # Enable Starship prompt
-starship init fish | source
+if type -q starship
+    starship init fish | source
+end
 if type -q direnv
     direnv hook fish | source
 end
