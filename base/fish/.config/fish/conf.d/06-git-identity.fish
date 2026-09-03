@@ -5,10 +5,10 @@ status is-interactive; or return
 type -q git; or return
 
 set -l missing
-git config --global --get user.name >/dev/null; or set -a missing user.name
-git config --global --get user.email >/dev/null; or set -a missing user.email
-if test (git config --global --get commit.gpgsign 2>/dev/null) = true
-    git config --global --get user.signingkey >/dev/null; or set -a missing user.signingkey
+git -C $HOME config --get user.name >/dev/null; or set -a missing user.name
+git -C $HOME config --get user.email >/dev/null; or set -a missing user.email
+if contains -- true (git -C $HOME config --get commit.gpgsign 2>/dev/null)
+    git -C $HOME config --get user.signingkey >/dev/null; or set -a missing user.signingkey
 end
 
 if test (count $missing) -gt 0
