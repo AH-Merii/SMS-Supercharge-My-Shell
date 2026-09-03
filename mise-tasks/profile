@@ -17,7 +17,7 @@ detect_profile() {
     Linux)
       if grep -qi microsoft /proc/version 2>/dev/null; then
         echo base
-      elif command -v niri >/dev/null 2>&1; then
+      elif command -v niri >/dev/null 2>&1 || [[ -n ${NIRI_SOCKET:-} ]] || [[ -f /usr/share/wayland-sessions/niri.desktop ]]; then
         echo desktop
       else
         echo base

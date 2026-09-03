@@ -1,8 +1,13 @@
 # pacman packages for the desktop profile, on top of pkglist/arch.txt.
 # Assumes a CachyOS niri + Noctalia install; GPU drivers are left to the installer (chwd).
 niri
+xwayland-satellite
 noctalia
 xdg-desktop-portal-gnome
+xdg-desktop-portal-gtk
+gnome-keyring
+adw-gtk-theme
+brightnessctl
 wl-clipboard
 cliphist
 ghostty
