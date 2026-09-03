@@ -1,7 +1,0 @@
-# Ignore plugins directory and runtime state
-# herdr writes herdr.log / herdr-client.log / herdr-server.log and plugin state into
-# ~/.config/herdr, which is why this package is also stowed with --no-folding.
-\.config/herdr/plugins
-plugins
-.config/herdr/plugins
-.*\.log

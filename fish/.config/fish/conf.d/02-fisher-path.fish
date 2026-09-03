@@ -16,39 +16,3 @@ set -l confs $fisher_path/conf.d/*.fish
 for f in $confs
     test -r $f; and source $f
 end
-
-# Print instructions every interactive shell if fisher isn't installed
-if not functions -q fisher
-    set -l border_color d97706
-    echo
-    set_color $border_color
-    echo "╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮"
-    echo -n "│  "
-    set_color red --bold
-    echo -n "⚠ Fisher not found"
-    set_color $border_color
-    echo "                                                                                            │"
-    echo "├────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤"
-    echo -n "│  "
-    set_color yellow --bold
-    echo -n "Install:"
-    set_color normal
-    set_color cyan
-    echo -n "  curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source"
-    set_color normal
-    set_color $border_color
-    echo "  │"
-    echo -n "│  "
-    set_color yellow --bold
-    echo -n "Then:"
-    set_color normal
-    set_color cyan
-    echo -n "     fisher update"
-    set_color normal
-    set_color $border_color
-    echo "                                                                                       │"
-
-    echo "╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯"
-    set_color normal
-    echo
-end
