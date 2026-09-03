@@ -9,7 +9,7 @@ Dotfiles for fish, neovim, tmux, git and a niri desktop. Configs are linked into
 ```
 base/        stow packages every machine gets: fish git nvim tmux starship lazygit ghostty
              herdr claude ccstatusline mise
-desktop/     Linux desktop only: niri noctalia
+desktop/     Linux desktop only: niri noctalia (v5, ~/.local/state/noctalia/settings.toml)
 macos/       macOS only: karabiner
 plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)
 pkglist/     pacman / AUR / apt package lists
@@ -101,9 +101,12 @@ old file into the repo.
 
 - **Arch desktop (CachyOS niri + Noctalia).** GPU drivers come from the installer (`chwd`);
   enable persistence with `sudo systemctl enable nvidia-persistenced` if wanted.
-  `~/.config/noctalia/settings.json` is a symlink, so changes made in the Noctalia GUI show
-  up in `git status`; commit the ones you mean to keep. niri includes `noctalia.kdl`, which
-  Noctalia generates; `mise run link` creates an empty placeholder for the first login.
+  Noctalia v5 keeps its settings in `~/.local/state/noctalia/settings.toml`, which the
+  settings UI writes to; that file is a symlink into `desktop/noctalia`, so GUI changes show
+  up in `git status` and you commit the ones you mean to keep (`noctalia config validate`
+  checks it). Monitor names, wallpaper paths and battery device paths in it are
+  machine-specific. niri includes `noctalia.kdl`, which Noctalia generates from the theme
+  templates; `mise run link` creates an empty placeholder for the first login.
 - **macOS.** Homebrew installs the casks in the `Brewfile` (ghostty, karabiner-elements,
   1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`.
 - **WSL2.** apt covers the base packages, Homebrew supplies mise and a current fish. The
