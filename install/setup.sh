@@ -24,6 +24,7 @@ if source bash_setup.sh; then
 
     # Setup complete
     echo -e "$CNT - \033[36m SETUP COMPLETE, ENJOY YOUR NEW SUPERCHARGED DEVELOPER ENVIRONMENT!\033[0m\n\033[95mPLEASE RESTART YOUR TERMINAL TO COMPLETE SETUP\033[0m"
+    echo -e "$CNT - Optionally, run 'claude plugin install terminal-icons@local-plugins' to install the terminal-icons plugin."
   else
     echo -e "${CER} - zsh_setup failed. Exiting setup. Check $INSTLOG for more info"
     exit 1
