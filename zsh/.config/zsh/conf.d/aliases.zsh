@@ -57,4 +57,3 @@ fi
 
 # pandoc with typst pdf engine
 alias pandoc="pandoc --pdf-engine=typst"
-

@@ -14,6 +14,7 @@ end
 
 # Shortcuts
 abbr --add b prevd
+alias explorer "xdg-open . >/dev/null 2>&1 & disown"
 
 # Fish config access
 alias sfrc "source ~/.config/fish/config.fish"
