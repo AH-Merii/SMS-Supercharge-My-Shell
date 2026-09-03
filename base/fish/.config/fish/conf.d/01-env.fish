@@ -27,10 +27,8 @@ fish_add_path $HOME/.local/bin
 fish_add_path $HOME/.cargo/bin
 fish_add_path $XDG_DATA_HOME/go/bin
 fish_add_path $XDG_DATA_HOME/nvim/mason/bin
-fish_add_path $XDG_CACHE_HOME/.bun/bin
 
 # XDG DATA
-set -gx PYENV_ROOT $XDG_DATA_HOME/pyenv
 set -gx CLAUDE_CONFIG_DIR $XDG_CONFIG_HOME/claude
 
 # XDG CACHE
@@ -48,7 +46,7 @@ set -gx AWS_CLI_AUTO_PROMPT on-partial
 set -gx MANPAGER 'nvim +Man!'
 
 # macOS: Add Homebrew library path for dynamic libraries (Cairo, etc.)
-if test (uname) = Darwin
+if test "$OS_KIND" = macos
     if test -d /opt/homebrew/lib
         set -gx DYLD_LIBRARY_PATH /opt/homebrew/lib $DYLD_LIBRARY_PATH
     else if test -d /usr/local/lib
