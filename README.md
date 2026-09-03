@@ -2,8 +2,7 @@
 
 ## About
 
-This directory contains all the dotfiles for a supercharged development environment. It includes an easy way to make sure that all the necessary programs are installed using the `setup.sh` script.
-**NOTE**: This setup only works on Arch Linux as it makes heavy use of the AUR.
+This directory contains all the dotfiles for a supercharged development environment.
 
 _Table of Contents_
 
@@ -13,7 +12,6 @@ _Table of Contents_
   - [Zsh](#zsh)
 - [Install](#install)
   - [Prerequisites](#prerequisites)
-  - [Setup Script](#setup-script)
   - [Dotfiles](#dotfiles)
   - [Programs](#programs)
 
@@ -69,14 +67,6 @@ This setup also includes all the shortcuts for selecting text that you would use
 ### Prerequisites
 
 - [NerdFonts](https://www.nerdfonts.com/font-downloads) compatible font
-
-### Setup Script
-
-To install the dotfiles you can run the following command in your terminal:
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/refs/heads/main/install/install.sh)
-```
 
 ### Dotfiles
 
