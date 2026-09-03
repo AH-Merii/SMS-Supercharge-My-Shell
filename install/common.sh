@@ -44,6 +44,7 @@ BREW_PACKAGES=(
   git-delta
   tmux
   herdr
+  worktrunk
   csvlens
   ripgrep
   stow
