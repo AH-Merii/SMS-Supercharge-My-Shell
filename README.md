@@ -15,6 +15,8 @@ plugins/     Claude Code local plugin marketplace (referenced by path, not stowe
 pkglist/     pacman / AUR / apt package lists
 Brewfile     Homebrew packages for macOS and WSL
 mise.toml    tasks (see below); mise-tasks/ holds the scripts
+lib/         ui.sh (colours, Y/n prompt) and plan.sh (what a task would do), sourced by
+             the tasks; bootstrap.sh inlines its own copy since it runs before the clone
 bootstrap.sh     the one command: OS packages, clone, then `mise run setup`
 .stowrc      --target=$HOME --no-folding --dir=base
 ```
@@ -48,6 +50,21 @@ macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` if needed, and r
 `mise run setup`: OS packages, symlinks, tools, plugins. Files already sitting where a link
 belongs are moved to `<name>.bak`, never overwritten.
 
+Nothing installs before you have seen it. Both steps print what they are about to do —
+packages split into what is already installed and what is not, the stow layers and any
+files that would be backed up, the missing mise tools — and ask `Proceed? [Y/n]`, default
+yes. `setup` asks once for all four steps; answering yes there also skips pacman's and
+apt's own prompts, since the plan already named every package. paru is the exception: its
+PKGBUILD review survives, because the plan never showed you a PKGBUILD.
+
+```bash
+./bootstrap.sh -y                     # accept everything, including paru's review
+SMS_YES=1 mise run setup              # same, for the setup half only
+curl -fsSL <url> | sh -s -- -y        # unattended, piped
+mise run deps                         # any single task previews and asks too
+NO_COLOR=1 mise run setup             # plain text
+```
+
 Two things stay manual because they need you: `chsh -s "$(command -v fish)"` for the login
 shell, and `ggh op init` (or `ggh init`) for git identity and commit signing. fish prints a
 reminder until the latter is done.
@@ -65,7 +82,10 @@ reminder until the latter is done.
 | `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
 | `profile` | Print the detected profile                                          |
 
-Run with `mise run <task>`; `mise tasks` lists them.
+Run with `mise run <task>`; `mise tasks` lists them. Every task except `check` and
+`profile` previews what it would do and asks first; `SMS_YES=1` skips the asking. The
+preview code lives in `lib/plan.sh` and is shared, so a task's own preview and the
+combined one `setup` prints cannot disagree.
 
 ## Where a dependency goes
 

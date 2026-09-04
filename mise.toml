@@ -2,14 +2,9 @@
 # File tasks live in mise-tasks/. Tools are NOT declared here; a [tools] block in this file
 # would shadow the global config (base/mise/.config/mise/config.toml) whenever the cwd is
 # inside the repo.
-
-[tasks.setup]
-description = "Fresh machine: deps, link, tools, plugins"
-run = ["mise run deps", "mise run link", "mise run tools", "mise run plugins"]
-
-[tasks.tools]
-description = "Install every tool in the global mise config"
-run = "mise install --yes"
+#
+# setup and tools are file tasks too: they print a plan before installing anything, which
+# an inline `run =` cannot do.
 
 [tasks.check]
 description = "Dry-run stow for this machine's profile"

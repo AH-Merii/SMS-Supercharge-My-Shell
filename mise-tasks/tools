@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#MISE description="Install every tool in the global mise config"
+#MISE raw=true
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
+
+sms_preview plan_tools 'Install these tools?' || exit 0
+
+# --yes unconditionally: by this line the install is confirmed either way, and mise's own
+# prompt is about trusting config files the plan has already accounted for.
+mise install --yes
