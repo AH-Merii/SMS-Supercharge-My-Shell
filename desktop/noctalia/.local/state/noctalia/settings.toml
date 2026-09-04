@@ -198,7 +198,7 @@ source = "community"
 
     [theme.templates]
     builtin_ids = [ "niri" ]
-    community_ids = [ "pi-agent", "zen-browser", "neovim", "vscode", "zed", "rofi", "steam", "yazi" ]
+    community_ids = [ "pi-agent", "zen-browser", "vscode", "zed", "rofi", "steam", "yazi" ]
 
 [wallpaper]
 fill_mode = "fit"
