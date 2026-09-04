@@ -36,6 +36,8 @@ set -gx TEXMFVAR $XDG_CACHE_HOME/texlive/texmf-var
 
 # Custom
 set -gx GNUPGHOME $XDG_DATA_HOME/gnupg
+# gpg does not create a GNUPGHOME it is pointed at, unlike ~/.gnupg
+test -d $GNUPGHOME; or mkdir -p -m 700 $GNUPGHOME
 set -gx REPO_HOME $XDG_CACHE_HOME/repos
 set -gx STARSHIP_CONFIG $XDG_CONFIG_HOME/starship/starship.toml
 
