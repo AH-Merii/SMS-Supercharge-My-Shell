@@ -8,16 +8,12 @@ if status is-interactive
         # In insert mode: Ctrl+V pastes (so 'p' still types normally)
         bind -M insert \cv fish_clipboard_paste
 
-        # Ctrl+Backspace / Ctrl+Delete kill a word, like every GUI text field.
+        # Ctrl+Backspace kills the previous word, like every GUI text field.
         # Ghostty rewrites Ctrl+Backspace to Alt+Backspace (see its config), so
         # bind that rather than ctrl-backspace: fish folds ctrl-backspace onto
         # ctrl-h, which the autopair plugin already owns in insert mode.
-        # Ctrl+Delete needs no rewrite -- Delete is a CSI key, so it arrives as
-        # CSI 3;5~ on its own; fish just ships no default binding for it.
-        for mode in default insert
-            bind -M $mode alt-backspace backward-kill-word
-            bind -M $mode ctrl-delete kill-word
-        end
+        bind -M default alt-backspace backward-kill-word
+        bind -M insert alt-backspace backward-kill-word
     end
 
     # As per fish version 4.3
