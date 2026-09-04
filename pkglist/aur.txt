@@ -1,3 +1,8 @@
 # AUR packages for the desktop profile, installed with paru when available.
 1password
+# Community-maintained, unlike 1password above which 1Password itself maintains on
+# the AUR. Its PKGBUILD automates 1Password's documented manual install (same CDN
+# URL, same `gpg --verify op.sig op`, same codesign key), so trust rests on their
+# signature rather than the packager -- but skim the PKGBUILD diff paru shows.
+1password-cli
 phinger-cursors
