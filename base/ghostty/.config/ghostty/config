@@ -44,4 +44,12 @@ keybind = performable:ctrl+c=copy_to_clipboard
 keybind = performable:ctrl+v=paste_from_clipboard
 keybind = shift+enter=text:\x1b\r
 
+# Ctrl+Backspace has no encoding in the legacy key protocol: Backspace is the
+# control character 0x7f, and only CSI keys (arrows, F-keys, Delete) carry a
+# modifier field. The Kitty protocol does encode it (CSI 127;5u), but apps that
+# don't negotiate it -- Claude Code, plain ssh -- never see the key at all.
+# Alt+Backspace has a universal encoding (ESC + the key's bytes), so send that
+# instead and every app gets a working delete-previous-word.
+keybind = ctrl+backspace=text:\x1b\x7f
+
 quit-after-last-window-closed = true
