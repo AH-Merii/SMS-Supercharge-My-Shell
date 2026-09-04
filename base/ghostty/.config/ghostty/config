@@ -27,13 +27,20 @@ copy-on-select = clipboard
 # Desktop notifications via OSC 9/777 (used by Claude Code hooks)
 desktop-notifications = true
 
-background-opacity = 0.95
-background-blur = 20
+# Disabled while chasing input latency: opacity < 1 forfeits the opaque-region
+# fast path, so the compositor alpha-blends the whole 4K surface every frame.
+# background-blur is a no-op on niri anyway (KDE blur protocol, unimplemented).
+#background-opacity = 0.95
+#background-blur = 20
 
 # Custom Shaders
 # https://catskull.net/fun-with-ghostty-shaders.html
-custom-shader = shaders/cursor_sweep.glsl
-custom-shader = shaders/sonic_boom_cursor.glsl
+# Disabled: any custom shader forces a continuous render loop at display
+# refresh (custom-shader-animation defaults to true), and cursor_sweep is a
+# spring-damped trail that takes ~200ms to settle after every keystroke, which
+# reads as typing lag.
+#custom-shader = shaders/cursor_sweep.glsl
+#custom-shader = shaders/sonic_boom_cursor.glsl
 # nice light theme uncomment below
 #custom-shader = shaders/negative.glsl
 
