@@ -16,6 +16,9 @@ if command -v pacman >/dev/null 2>&1; then
   # shellcheck disable=SC2046
   sudo pacman -Syu --needed $(pkgs "${lists[@]}")
   if [[ $profile == desktop ]] && command -v paru >/dev/null 2>&1; then
+    # paru imports PKGBUILD signing keys with gpg, which fails when $GNUPGHOME
+    # (set by fish to ~/.local/share/gnupg) does not exist yet.
+    install -d -m 700 "${GNUPGHOME:-$HOME/.gnupg}"
     # shellcheck disable=SC2046
     paru -Syu --needed $(pkgs pkglist/aur.txt)
   fi

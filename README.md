@@ -126,4 +126,5 @@ plugins from `fish_plugins`, and these replacements:
 | `diff`  | [delta](https://github.com/dandavison/delta)   |
 
 `$OS_KIND` (`linux`, `macos`, `wsl`) is set once in `conf.d/00-os.fish`; Homebrew, the
-1Password SSH agent socket and the clipboard command branch on it.
+1Password SSH agent socket and the clipboard command branch on it. `conf.d/01-env.fish` moves
+gpg to `~/.local/share/gnupg` and creates it, since gpg only auto-creates `~/.gnupg`.
