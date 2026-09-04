@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 #MISE description="Remove the symlinks for this machine's profile"
+#MISE raw=true
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
 # shellcheck source=mise-tasks/profile
 source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
 
-echo "profile: $profile"
+sms_preview plan_unlink 'Remove these symlinks?' || exit 0
+
 for layer in "${layers[@]}"; do
-  mapfile -t pkgs < <(ls -1 "$layer")
-  echo "$layer: ${pkgs[*]}"
-  stow -d "$layer" -D "${pkgs[@]}"
+  mapfile -t lpkgs < <(layer_pkgs "$layer")
+  stow -d "$layer" -D "${lpkgs[@]}"
 done

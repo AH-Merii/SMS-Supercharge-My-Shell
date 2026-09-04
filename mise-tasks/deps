@@ -5,27 +5,43 @@ set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
 # shellcheck source=mise-tasks/profile
 source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
 
-pkgs() { grep -hv '^#' "$@" | grep -v '^$'; }
+sms_preview plan_os_packages 'Install these packages?' || exit 0
+
+# Once the plan is confirmed there is nothing left for pacman and apt to ask that the
+# plan did not already show, so skip their prompts. paru is different: the plan never
+# showed you a PKGBUILD, so its review survives everything short of an explicit -y.
+#
+# Plain strings rather than arrays: these lines already word-split $(pkgs ...) on
+# purpose, and an empty "${arr[@]}" under `set -u` is a bash <4.4 error.
+confirm_pacman='' confirm_apt='' confirm_paru=''
+if [[ -n ${SMS_YES:-} || -n ${SMS_PLAN_CONFIRMED:-} ]]; then
+  confirm_pacman=--noconfirm
+  confirm_apt=-y
+  export DEBIAN_FRONTEND=noninteractive
+fi
+[[ -n ${SMS_YES:-} ]] && confirm_paru='--noconfirm --skipreview'
 
 if command -v pacman >/dev/null 2>&1; then
   lists=(pkglist/arch.txt)
   [[ $profile == desktop ]] && lists+=(pkglist/arch-desktop.txt)
   # -Syu: sync the package database and upgrade first; a plain -S against a stale
   # database 404s on mirrors, and a partial -Sy install is unsupported on Arch.
-  # shellcheck disable=SC2046
-  sudo pacman -Syu --needed $(pkgs "${lists[@]}")
+  # shellcheck disable=SC2046,SC2086
+  sudo pacman -Syu --needed $confirm_pacman $(pkgs "${lists[@]}")
   if [[ $profile == desktop ]] && command -v paru >/dev/null 2>&1; then
     # paru imports PKGBUILD signing keys with gpg, which fails when $GNUPGHOME
     # (set by fish to ~/.local/share/gnupg) does not exist yet.
     install -d -m 700 "${GNUPGHOME:-$HOME/.gnupg}"
-    # shellcheck disable=SC2046
-    paru -Syu --needed $(pkgs pkglist/aur.txt)
+    # shellcheck disable=SC2046,SC2086
+    paru -Syu --needed $confirm_paru $(pkgs pkglist/aur.txt)
   fi
 elif command -v apt-get >/dev/null 2>&1; then
   sudo apt-get update
-  # shellcheck disable=SC2046
-  sudo apt-get install -y $(pkgs pkglist/debian.txt)
+  # shellcheck disable=SC2046,SC2086
+  sudo apt-get install $confirm_apt $(pkgs pkglist/debian.txt)
 fi
 
 if command -v brew >/dev/null 2>&1; then

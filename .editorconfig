@@ -15,6 +15,10 @@ indent_size = 2
 [*.{sh,bash,zsh}]
 indent_size = 4
 
+# The installer is one codebase with mise-tasks/, which is extensionless and gets 2.
+[{bootstrap.sh,lib/*.sh}]
+indent_size = 2
+
 [*.fish]
 indent_size = 4
 

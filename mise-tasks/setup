@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+#MISE description="Fresh machine: deps, link, tools, plugins"
+#MISE raw=true
+#
+# Shows one plan for all four steps and asks once. The steps then run with
+# SMS_PLAN_CONFIRMED=1, which skips their own prompts and lets pacman/apt/mise skip
+# theirs -- everything they would have asked about is already on screen above.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
+
+# Checked before the plan, not after: `link` refuses to run from a worktree, and
+# printing a full plan and then dying on the first step would be worse than nothing.
+if [[ $PWD == */.claude/worktrees/* ]]; then
+  sms_err "refusing to set up from a worktree ($PWD); run from the main checkout"
+  exit 1
+fi
+
+# Captured task output would swallow the prompt and hang the run.
+unset MISE_TASK_OUTPUT
+
+sms_header 'SMS · Supercharge My Shell'
+printf '  profile: %s%s%s\n' "$c_bold" "$profile" "$c_reset"
+plan_os_packages
+plan_links
+plan_tools
+plan_plugins
+
+if ! sms_confirm 'Proceed?'; then
+  # Exit 0: declining is an answer, not a failure, and a non-zero code here would make
+  # mise report "task failed" at the end of a perfectly normal run.
+  printf '\n  aborted, nothing installed\n\n'
+  exit 0
+fi
+
+# One password prompt at a predictable moment, rather than partway through pacman.
+if command -v sudo >/dev/null 2>&1 &&
+  { command -v pacman >/dev/null 2>&1 || command -v apt-get >/dev/null 2>&1; }; then
+  sudo -v || true
+fi
+
+export SMS_PLAN_CONFIRMED=1
+# Four sequential runs, not `mise run deps link tools plugins`: that would run them in
+# parallel, and each one depends on the last.
+for task in deps link tools plugins; do
+  sms_header "==> $task"
+  mise run "$task"
+done
+
+printf '\n  %ssetup complete%s\n' "$c_bold$c_green" "$c_reset"
+
+# The two things that still need you. Printed here rather than in bootstrap.sh so they
+# appear however setup was reached, and never after a declined plan.
+if [[ $(basename "${SHELL:-}") != fish ]]; then
+  # shellcheck disable=SC2016  # literal text for the user to copy, not to expand here
+  sms_note 'make fish the login shell:  chsh -s "$(command -v fish)"'
+  # shellcheck disable=SC2016
+  sms_note 'on macOS add $(command -v fish) to /etc/shells first'
+fi
+sms_note 'git identity and signing: run ggh (fish will remind you until it is set)'
+echo

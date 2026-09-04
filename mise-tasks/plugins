@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 #MISE description="Install fisher with its plugins, and tmux plugins via TPM"
+#MISE raw=true
 set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
+
+sms_preview plan_plugins 'Install these plugins?' || exit 0
 
 if command -v fish >/dev/null 2>&1; then
   fish -c '

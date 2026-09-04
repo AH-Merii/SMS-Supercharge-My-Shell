@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Stow the layers for this machine's profile (STOW_FLAGS=-n to dry-run)"
+#MISE raw=true
 #
 # Idempotent: `stow -R` restows, and anything already sitting where a link belongs
 # (a real file, or a symlink stow does not own) is moved to <path>.bak first, so a
@@ -8,46 +9,45 @@ set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
 # shellcheck source=mise-tasks/profile
 source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
 
 flags=${STOW_FLAGS:-}
 target=$HOME
 if [[ -z $flags && $PWD == */.claude/worktrees/* ]]; then
-  echo "refusing to link from a worktree ($PWD); run from the main checkout" >&2
+  sms_err "refusing to link from a worktree ($PWD); run from the main checkout"
   exit 1
 fi
 
-# Move whatever stow would refuse to overwrite out of the way.
+# Move whatever stow would refuse to overwrite out of the way. What counts as a conflict
+# is stow_conflicts (lib/plan.sh), shared with the preview so the two cannot disagree.
 backup_conflicts() {
-  local layer=$1
-  shift
-  local out rel
-  out=$(stow -n -d "$layer" -R "$@" 2>&1 || true)
+  local rel path bak
   while IFS= read -r rel; do
     [[ -n $rel ]] || continue
-    local path="$target/$rel" bak="$target/$rel.bak"
+    path="$target/$rel" bak="$target/$rel.bak"
     [[ -e $path || -L $path ]] || continue
     if [[ -e $bak || -L $bak ]]; then
       bak="$bak.$(date +%Y%m%d%H%M%S)"
     fi
-    if [[ -n $flags ]]; then
-      echo "would back up $rel -> ${bak#"$target/"}"
-    else
-      mv "$path" "$bak"
-      echo "backed up $rel -> ${bak#"$target/"}"
-    fi
-  done < <(printf '%s\n' "$out" | sed -nE \
-    -e 's/^ *\* existing target is not owned by stow: (.*)$/\1/p' \
-    -e 's/^ *\* cannot stow .* over existing target (.*) since neither a link nor a directory.*$/\1/p')
+    mv "$path" "$bak"
+    sms_note "backed up $rel -> ${bak#"$target/"}"
+  done < <(stow_conflicts "$@")
 }
 
-echo "profile: $profile"
+# A dry run is already a preview, so asking first would be a question about nothing.
+if [[ -n $flags ]]; then
+  plan_links
+else
+  sms_preview plan_links 'Link these packages?' || exit 0
+fi
+
 for layer in "${layers[@]}"; do
-  mapfile -t pkgs < <(ls -1 "$layer")
-  echo "$layer: ${pkgs[*]}"
-  backup_conflicts "$layer" "${pkgs[@]}"
+  mapfile -t lpkgs < <(layer_pkgs "$layer")
+  [[ -n $flags ]] || backup_conflicts "$layer" "${lpkgs[@]}"
   # .stowrc supplies --target and --no-folding
   # shellcheck disable=SC2086
-  stow $flags -d "$layer" -R "${pkgs[@]}"
+  stow $flags -d "$layer" -R "${lpkgs[@]}"
 done
 
 if [[ -z $flags && " ${layers[*]} " == *" desktop "* ]]; then
