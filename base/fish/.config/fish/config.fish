@@ -1,6 +1,6 @@
 # Main fish configuration
 
-# Disable default greeting, show fastfetch instead
+# Disable default greeting
 set -g fish_greeting
 
 # Ghostty integration (if available)
