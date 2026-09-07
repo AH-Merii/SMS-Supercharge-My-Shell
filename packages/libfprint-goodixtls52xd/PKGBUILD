@@ -1,0 +1,92 @@
+# Maintainer: Huw Rogers <djnz00@gmail.com>
+# Vendored and pinned by SMS.
+#
+# Why this lives here instead of pkglist/aur.txt:
+#
+# The AUR package libfprint-goodixtls52xd-git tracks `#branch=master`. That makes every
+# `paru -Syu` a silent pull of whatever landed upstream since the last build, compiled
+# into libfprint-2.so -- a library loaded by fprintd, which runs as root and sits on the
+# authentication path (PAM). An unpinned moving target in that position is not something
+# a PKGBUILD review at install time can protect you from, because the code changes after
+# the review. So we vendor the PKGBUILD and pin an exact commit.
+#
+# Pinned commit: 72cacc37ca6524390a112e7df7bf2c6972be8217
+#   "goodixtls: harden TLS and debug handling" (2026-05-25)
+# Reviewed at that commit. It supports the Goodix 27c6:521d reader (ASUS Zephyrus G15)
+# against stock GFUSB_GM168SEC_APP_10034 firmware, so no firmware flashing is involved.
+#
+# Sourced from github.com/AH-Merii/libfprint, our own fork of djnz00/libfprint. The fork
+# carries no changes; it exists so the pinned commit cannot vanish if upstream is deleted,
+# renamed or force-pushed.
+#
+# Bumping pkgver/the commit is a deliberate, reviewed action: read the upstream diff first,
+# then update source=, pkgver and this comment together. There is intentionally no pkgver()
+# function -- auto-bumping is exactly the behaviour we are removing.
+
+pkgname=libfprint-goodixtls52xd
+pkgver=1.94.10.r2013.g72cacc3
+pkgrel=1
+pkgdesc="Library for fingerprint readers with Goodix TLS 52xd support"
+url="https://fprint.freedesktop.org/"
+arch=(x86_64)
+license=(LGPL-2.1-or-later)
+depends=(
+  gcc-libs
+  glib2
+  glibc
+  libgudev
+  libgusb
+  openssl
+  pixman
+)
+makedepends=(
+  git
+  glib2-devel
+  gobject-introspection
+  gtk-doc
+  meson
+  python-cairo
+  python-gobject
+  systemd
+)
+checkdepends=(
+  cairo
+  umockdev
+)
+provides=(
+  "libfprint=$pkgver"
+  libfprint-2.so
+  libfprint-goodixtls52xd
+)
+conflicts=(
+  libfprint
+  libfprint-goodix-521d
+  libfprint-goodixtls52xd-git
+)
+groups=(fprint)
+source=("git+https://github.com/AH-Merii/libfprint.git#commit=72cacc37ca6524390a112e7df7bf2c6972be8217")
+sha256sums=(SKIP)
+
+build() {
+  local meson_options=(
+    # Match Arch's libfprint package so this remains a drop-in replacement.
+    -D drivers=all
+    -D installed-tests=false
+  )
+
+  arch-meson libfprint build "${meson_options[@]}"
+  meson compile -C build
+}
+
+check() {
+  # The full suite's only failure is metainfo-validate, which runs appstreamcli
+  # against an upstream URL that is no longer reachable -- a network lint, not a
+  # code check. These two are the driver-relevant tests the fork's README names.
+  meson test -C build goodixtls52xd-frame goodixtls-protocol --print-errorlogs
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}
+
+# vim:set sw=2 sts=-1 et:

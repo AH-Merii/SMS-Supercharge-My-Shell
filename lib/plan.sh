@@ -162,6 +162,87 @@ plan_os_packages() {
   return 0
 }
 
+# --- local packages ---------------------------------------------------------------
+
+# The vendored PKGBUILDs under packages/. Each directory may carry an executable `guard`
+# next to its PKGBUILD: exit 0 to build here, non-zero to skip, printing the reason on
+# stdout. That keeps machine-specific conditions (this laptop's fingerprint reader, say)
+# next to the package they belong to instead of accumulating in the task.
+#
+# One tab-separated line per package -- "build<TAB>name<TAB>dir",
+# "current<TAB>name<TAB>dir" or "skip<TAB>name<TAB>reason". localpkgs and the preview
+# both read this, so what the plan shows and what gets built cannot disagree.
+local_pkg_state() {
+  local dir name ver rel meta installed reason
+  for dir in "$MISE_PROJECT_ROOT"/packages/*/; do
+    dir=${dir%/}
+    [[ -f $dir/PKGBUILD ]] || continue
+
+    # Sourced in a subshell, which is how makepkg reads it too: a PKGBUILD is a bash
+    # script, and these are our own vendored files, reviewed before they land here.
+    meta=$(
+      # shellcheck disable=SC1091  # path is a glob result, not resolvable statically
+      source "$dir/PKGBUILD" >/dev/null 2>&1 &&
+        printf '%s\t%s\t%s' "$pkgname" "$pkgver" "$pkgrel"
+    ) || meta=''
+    if [[ -z $meta ]]; then
+      printf 'skip\t%s\tPKGBUILD could not be read\n' "${dir##*/}"
+      continue
+    fi
+    IFS=$'\t' read -r name ver rel <<<"$meta"
+
+    if [[ -x $dir/guard ]]; then
+      if ! reason=$("$dir/guard" 2>/dev/null); then
+        printf 'skip\t%s\t%s\n' "$name" "${reason:-guard declined}"
+        continue
+      fi
+    fi
+
+    installed=''
+    if command -v pacman >/dev/null 2>&1; then
+      installed=$(pacman -Q "$name" 2>/dev/null | awk '{ print $2 }') || true
+    fi
+    # Version-and-release match, not mere presence: that is the --needed semantics
+    # pacman gives the pkglists, applied to something pacman cannot resolve itself.
+    if [[ $installed == "$ver-$rel" ]]; then
+      printf 'current\t%s\t%s\n' "$name" "$dir"
+    else
+      printf 'build\t%s\t%s\n' "$name" "$dir"
+    fi
+  done
+}
+
+plan_local_packages() {
+  local lines=() line state name info build=() current=() skipped=()
+  mapfile -t lines < <(local_pkg_state)
+
+  sms_section 'local packages' "$(_n ${#lines[@]} PKGBUILD)"
+  if [[ ${#lines[@]} -eq 0 ]]; then
+    sms_note 'nothing in packages/'
+    return 0
+  fi
+
+  for line in "${lines[@]}"; do
+    IFS=$'\t' read -r state name info <<<"$line"
+    case $state in
+      build) build+=("$name") ;;
+      current) current+=("$name") ;;
+      skip) skipped+=("$name: $info") ;;
+    esac
+  done
+
+  [[ ${#current[@]} -gt 0 ]] && sms_have "${current[@]}"
+  if [[ ${#build[@]} -gt 0 ]]; then
+    sms_want "${build[@]}"
+    # makepkg -s installs the make/check dependencies with pacman, which the plan above
+    # has no way to enumerate without parsing every PKGBUILD's dependency tree.
+    sms_note 'built from source; makepkg -s will pull in any missing build dependencies'
+  fi
+  for line in "${skipped[@]}"; do sms_note "skipped $line"; done
+  [[ ${#build[@]} -gt 0 || ${#current[@]} -gt 0 ]] || sms_note 'nothing to build here'
+  return 0
+}
+
 # --- stow -------------------------------------------------------------------------
 
 # Everything `stow -R` would object to, as "backup <relpath>" and "warn <message>"

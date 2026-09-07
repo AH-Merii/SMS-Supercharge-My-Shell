@@ -1,0 +1,8 @@
+# makepkg build artefacts. Only the PKGBUILD and its guard belong in git.
+src/
+pkg/
+# The git source is cloned into the package directory, named after the repo.
+libfprint/
+*.pkg.tar.zst
+*.pkg.tar.zst.sig
+*.log
