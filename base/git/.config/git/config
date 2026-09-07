@@ -41,7 +41,7 @@
 
 [core]
   editor = nvim
-  pager = hunk pager
+  pager = sh -c 'test $(tput cols) -ge 160 && exec delta --features side-by-side || exec delta'
   fsmonitor = true
   untrackedCache = true
 
