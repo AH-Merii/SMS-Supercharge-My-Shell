@@ -48,7 +48,8 @@ curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/m
 ```
 
 `bootstrap.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
-macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` if needed, and runs
+macOS and WSL, plus a current bash there), clones the repo to `~/SMS-Supercharge-My-Shell`
+if needed, and runs
 `mise run setup`: OS packages, symlinks, tools, plugins and, on the Arch desktop, the login
 screen. Files already sitting where a link belongs are moved to `<name>.bak`, never
 overwritten.
@@ -142,7 +143,9 @@ the old file into the repo.
   `/etc/pam.d/greetd` carries `pam_gnome_keyring`, so the login password still unlocks the
   keyring.
 - **macOS.** Homebrew installs the casks in the `Brewfile` (ghostty, karabiner-elements,
-  1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`.
+  1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`. The install
+  tasks are bash scripts that need bash 4+; macOS ships 3.2, so `bootstrap.sh` installs
+  Homebrew's bash before running them and the `Brewfile` keeps it current.
 - **WSL2.** apt covers the base packages, Homebrew supplies mise and a current fish. The
   clipboard goes through `clip.exe` in fish and tmux automatically.
 - **Servers.** `base` profile only; nothing desktop-related is linked or installed.

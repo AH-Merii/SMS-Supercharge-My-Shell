@@ -7,6 +7,9 @@ brew "git"
 brew "stow"
 brew "mise"
 brew "fish"
+# The mise tasks need bash 4+ and macOS ships 3.2. bootstrap.sh installs this before the
+# first task runs; listing it here keeps it current afterwards.
+brew "bash"
 brew "tmux"
 brew "gnupg"
 brew "luarocks"
