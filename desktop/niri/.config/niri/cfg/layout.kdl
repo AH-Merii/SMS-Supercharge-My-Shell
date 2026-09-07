@@ -10,5 +10,14 @@
             proportion 0.66667
         }
 
+        preset-window-heights {
+            proportion 0.33333
+            proportion 0.5
+            proportion 0.66667
+        }
+
+        // Explicit so Mod+Shift+R has a well-defined width to reset to.
+        default-column-width { proportion 0.5; }
+
         struts {}
     }

@@ -145,12 +145,22 @@ binds {
     Mod+M                               hotkey-overlay-title="Toggle Maximize Column" { maximize-column; }
     Mod+CTRL+ALT+Shift+M                { maximize-column; }
     Mod+CTRL+C                          hotkey-overlay-title="Center Visible Columns" { center-visible-columns; }
+    // ─── Resizing ───
+    // Bare -/= resize horizontally, +CTRL resizes vertically.
+    // Mod+Shift+Equal is the literal "Mod plus" and aliases the horizontal grow.
     Mod+Minus                           hotkey-overlay-title="Shrink Column Width" { set-column-width "-10%"; }
     Mod+CTRL+ALT+Shift+Minus            { set-column-width "-10%"; }
     Mod+Equal                           hotkey-overlay-title="Grow Column Width" { set-column-width "+10%"; }
+    Mod+Shift+Equal                     { set-column-width "+10%"; }
     Mod+CTRL+ALT+Shift+Equal            { set-column-width "+10%"; }
-    Mod+Shift+Minus                     hotkey-overlay-title="Shrink Window Height" { set-window-height "-10%"; }
-    Mod+Shift+Equal                     hotkey-overlay-title="Grow Window Height" { set-window-height "+10%"; }
+    Mod+CTRL+Minus                      hotkey-overlay-title="Shrink Window Height" { set-window-height "-10%"; }
+    Mod+CTRL+Equal                      hotkey-overlay-title="Grow Window Height" { set-window-height "+10%"; }
+
+    Mod+R                               hotkey-overlay-title="Cycle Column Width Presets" { switch-preset-column-width; }
+    Mod+CTRL+R                          hotkey-overlay-title="Cycle Window Height Presets" { switch-preset-window-height; }
+    // niri binds run a single action, and there is no reset-column-width, so
+    // resetting both axes has to go through niri msg.
+    Mod+Shift+R                         hotkey-overlay-title="Reset Window Size" { spawn "sh" "-c" "niri msg action set-column-width 50%; niri msg action reset-window-height"; }
 
     // ─── Modes ───
     Mod+T                               hotkey-overlay-title="Toggle Floating Window" { toggle-window-floating; }
