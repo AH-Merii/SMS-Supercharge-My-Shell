@@ -1,42 +1,8 @@
--- palletes
---- dynamic Catppuccin palette (fallback if missing)
-local function get_catppuccin_pallete()
-  local ok, palette = pcall(require, "catppuccin.palettes")
-  if ok then
-    local c = palette.get_palette()
-    return {
-      bg = c.mantle,
-      fg = c.text,
-      red = c.red,
-      yellow = c.yellow,
-      green = c.green,
-      cyan = c.teal,
-      blue = c.blue,
-      magenta = c.mauve,
-      orange = c.peach,
-      violet = c.lavender,
-    }
-  else
-    vim.notify("Unable to Load catppuccin pallette in lualine", vim.log.levels.WARN)
-    return {
-      bg = "#1e1e2e",
-      fg = "#cdd6f4",
-      red = "#f38ba8",
-      yellow = "#f9e2af",
-      green = "#a6e3a1",
-      cyan = "#94e2d5",
-      blue = "#89b4fa",
-      magenta = "#cba6f7",
-      orange = "#fab387",
-      violet = "#b4befe",
-    }
-  end
-end
-
 local function get_onedark_palette()
-  local ok, onedark = pcall(require, "onedark.palette")
+  -- onedark.palette is keyed by style; onedark.colors is the palette resolved
+  -- for the configured style (requires onedark.setup() to have run).
+  local ok, c = pcall(require, "onedark.colors")
   if ok then
-    local c = onedark
     return {
       bg = c.bg0 or "#282c34",
       fg = c.fg or "#abb2bf",
@@ -76,6 +42,7 @@ return {
     local lualine = require("lualine")
 
     local colors = get_colors()
+    local augroup = vim.api.nvim_create_augroup("LualineUser", { clear = true })
 
     local conditions = {
       buffer_not_empty = function() return vim.fn.empty(vim.fn.expand("%:t")) ~= 1 end,
@@ -119,6 +86,7 @@ return {
 
     -- Clear git cache when cwd changes
     vim.api.nvim_create_autocmd("DirChanged", {
+      group = augroup,
       callback = function() project_root_cache = {} end,
     })
 
@@ -187,6 +155,7 @@ return {
 
     -- Update cache on buffer/window changes, LSP lifecycle events, and after save
     vim.api.nvim_create_autocmd({ "BufEnter", "FileType", "LspAttach", "LspDetach", "BufWritePost" }, {
+      group = augroup,
       callback = update_statusline_cache,
     })
 
@@ -308,6 +277,7 @@ return {
 
     -- Refresh lualine when macro recording starts/stops
     vim.api.nvim_create_autocmd({ "RecordingEnter", "RecordingLeave" }, {
+      group = augroup,
       callback = function() require("lualine").refresh() end,
     })
 

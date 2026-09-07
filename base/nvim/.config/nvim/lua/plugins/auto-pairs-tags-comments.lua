@@ -268,15 +268,12 @@ return {
             rule:with_pair(function(_)
               -- If current filetype isn't in the target list → no change
               if not vim.tbl_contains(langs, vim.bo.filetype) then
-                print("true")
                 return true
               end
               -- Inside specified nodes → disable built-in rule
               if in_nodes(_) then
-                print("false")
                 return false
               end
-              print("true 2")
               return true
             end)
           end
@@ -299,11 +296,7 @@ return {
 
       disable_builtin_rules_in_nodes(js_filetypes, { "[", "{", "(" }, { "array", "object" })
 
-      npairs.add_rules(python_trailing_comma_rules())
-
-      npairs.add_rules(lua_table_trailing_comma_rules())
-
-      -- Register all custom rules once autopairs is loaded
+      -- Register all custom rules (incl. trailing-comma rules) once autopairs is loaded
       npairs.add_rules(all_custom_rules())
     end,
   },
@@ -314,13 +307,5 @@ return {
     opts = {},
   },
 
-  -- comments
-  {
-    "numToStr/Comment.nvim",
-    opts = {},
-    lazy = false,
-  },
-
-  -- useful when there are embedded languages in certain types of files (e.g. Vue or React)
-  { "joosepalviste/nvim-ts-context-commentstring", lazy = true },
+  -- comments: built-in `gc` operator (treesitter-aware for embedded languages)
 }
