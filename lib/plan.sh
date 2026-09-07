@@ -81,22 +81,36 @@ _plan_pacman() {
   _show_split
 }
 
-_plan_aur() {
-  [[ $profile == desktop ]] || return 0
+# What a desktop without paru is told, by the plan and again by deps at run time, so the
+# two say the same thing. paru is itself an AUR package, so no pkglist can install it and
+# deps does not try (#33): it is a prerequisite, documented in the README under
+# "Machine notes -> Arch desktop". Not an error -- a desktop that will never have paru
+# still wants everything else deps installs.
+warn_no_paru() {
   local wanted=() missing
   mapfile -t wanted < <(pkgs "$MISE_PROJECT_ROOT/pkglist/aur.txt")
   [[ ${#wanted[@]} -gt 0 ]] || return 0
   missing=$(pacman -T "${wanted[@]}" 2>/dev/null) || true
   _split_by_missing "$missing" "${wanted[@]}"
 
+  sms_section AUR 'paru not installed'
+  sms_warn "paru not installed - $(_n ${#_want[@]} 'AUR package') will be SKIPPED"
+  [[ ${#_want[@]} -gt 0 ]] && sms_note "skipped: ${_want[*]}"
+  sms_note 'paru is a prerequisite; install paru-bin from the AUR first (README: Machine notes -> Arch desktop)'
+  return 0
+}
+
+_plan_aur() {
+  [[ $profile == desktop ]] || return 0
   if ! command -v paru >/dev/null 2>&1; then
-    # deps guards its paru call on `command -v paru`, and paru is in no pkglist, so
-    # without it these are skipped in silence today.
-    sms_section AUR 'paru not installed'
-    sms_warn "paru not installed - $(_n ${#_want[@]} 'AUR package') will be SKIPPED"
-    [[ ${#_want[@]} -gt 0 ]] && sms_note "skipped: ${_want[*]}"
+    warn_no_paru
     return 0
   fi
+  local wanted=() missing
+  mapfile -t wanted < <(pkgs "$MISE_PROJECT_ROOT/pkglist/aur.txt")
+  [[ ${#wanted[@]} -gt 0 ]] || return 0
+  missing=$(pacman -T "${wanted[@]}" 2>/dev/null) || true
+  _split_by_missing "$missing" "${wanted[@]}"
 
   sms_section 'AUR (paru)' "$(_n ${#wanted[@]} package)"
   _show_split

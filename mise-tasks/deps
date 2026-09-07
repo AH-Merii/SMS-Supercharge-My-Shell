@@ -31,12 +31,19 @@ if command -v pacman >/dev/null 2>&1; then
   # database 404s on mirrors, and a partial -Sy install is unsupported on Arch.
   # shellcheck disable=SC2046,SC2086
   sudo pacman -Syu --needed $confirm_pacman $(pkgs "${lists[@]}")
-  if [[ $profile == desktop ]] && command -v paru >/dev/null 2>&1; then
-    # paru imports PKGBUILD signing keys with gpg, which fails when $GNUPGHOME
-    # (set by fish to ~/.local/share/gnupg) does not exist yet.
-    install -d -m 700 "${GNUPGHOME:-$HOME/.gnupg}"
-    # shellcheck disable=SC2046,SC2086
-    paru -Syu --needed $confirm_paru $(pkgs pkglist/aur.txt)
+  if [[ $profile == desktop ]]; then
+    if command -v paru >/dev/null 2>&1; then
+      # paru imports PKGBUILD signing keys with gpg, which fails when $GNUPGHOME
+      # (set by fish to ~/.local/share/gnupg) does not exist yet.
+      install -d -m 700 "${GNUPGHOME:-$HOME/.gnupg}"
+      # shellcheck disable=SC2046,SC2086
+      paru -Syu --needed $confirm_paru $(pkgs pkglist/aur.txt)
+    else
+      # The plan said this too, but pacman's output has scrolled it away by now, and
+      # under `setup` the plan was one screen for five tasks. Deliberately not fatal:
+      # paru is a prerequisite (#33), not something deps installs.
+      warn_no_paru
+    fi
   fi
 elif command -v apt-get >/dev/null 2>&1; then
   sudo apt-get update
