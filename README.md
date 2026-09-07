@@ -123,8 +123,14 @@ the old file into the repo.
 
 ## Machine notes
 
-- **Arch desktop (CachyOS niri + Noctalia).** GPU drivers come from the installer (`chwd`);
-  enable persistence with `sudo systemctl enable nvidia-persistenced` if wanted.
+- **Arch desktop (CachyOS niri + Noctalia).** [paru](https://github.com/Morganamilo/paru)
+  is a prerequisite for the AUR packages in `pkglist/aur.txt` (1Password, its CLI, the
+  cursor theme, the ChatGPT desktop app). It is itself an AUR package, so no pkglist can
+  install it and `deps` does not try. CachyOS ships it; on vanilla Arch install it first:
+  `git clone https://aur.archlinux.org/paru-bin.git && cd paru-bin && makepkg -si`
+  (needs `base-devel`). Without it the plan and `deps` both warn, name the skipped
+  packages and carry on with everything else. GPU drivers come from the installer
+  (`chwd`); enable persistence with `sudo systemctl enable nvidia-persistenced` if wanted.
   Noctalia v5 keeps its settings in `~/.local/state/noctalia/settings.toml`, which the
   settings UI writes to; that file is a symlink into `desktop/noctalia`, so GUI changes show
   up in `git status` and you commit the ones you mean to keep (`noctalia config validate`
