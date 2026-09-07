@@ -14,6 +14,8 @@ macos/       macOS only: karabiner
 plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)
 pkglist/     pacman / AUR / apt package lists
 packages/    PKGBUILDs this repo vendors and pins itself, built by `mise run localpkgs`
+docs/        investigations that outlived their session; docs/fingerprint/ is the Goodix
+             521d work, and carries its own tools/ and runbook.md
 Brewfile     Homebrew packages for macOS and WSL
 mise.toml    tasks (see below); mise-tasks/ holds the scripts
 lib/         ui.sh (colours, Y/n prompt) and plan.sh (what a task would do), sourced by
