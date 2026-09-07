@@ -1,3 +1,4 @@
 /.claude/
 /base/git/.local/bin/__pycache__
 /base/git/.config/git/allowed_signers
+/docs/fingerprint/tools/__pycache__
