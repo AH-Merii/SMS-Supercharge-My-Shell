@@ -89,7 +89,6 @@ function M.setup()
       vim.opt_local.wrapmargin = 0
       vim.opt_local.wrap = true
       vim.opt_local.linebreak = true
-      vim.opt_local.columns = 80
       vim.opt_local.colorcolumn = "80"
     end,
   })
@@ -97,7 +96,7 @@ function M.setup()
   -- Highlight on yank
   autocmd("TextYankPost", {
     group = user_group,
-    callback = function() vim.highlight.on_yank({ higroup = "Search", timeout = 200 }) end,
+    callback = function() vim.hl.on_yank({ higroup = "Search", timeout = 200 }) end,
   })
 
   -- Close specific filetypes with 'q'

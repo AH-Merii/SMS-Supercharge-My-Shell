@@ -4,7 +4,6 @@ local function set_keymaps()
 
   keymap("n", "<space>!", ":.lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current line" }))
   keymap("v", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
-  keymap("v", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
   local ok, wk = pcall(require, "which-key")
   if ok then
     wk.add({
