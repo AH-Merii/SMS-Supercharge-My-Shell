@@ -94,12 +94,6 @@ repo_root_format = ""
 "tmux/.config/tmux" = "  "
 "zsh/.config/zsh" = " zsh  "
 
-# Custom for AECOM
-"libs" = " "
-"monopy" = "󱥒 "
-"plant-room" = "󰈏 "
-"plant_room" = "󰈏 "
-
 "claude" = " claude"
 "fish" = "󰈺 "
 "ghostty" = "󰊠 "

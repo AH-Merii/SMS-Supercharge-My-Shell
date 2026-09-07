@@ -1,6 +1,7 @@
 # Warn when git identity or commit signing is not set up on this machine.
-# The stowed git config enforces SSH signing but strips [user] and [gpg "ssh"] on
-# commit, so each machine needs `ggh` to write them (see base/git/README.md).
+# The stowed git config enforces SSH signing but keeps identity out of the repo:
+# it lives in untracked ~/.config/git/config.local, which `ggh` writes per machine
+# (see base/git/README.md).
 status is-interactive; or return
 type -q git; or return
 

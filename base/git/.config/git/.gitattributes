@@ -1,2 +1,0 @@
-config filter=remove_gitconfig_user
-config-* filter=remove_gitconfig_user

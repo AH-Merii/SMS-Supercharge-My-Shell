@@ -1,3 +1,6 @@
 /.claude/
 /base/git/.local/bin/__pycache__
 /base/git/.config/git/allowed_signers
+# ggh writes identity here; these must never enter the repo
+/base/git/.config/git/config.local
+/base/git/.config/git/config-*
