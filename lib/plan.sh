@@ -157,8 +157,18 @@ plan_os_packages() {
       sms_note 'dpkg-query unavailable; cannot tell what is already installed'
     fi
   fi
-  # Separate `if`, mirroring deps: brew bundle runs whenever brew is on PATH.
-  command -v brew >/dev/null 2>&1 && _plan_brew
+  # Separate `if`, mirroring deps: brew bundle runs on macOS and WSL (use_brew) when
+  # brew is on PATH. A linuxbrew on Arch is deliberately ignored, so no section for it.
+  if use_brew; then
+    if command -v brew >/dev/null 2>&1; then
+      _plan_brew
+    else
+      # Same shape as the paru case: bootstrap.sh installs brew here, but if it is
+      # missing deps skips the Brewfile in silence, so say so up front.
+      sms_section Homebrew 'brew not installed'
+      sms_warn 'brew not installed - the Brewfile will be SKIPPED'
+    fi
+  fi
   return 0
 }
 
