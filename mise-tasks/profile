@@ -7,6 +7,9 @@
 #   macos    macOS
 set -euo pipefail
 
+# Same test bootstrap.sh uses, so the two never disagree about what WSL is.
+is_wsl() { grep -qi microsoft /proc/version 2>/dev/null; }
+
 detect_profile() {
   if [[ -n "${DOTFILES_PROFILE:-}" ]]; then
     echo "$DOTFILES_PROFILE"
@@ -15,7 +18,7 @@ detect_profile() {
   case "$(uname -s)" in
     Darwin) echo macos ;;
     Linux)
-      if grep -qi microsoft /proc/version 2>/dev/null; then
+      if is_wsl; then
         echo base
       elif command -v niri >/dev/null 2>&1 || [[ -n ${NIRI_SOCKET:-} ]] || [[ -f /usr/share/wayland-sessions/niri.desktop ]]; then
         echo desktop
@@ -28,6 +31,14 @@ detect_profile() {
 }
 
 profile=$(detect_profile)
+
+# Whether the Brewfile applies here: macOS, or WSL (base profile). Arch and servers get
+# their packages from pkglist/, and a linuxbrew that happens to be on PATH must not pull
+# in a second git, gnupg and so on in front of pacman's (README, "Package sources").
+# Gated on the profile rather than on `command -v brew`, so DOTFILES_PROFILE overrides
+# answer the same way autodetection would.
+use_brew() { [[ $profile == macos ]] || { [[ $profile == base ]] && is_wsl; }; }
+
 # shellcheck disable=SC2034  # layers is consumed by the tasks that source this file
 case "$profile" in
   base) layers=(base) ;;
