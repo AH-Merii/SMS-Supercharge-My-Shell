@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#MISE description="Preview what link would do: packages per layer and the files it would back up"
+#MISE raw=true
+#
+# The preview only. It never calls stow for real, so it always exits 0 -- a dry run that
+# found conflicts has done its job, and a non-zero exit here would make mise report
+# "task failed" for a perfectly normal run (#34).
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
+
+plan_links

@@ -78,9 +78,9 @@ reminder until the latter is done.
 | --------- | ------------------------------------------------------------------- |
 | `setup`   | `deps`, `link`, `tools`, `plugins`, `greeter` in order              |
 | `deps`    | OS packages: pacman/paru on Arch, apt on Debian, `brew bundle` on macOS/WSL |
-| `link`    | Stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run) |
+| `link`    | Stow the layers for this profile; conflicting files go to `.bak`    |
 | `unlink`  | Remove those symlinks                                               |
-| `check`   | Dry-run `link`                                                      |
+| `check`   | Preview `link`: packages per layer and what it would back up; always exits 0 |
 | `tools`   | `mise install` everything in the global mise config                 |
 | `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
 | `greeter` | Arch desktop: greetd + noctalia-greeter as the login screen, synced to the Noctalia theme; a no-op elsewhere |

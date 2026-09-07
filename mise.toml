@@ -1,11 +1,7 @@
 # Task runner for this repo: `mise tasks` lists everything, `mise run <task>` runs it.
-# File tasks live in mise-tasks/. Tools are NOT declared here; a [tools] block in this file
-# would shadow the global config (base/mise/.config/mise/config.toml) whenever the cwd is
-# inside the repo.
+# Every task is a file task in mise-tasks/. Tools are NOT declared here; a [tools] block
+# in this file would shadow the global config (base/mise/.config/mise/config.toml)
+# whenever the cwd is inside the repo.
 #
-# setup and tools are file tasks too: they print a plan before installing anything, which
-# an inline `run =` cannot do.
-
-[tasks.check]
-description = "Dry-run stow for this machine's profile"
-run = "STOW_FLAGS=-n mise run link"
+# Nothing is defined inline: the tasks print a plan (and check *is* the plan), which an
+# inline `run =` cannot do.
