@@ -1,269 +1,227 @@
-# Goodix 27c6:521d fingerprint reader — Hypotheses and routes forward
+# Goodix 27c6:521d — Interpretation and routes
 
-**Companion to `observations.md`.** That file holds verified facts; this one holds
-interpretation, competing theories, proposed fixes and their risks. Read `observations.md`
-first — everything here depends on it.
+**Companion to `observations.md`**, which holds verified facts. This file holds
+interpretation, competing theories and risk. `runbook.md` holds the ordered procedure.
 
-**Confidence labels used below:** *established* (proven by measurement or source), *likely*
+**Confidence labels:** *established* (proven by measurement or primary source), *likely*
 (strong indirect evidence), *speculative* (plausible, untested).
 
 ---
 
 ## 1. The blocker, stated precisely
 
-Driver activation aborts at SSM state 4 (`ACTIVATE_CHECK_PSK`) because the sensor's stored
-`sha256(PSK)` is `163ec2b1…`, while the driver, having read firmware
-`GFUSB_GM168SEC_APP_10019`, demands `66687aad…` (= `sha256(32 zero bytes)`).
+Activation aborts at `ACTIVATE_CHECK_PSK` because the sensor's stored `sha256(key)` is
+`163ec2b1…`, while the driver, having read firmware `GFUSB_GM168SEC_APP_10019`, expects
+`66687aad…`, which is `sha256` of 32 zero bytes.
 
-Everything before that state succeeds. The device is detected, claimed and opened. This is
-**not** a detection or a kernel problem; it is a key-agreement problem.
+This is not a detection problem and not a kernel problem. It is a key-agreement problem, and
+the two parties disagree about which key they share.
 
 ---
 
 ## 2. Central hypothesis
 
-> **This sensor was provisioned with a PSK that is neither of the two the driver knows.**
-> *(established — the hash is measured, and matches neither constant nor any of 267
-> candidates.)*
+> **Windows Hello wrote a random key to this sensor, and that key exists in exactly one
+> place we cannot read.** *(likely, and now well supported)*
 
-The Goodix TLS design has the host and sensor share a pre-shared key. The sensor stores
-`sha256(PSK)` so a host can check "do I have the right key?" before attempting a handshake.
-Ours answers "no".
+The Goodix Windows driver implements trust-on-first-use: when it cannot decrypt its stored
+copy of the key, it generates a fresh random one and writes it to the sensor. Its own debug
+symbols spell out the sequence. *(established, from a published reverse-engineering trace and
+the driver's own log strings.)*
 
-### Why the driver has two firmware branches
+This explains the one thing that otherwise looks strange: the sensor runs the stock community
+firmware yet holds a digest matching nothing. It was re-keyed in place, without a reflash.
 
-*Likely.* Reading `goodix52xd_set_expected_pmk_hash()` and `goodix52xd_get_tls_psk()`
-together tells a story:
+### What this changes about the previous conclusion
 
-- For **10034**, the driver holds both the PSK *and* its hash as constants. Self-contained.
-- For **10019**, it holds **only the hash** — `get_tls_psk()` returns `NULL`. Even on a
-  successful hash check, TLS would have no key.
+The earlier version of this document treated the situation as close to hopeless, because the
+key cannot be recovered from its digest. That remains true. But it framed writing a key as an
+untested, dangerous path with "zero callers", which was true only *within libfprint*. The
+community tool does exactly this, routinely, for exactly this device, and it is the documented
+procedure the sensor's Linux support has always depended on. *(established.)*
 
-The only way the 10019 path can ever work is with `LIBFPRINT_GOODIXTLS_PSK_HEX` supplying
-the key. That environment variable is not a debugging leftover; it is *the* 10019 mechanism.
-
-**Inference:** 10019 units do not share a universal PSK. The upstream author supported them
-by letting the user provide the key, and hard-coded only the all-zeros default that
-un-provisioned units ship with. Ours is provisioned, so the default no longer applies.
-
-### Where our PSK came from
-
-*Speculative, but the most economical explanation.* The machine dual-boots Windows
-(`observations.md` §2). The Goodix Windows driver performs the same TLS handshake, so it
-must possess this PSK. Either:
-
-- **(a)** the vendor ships a per-model PSK inside the Windows driver, or
-- **(b)** the Windows driver generated a per-unit PSK and wrote it to the sensor with
-  `preset_psk_write` during Windows Hello setup.
-
-These have very different consequences and the next experiment distinguishes them.
-
-### Competing explanation, considered and rejected
-
-*Could the firmware→hash mapping simply be inverted — i.e. our unit reports 10019 but holds
-the 10034 key?* **No.** `sha256(goodix_52xd_psk_10034)` was computed and does not equal
-`163ec2b1…`. This would have been the cheapest possible fix; it is ruled out.
-
-### On `MCU has no config`
-
-*Likely benign.* It appears three times before the PSK check. Config upload happens at
-`ACTIVATE_SET_MCU_CONFIG`, which is **state 8** — after the PSK gate. The MCU legitimately
-has no config yet at that point. It is a symptom of stopping early, not a second fault.
-Worth revisiting only if the PSK problem is solved and activation then fails later.
+So the real question was never "can the key be replaced" but "should it be, given what
+replacing it costs".
 
 ---
 
-## 3. Route C — recover the PSK from the Windows driver *(recommended first)*
+## 3. Route A — recover the existing key from Windows
 
-**Risk: none.** Read-only. Cannot modify Windows or the sensor.
+**Risk: none. Read-only. Cannot modify Windows or the sensor.**
+**Prior: poor. Do it anyway, because it is cheap and it is the only route that preserves
+Windows Hello.**
 
-If hypothesis (a) holds, the PSK is a 32-byte literal in a Goodix driver file on
-`nvme0n1p2`. Search for a 32-byte window whose `sha256` is `163ec2b1…`.
+If the key can be read from the Windows install, nothing needs to be overwritten. Both
+operating systems keep working, and the driver change already committed is exactly the
+mechanism that consumes such a key.
 
-```sh
-sudo /home/a_merii/.config/claude/jobs/aa87c10b/tmp/find-psk.sh
-```
-
-The script mounts `nvme0n1p2` with `-o ro` (never `rw`, no journal replay), scans
-`DriverStore/FileRepository`, `WinBioPlugIns` and `drivers` for Goodix/WinBio files, slides
-a 32-byte window over each, then unmounts.
-
-**If it matches** — this is the clean win. We would then have the actual PSK, and the fix is
-small, contained, and requires *no hardware modification whatsoever*:
-
-1. Store the PSK outside the repo (it is a device credential — see §7).
-2. Make the activation gate tolerate an externally-supplied key. The minimal change is in
-   `check_preset_psk_read()`: when `LIBFPRINT_GOODIXTLS_PSK_HEX` is set, compare the
-   device's hash against `sha256(that PSK)` instead of the compiled-in constant, and fail
-   only if *that* mismatches. This preserves the existing safety property (never attempt a
-   handshake with a key the device does not hold) while removing the false assumption that
-   10019 implies all-zeros.
-3. Ensure `fprintd` sees the variable — a systemd drop-in on `fprintd.service`, since
-   fprintd is D-Bus activated and will not inherit a shell environment.
-
-**If it does not match**, that is evidence for hypothesis (b) — per-unit provisioning, or an
-obfuscated/"white-box" key. Goodix is known to ship white-box schemes in some drivers, in
-which case the key is computed rather than stored and this search cannot find it.
-*Speculative.*
-
-### Fallback within Route C
-
-*Speculative, higher effort.* Capture the Windows↔sensor USB traffic under Windows
-(USBPcap/Wireshark) during a Hello scan. Note this yields the *handshake*, not the PSK
-directly — the PSK is never transmitted. It would, however, confirm which flags/commands
-Windows uses and whether it ever issues `preset_psk_write`. Useful mainly as evidence for
-(a) vs (b), not as a way to obtain the key.
-
----
-
-## 4. Route A — provision a known PSK onto the sensor
-
-**Risk: high. Persistent hardware modification. Would very likely break Windows Hello.**
-
-Write 32 zero bytes with `preset_psk_write`, making the stored hash `66687aad…` — exactly
-what the driver already expects for 10019. Then supply the same all-zeros key via
-`LIBFPRINT_GOODIXTLS_PSK_HEX` so the handshake has a key.
-
-Attractive because it needs no secret and lands on the driver's existing expectation.
-
-**Why it is second, not first:**
-
-- `goodix_send_preset_psk_write()` has **zero callers in the entire tree**. No driver here
-  exercises it. It is protocol support, not a tested path. *(established)*
-- Unknown whether 10019 firmware permits the write at all — it may be locked, or may
-  require an unlock/authentication step we have not identified. *(speculative)*
-- It overwrites the key Windows relies on. Windows Hello would stop working on this sensor
-  and would need to re-provision — which it may or may not do automatically. Since the
-  machine genuinely dual-boots, this is a real cost, not a theoretical one.
-- A failed or partial write could leave the sensor unusable by *both* operating systems.
-  Current state is "broken on Linux, working on Windows"; a bad outcome here is "broken on
-  both". *(speculative but plausible)*
-
-**Do not attempt without explicit user consent**, having stated the Windows Hello
-consequence. Requires a code change in the fork.
-
-If pursued: implement as a **separate, explicitly-invoked tool**, not as a step inside
-normal activation. A driver that silently rewrites keys on any hash mismatch would be
-dangerous — it would clobber a working Windows provisioning the first time someone plugged
-in a mismatched sensor.
-
----
-
-## 5. Route B — flash firmware to 10034
-
-**Risk: high, irreversible.**
-
-10034 is the fork's tested production target, with both PSK and hash compiled in and a
-config-upload path already tuned for it (`goodix52xd_send_upload_config()` patches three
-bytes for 10034). If the sensor ran 10034 with the vendor's stock provisioning, the driver
-should work as designed.
+There is a real precedent: on a sibling Goodix sensor, someone recovered the Windows-written
+key from a vendor cache file under `C:\ProgramData\Goodix\` via the machine-scope key
+protection state, installed it on the Linux side, and now runs both systems on the same
+sensor with no write and no reflash. *(established for that sensor; applicability here is
+speculative — that sensor is a different generation with a different driver.)*
 
 Against it:
 
-- Requires the vendor/ASUS updater, realistically from Windows.
-- *Speculative:* a firmware update probably re-provisions the PSK — possibly to the 10034
-  constant (which would fix everything), possibly to another per-unit value (which would
-  leave us exactly where we are, having taken an irreversible risk).
-- Firmware flashing a security peripheral has genuine bricking potential.
+- On a near-identical ASUS machine with this exact sensor, an exhaustive plaintext search
+  over 111 MB — the registry hives, both template stores, and the entire vendor data
+  directory — found nothing. *(established.)* So the plaintext case is close to settled
+  negative before we start.
+- That machine's only wrapped-key candidate sat under Microsoft's biometric subsystem rather
+  than the vendor's own keys, shared a protection key with the template database, and is more
+  plausibly the template store's own key than the sensor key. *(likely.)*
+- The vendor's own cache file on that machine showed no wrapping marker at all.
 
-Reasonable only if C fails and A is rejected or proves impossible. Verify first that an
-ASUS/Goodix firmware update for GA503QS actually exists and targets `10034`.
+**Why run it regardless:** it costs one read-only mount, it is the last moment at which the
+answer is obtainable, and the machines are not identical. Driver versions differ, and the
+file that mattered on the sibling sensor may or may not exist here. Once the key is
+overwritten, this question can never be asked about this unit again.
 
----
+Tooling: `tools/collect-windows-psk-evidence.sh` then `tools/check-psk-candidates.py`.
 
-## 6. Recommended order
-
-1. **Run `find-psk.sh`** (Route C). Zero risk, potentially total resolution. *Nothing else
-   should be attempted first.*
-2. If matched → implement the gate fix in `AH-Merii/libfprint`, bump the PKGBUILD pin, test,
-   then proceed to enrollment.
-3. If not matched → report back and decide **A vs B with the user explicitly**, having laid
-   out the Windows Hello cost. Do not pick unilaterally.
-4. Only once enrollment *and* verification succeed: build `mise-tasks/fingerprint`, then set
-   `[lockscreen] fingerprint = true`.
-
-Ordering principle already agreed with the user: **detect → install → enroll → verify →
-*then* configure.** Do not write configuration for a capability not yet demonstrated.
+> The earlier `find-psk.sh` is superseded and should not be used. It searched only for a
+> plaintext literal, and only under `System32` — it never looked at the vendor's data
+> directory, which is the one place the successful recovery actually happened.
 
 ---
 
-## 7. Handling the PSK if recovered
+## 4. Route B — re-key the sensor to the all-zero key *(the realistic route)*
 
-*Judgement, not established practice.*
+**Risk: moderate and bounded. Irreversible with respect to the existing key.**
 
-The PSK is a credential that authenticates the host to this specific sensor. Treat it
-accordingly:
+Erase the app firmware, which drops the sensor to its bootloader; write the white-box blob,
+which sets the key to 32 zero bytes; reflash the same firmware version the sensor already
+runs. The sensor then reports `66687aad…`, which is what the driver expects.
 
-- **Do not commit it to the dotfiles repo**, which is public. This is the main reason the
-  fix should read from the environment rather than bake in a constant.
-- Prefer a root-owned `0600` file referenced by an `fprintd.service` drop-in.
-- Its value is bounded — it authorises talking to *your* fingerprint sensor, and physical
-  access defeats it anyway — but it does not belong in git.
+**Why the erase is needed at all.** *(likely.)* The firmware image is cryptographically bound
+to the key: the tool derives a key-dependent value and computes an authentication code over
+the firmware, which the sensor verifies. Changing the key therefore means flashing an image
+whose code matches the new key. Consistent with this, an in-place write without erasing was
+attempted on a sibling unit and the device rejected it outright. *(established for that unit,
+on newer firmware.)*
 
-If the fix is contributed upstream, the environment-override approach generalises to any
-10019 unit, whereas a hard-coded key would be wrong for everyone else. Worth framing that
-way if a PR is ever opened against `djnz00/libfprint`.
+**What makes the risk bounded:**
 
----
+- The bootloader lives at a different level from the app firmware, so a failed app flash
+  leaves a device that still answers. *(likely — stated by the tool's author, and consistent
+  with two successful runs, but nobody has demonstrated it by deliberately failing a flash.
+  This is the single assumption the whole "recoverable" claim rests on.)*
+- The recovery image is verified and held locally *before* anything is erased.
+- The tool's own loop re-erases on failure specifically so the device stays cleanly in the
+  bootloader rather than half-flashed.
+- No 521d has ever been reported bricked.
 
-## 8. Secondary problem — polkit denies unprivileged enroll
-
-Not blocking (root reaches the same failure), but must be solved before a user-facing
-enrollment flow exists.
-
-Facts: policy is `auth_self_keep` for active sessions; the session *is* active on `seat0`;
-no prompt appeared. *(established)*
-
-Candidate explanations, all *speculative* and untested:
-
-- **No polkit authentication agent is running in the niri session.** Most likely. Noctalia
-  may not provide one, and niri does not start one by default. Test:
-  `busctl --user list | grep -i polkit`, or check for a
-  `org.freedesktop.PolicyKit1.AuthenticationAgent` registration. Fix: autostart an agent
-  (e.g. `polkit-gnome`, `lxqt-policykit`, or `mate-polkit`) from
-  `desktop/niri/.config/niri/cfg/autostart.kdl`.
-- The agent exists but cannot display on the Wayland session.
-- fprintd cannot associate the D-Bus caller with the logged-in session.
-
-Diagnose the agent question first; it explains the symptom completely and is cheap to check.
-
-Note this is likely worth fixing on its own merits — a session with no polkit agent will
-silently deny *many* privileged operations, not just fingerprint enrollment.
+**What it costs:** Windows Hello stops working. And the cost recurs — see §6.
 
 ---
 
-## 9. What "done" requires
+## 5. Route C — move to the newer firmware
 
-Even after the PSK problem is solved, the following remain:
+**Not available, and the reason usually given for wanting it is wrong.**
 
-- **Enrollment must happen outside Noctalia.** Noctalia v5.0.1 references only `Claim`,
-  `Release`, `VerifyStart`, `VerifyStop` — no enroll method exists in the binary. It is a
-  verify-only consumer. *(established)*
-- Image-stitching sensor: the 521d is 64×80 px and stitches roughly ten captures, so
-  enrollment needs many passes and verification may be less reliable than a match-on-chip
-  reader. Set expectations accordingly. *(likely)*
-- 1Password integration is a **separate decision** with its own risk (CVE-2024-37408), and
-  should not be bundled into the lock-screen work.
+The newer 10034 firmware is the one the driver fork is actually tested against, and its
+branch derives sensor parameters from the unit's own calibration data rather than hardcoding
+them. That is genuinely attractive.
+
+But no public image exists. The only known source is the vendor DLL inside this machine's own
+Windows driver store. *(established.)*
+
+And the common justification — that the newer firmware survives dual-booting — is false. The
+author who first suggested it withdrew it: Windows generates a fresh key per provisioning
+regardless of firmware version. *(established.)*
+
+Worth doing anyway, as a side effect of Route A: copy that one DLL off the partition during
+the same read-only mount. It costs nothing and removes any future dependency on keeping the
+Windows install around.
 
 ---
 
-## 10. Things a fresh reader is likely to get wrong
+## 6. The cost is recurring, not one-time
 
-Collected because each already cost time in this investigation:
+*(likely, and understated in the earlier version of this document.)*
 
-1. **`LIBFPRINT_GOODIXTLS_PSK_HEX` does nothing today.** It is read in `goodix_tls()`, which
-   runs only *after* the activation SSM succeeds. Setting it and re-testing proves nothing
-   until the gate at state 4 is changed.
-2. **`noctalia --version` does not tell you what is running.** It execs the on-disk binary.
-   Use `readlink /proc/$(pgrep -x noctalia)/exe`.
-3. **Grepping the built `.so` for the string `521d` returns nothing.** USB IDs are stored as
-   binary integers. Read `goodix52xd.h:76` instead.
-4. **`fprintd-list` reporting "No devices available" may mean the fork is not installed.**
-   Check `pacman -Q libfprint*`; paru will happily satisfy `fprintd`'s dependency with
-   stock `libfprint`, which has no 521d support.
-5. **`makepkg` fails `check()` on a network lint** (`metainfo-validate`), not on real test
-   failures. 127/128 pass.
-6. **`examples/enroll` blocks on an interactive prompt before opening the device.** Pipe a
-   finger index into stdin or it will look like a silent hang.
-7. **Commits in this repo need `--no-gpg-sign`** — `commit.gpgsign=true` is set globally but
-   `user.signingkey` is stripped from tracked config, so commits abort otherwise.
+Enrolling a finger in Windows Hello re-keys the sensor, and reportedly also moves it to the
+newer firmware with a fresh random key. At that point **neither** of the driver's paths works:
+the 10019 path no longer applies, and the 10034 path expects a key whose digest matches
+nothing the sensor now holds.
+
+Recovery each time is the full cycle: stop the daemon, reset the USB device, erase, write,
+reflash, restart. So this is a standing maintenance obligation on the authentication path,
+not a one-time cost — on a machine whose vendor utilities install drivers unattended.
+
+Merely booting Windows appears **not** to re-key it; only enrolling does. *(speculative, one
+observation, on different hardware.)*
+
+The usual mitigation is disabling the sensor in Windows Device Manager. It is repeated
+everywhere and **nobody has reported testing whether it survives a Windows update**. Treat it
+as untested advice.
+
+---
+
+## 7. What will probably fail *after* the key problem is solved
+
+This matters for expectations: the key is blocker one of several, and the code path we are
+moving the sensor onto is the less-tested of the driver's two.
+
+The 10019 branch of this driver has never executed past the TLS gate on anyone's hardware,
+because until commit `ff4f8c0` it could not — it supplied no key. So everything downstream is
+unexercised. Four concrete suspects, in the order they would bite:
+
+1. **The reset-number check** is stricter than the reference implementation, which checks only
+   a success flag. If this unit answers with a different number, activation dies immediately
+   after the gate starts passing. *(established as a difference; low risk, since the sibling
+   driver has the same check and works.)*
+2. **Two setup calls the reference makes are gated off for 10019** — a post-handshake config
+   upload and a driver-state command. The driver's author needed both for the newer firmware
+   and then excluded them here. Likely failure: activation reports success and every capture
+   comes back blank. *(likely.)*
+3. **The blank-frame detection thresholds were tuned against the newer firmware**, which
+   uploads a different sensor configuration. If a real finger lands inside the "blank" band
+   the driver waits forever; if a blank frame lands outside it, an empty image goes to the
+   matcher. *(likely.)* The driver has a frame-dump facility and logs frame statistics; that
+   is how to re-tune it.
+4. **The image window bytes disagree with the reference implementation.** One reviewer read
+   this as a defect; another pointed out the same code has produced real images in the field
+   on this firmware. *(contested — do not spend the first debugging session here.)*
+
+Deliberately **not** pre-emptively changed. Each is a guess until there is a device that can
+reach that code, and changing several at once makes the first real run uninterpretable.
+
+---
+
+## 8. Decide the accept criterion before spending the irreversible step
+
+The only quantitative results published for this sensor under libfprint come from the same
+chassis generation: enrolment worked only after six driver patches, then verification
+succeeded 3 times in 10, while a **different** finger scored 21 against a threshold of 24.
+Another user reports authenticating with fingers they never enrolled.
+
+That is a reader which mostly fails to recognise its owner and sometimes accepts other people.
+Lowering the threshold to fix the first makes the second worse.
+
+**Criterion, fixed in advance so that sunk cost cannot argue it down:**
+
+> Wire the sensor into the lock screen only if, at the driver's stock threshold, an enrolled
+> finger verifies at least 8 times in 10, **and** two other fingers produce zero acceptances
+> across 10 attempts each.
+>
+> If it does not meet that, stop. Do not lower the threshold, and do not put it on the
+> authentication path. A reader that lets the wrong finger in is worse than no reader.
+
+This is also why the 1Password and `pam_fprintd` questions stay deferred: they put biometrics
+on a privilege-escalation path, and that decision should not be made on the momentum of
+having got enrolment working.
+
+---
+
+## 9. Handling a key, if one is ever recovered or written
+
+- **Never commit it.** This repository is public. That is the main reason the driver reads the
+  key from the environment rather than baking in a constant.
+- Prefer a root-owned `0600` file, referenced by a systemd drop-in on `fprintd.service`.
+  `fprintd` is D-Bus activated and will not inherit a shell environment.
+- Its value is bounded: it authorises talking to *this* sensor, and physical access defeats it
+  anyway. It still does not belong in git.
+- The all-zero key is not a secret at all. It is a published constant, and a sensor holding it
+  offers no protection against a local attacker — worth knowing, though it does not change the
+  decision, since the alternative is a sensor that does not work.

@@ -1,12 +1,13 @@
 # Goodix 27c6:521d fingerprint reader — Observations
 
-**Status:** blocked at driver activation. Enrollment has never succeeded.
+**Status:** blocked at driver activation. The sensor holds a key no host here knows.
+The blocker is now understood and has a known remedy; the remedy is irreversible.
 **Date of last measurement:** 2026-09-07
-**Branch:** `worktree-fingerprint-auth` (worktree of `SMS-Supercharge-My-Shell`)
+**Branch:** `worktree-fingerprint-auth`
 
-This file records **only what was measured or read directly from source**. Interpretation,
-theories and proposed fixes live in `hypothesis.md`. Anything not verified is marked
-explicitly as unverified.
+This file records **only what was measured, read from source, or verified against a primary
+document**. Interpretation, routes and risk live in `hypothesis.md`; the ordered procedure
+lives in `runbook.md`. Anything unverified is marked as such.
 
 ---
 
@@ -17,8 +18,8 @@ Biometric authentication on an ASUS ROG Zephyrus G15 (GA503QS) for two consumers
 1. the Noctalia lock screen, and
 2. 1Password.
 
-Face unlock was ruled out before this log begins: the machine has no IR camera, the
-external Insta360 has no IR, and Howdy is abandoned. Fingerprint is the remaining option.
+Face unlock was ruled out before this log begins: no IR camera, the external Insta360 has no
+IR, Howdy abandoned. Fingerprint is the remaining option.
 
 ---
 
@@ -28,30 +29,18 @@ external Insta360 has no IR, and Howdy is abandoned. Fingerprint is the remainin
 |---|---|
 | Machine | ASUS ROG Zephyrus G15 GA503QS |
 | OS | CachyOS (Arch-based), kernel `7.2.2-1-cachyos` |
-| Compositor / shell | niri + Noctalia `v5.0.1` (`5.0.1-1-dirty`) |
+| Compositor / shell | niri + Noctalia `v5.0.1` |
 | Display manager | sddm |
-| Shell | fish |
-| Bootloader | Limine (`Boot0008`) |
-| Fingerprint reader | Goodix `27c6:521d`, USB descriptor strings `Goodix` / `FingerPrint` |
+| Fingerprint reader | Goodix `27c6:521d`, USB strings `Goodix` / `FingerPrint` |
 | Reader sysfs path | `/sys/bus/usb/devices/3-3` |
-| Reader bus/dev | bus 3, device 2 → `/dev/bus/usb/003/002` |
-| Reader `bcdDevice` | `0100`; no USB serial number exposed |
+| Reader device node | `/dev/bus/usb/003/002`, `crw-rw-r-- root root` |
 
-**Dual boot confirmed.** `efibootmgr` lists `Boot0003* Windows Boot Manager`
-(`\EFI\MICROSOFT\BOOT\BOOTMGFW.EFI`). `lsblk` shows two NTFS partitions:
+The device node is **not** user-accessible. There is no `uaccess` tag and the user is not in a
+group with write access, so every hardware operation below needs root.
 
-- `nvme0n1p2` — 952.7 G (Windows system volume)
-- `nvme0n1p4` — 642 M (recovery)
-
-Neither is mounted.
-
-**Session context** (relevant to polkit):
-
-```
-loginctl session-status
-  2 - a_merii (1000)   State: active   Seat: seat0; vc1   TTY: tty1
-  Service: sddm   Type: wayland   Class: user   Desktop: niri
-```
+**Dual boot confirmed.** `nvme0n1p2` is 952.7 G, `fstype ntfs` — **not** BitLocker, so a
+read-only mount needs no recovery key. `nvme0n1p4` is the 642 M recovery volume. Neither is
+mounted.
 
 ---
 
@@ -59,52 +48,20 @@ loginctl session-status
 
 | Package | Version |
 |---|---|
-| `libfprint-goodixtls52xd` (ours) | `1.94.10.r2013.g72cacc3-1` |
+| `libfprint-goodixtls52xd` (ours) | `1.94.10.r2013.g72cacc3-1` **installed** |
+| `libfprint-goodixtls52xd` (ours) | `1.94.10.r2014.gff4f8c0-1` **built, not installed** |
 | `fprintd` | `1.94.5-2.1` |
-| stock `libfprint` | **removed** (conflicts with ours) |
+| stock `libfprint` | removed (conflicts with ours) |
 
-The vendored driver package **replaces** Arch's `libfprint`. It `provides=(libfprint …
-libfprint-2.so)` and `conflicts=(libfprint …)`.
-
-> Earlier false negative worth knowing about: on the first attempt, paru satisfied
-> `fprintd`'s `libfprint` dependency from the **repo** rather than from the AUR package, so
-> stock `libfprint` got installed and `fprintd-list` reported `No devices available`. Stock
-> libfprint contains no `521d` support. The fork must be installed *alone*, accepting the
-> conflict prompt.
-
-### Repository changes already merged
-
-PR **#45**, squash-merged as **`c2b614a`** on `origin/main`:
-
-- `packages/libfprint-goodixtls52xd/PKGBUILD` — vendored, pins
-  `#commit=72cacc37ca6524390a112e7df7bf2c6972be8217` from
-  `github.com/AH-Merii/libfprint` (our fork of `djnz00/libfprint`).
-- `packages/libfprint-goodixtls52xd/guard` — hardware guard; exits non-zero (skip) unless
-  USB `27c6:521d` is attached, via sysfs rather than `lsusb`.
-- `packages/.gitignore` — makepkg artefacts.
-- `mise-tasks/localpkgs` — builds `packages/*/PKGBUILD`, gated on `profile == desktop`
-  **and** `pacman` being present. Deliberately **not** part of `mise run setup`.
-- `lib/plan.sh` — added `local_pkg_state()` and `plan_local_packages()`.
-- `pkglist/arch-desktop.txt` — added `fprintd`.
-- `README.md` — registry sections updated.
-
-**The fork `AH-Merii/libfprint` carries no code changes.** It exists so the pinned commit
-cannot vanish. The AUR package it replaces tracked `#branch=master`; the clone HEAD was
-`72cacc3`, three commits ahead of the AUR-advertised `39e145b`, confirming the moving-target
-risk was real.
-
-### Build note
-
-A full `makepkg` check phase fails on `libfprint:metainfo-validate` — `appstreamcli`
-performing a *network* reachability check against an unreachable freedesktop URL. 127/128
-tests pass. Our PKGBUILD's `check()` therefore runs only `goodixtls52xd-frame` and
-`goodixtls-protocol`.
+> Earlier false negative worth knowing about: paru will satisfy `fprintd`'s `libfprint`
+> dependency from the **repo** rather than the AUR package, installing stock `libfprint`,
+> which has no `521d` support, and `fprintd-list` then reports `No devices available`.
 
 ---
 
 ## 4. What works
 
-Device detection is fully functional. This is already further than every one of the 505
+Device detection is fully functional — already further than every one of the 505
 `linux-hardware.org` probes for this device, which all failed at detection.
 
 ```
@@ -114,19 +71,11 @@ Device at /net/reactivated/Fprint/Device/0
 User a_merii has no fingers enrolled for Goodix TLS Fingerprint Sensor 52XD.
 ```
 
-From the instrumented run, probe and open both complete cleanly:
-
-```
-Selected device 0 (Goodix TLS Fingerprint Sensor 52XD) claimed by goodixtls52xd driver
-libfprint-image_device: Image device open completed
-libfprint-device: Device reported open completion
-Opened device.
-The device supports fingerprint updates.
-```
+Probe and open both complete cleanly. Activation is where it stops.
 
 ---
 
-## 5. Failure 1 — polkit denies unprivileged enroll
+## 5. Failure 1 — polkit denied unprivileged enroll. **Cause found.**
 
 ```
 $ fprintd-enroll -f right-index-finger
@@ -134,84 +83,62 @@ EnrollStart failed: GDBus.Error:net.reactivated.Fprint.Error.PermissionDenied:
   Not Authorized: net.reactivated.fprint.device.enroll
 ```
 
-Journal:
+The policy allows it (`implicit active: auth_self_keep`) and the session **is** active on
+`seat0`, yet no prompt appeared.
 
-```
-fprintd[1309660]: Authorization denied to :1.1644 to call method 'EnrollStart'
-  for device 'Goodix TLS Fingerprint Sensor 52XD':
-  Not Authorized: net.reactivated.fprint.device.enroll
-```
+**Measured cause: there is no polkit authentication agent in this session.**
 
-The policy permits it for an active session:
+- `busctl --user list` matches nothing for polkit; the only polkit name on the system bus is
+  `org.freedesktop.PolicyKit1`, owned by `polkitd` itself.
+- The only polkit-related package installed is `polkit`. No agent package is present.
+- `desktop/niri/.config/niri/cfg/autostart.kdl` spawned only `noctalia`.
 
-```
-$ pkaction --action-id net.reactivated.fprint.device.enroll --verbose
-net.reactivated.fprint.device.enroll:
-  implicit any:      no
-  implicit inactive: no
-  implicit active:   auth_self_keep
-```
+So `polkitd` had nobody to ask, and every `auth_self` or `auth_admin` action was refused
+silently. This is **not fingerprint-specific**; it affected every privileged operation in the
+session.
 
-The session **is** `active` on `seat0`, so an authentication agent should have prompted.
-No prompt appeared. **Unresolved.** Not currently blocking, because running as root gets
-past it and reaches Failure 2.
+**Fixed** in commit `80fc359`: `mate-polkit` added to `pkglist/arch-desktop.txt` and its
+agent spawned from `autostart.kdl`. The binary path
+`/usr/lib/mate-polkit/polkit-mate-authentication-agent-1` was verified against the package's
+actual file list, not assumed. **The prompt itself is unverified** — that needs a niri
+restart.
+
+Note `net.reactivated.fprint.device.verify` is `implicit active: yes`, so the Noctalia lock
+screen was never going to be blocked by polkit. Only enroll was.
 
 ---
 
-## 6. Failure 2 — activation aborts on PSK hash mismatch (the real blocker)
-
-```
-$ sudo fprintd-enroll -f right-index-finger a_merii
-Enroll result: enroll-unknown-error
-```
-
-Journal:
+## 6. Failure 2 — activation aborts on PSK hash mismatch. **The real blocker.**
 
 ```
 fprintd[1310923]: MCU has no config          (x3)
 fprintd[1310923]: failed during activation: Unsupported device PSK hash (code: 35)
-fprintd[1310923]: Device reported an error during identify for enroll:
-                  Unsupported device PSK hash
 ```
 
 ### Instrumented measurement
 
-To obtain the values the driver refuses to print, a **scratch-only** patch adding
-`fp_warn()` calls was applied to `goodix52xd.c` **in paru's cache**
-(`~/.cache/paru/clone/libfprint-goodixtls52xd-git/src/libfprint/`), rebuilt incrementally
-with `ninja`, and exercised via libfprint's own `examples/enroll`, which has an rpath into
-the build directory. **Nothing was installed; `/usr/lib` was untouched.**
-
-Results:
+A scratch-only `fp_warn()` patch in paru's build cache, exercised through libfprint's own
+`examples/enroll` (which has an rpath into the build directory, so nothing was installed):
 
 ```
 SMSDIAG firmware="GFUSB_GM168SEC_APP_10019"
 SMSDIAG flags=0xbb020001 len=32
 SMSDIAG device_hash=163ec2b1470b66fc7c2ec87822f9a82a1b4b17ce867f3c1784400c58461907bb
 SMSDIAG driver_hash=66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925
-
 [goodixtls52xd] SSM ACTIVATE_NUM_STATES failed in state 4
-  with error: Unsupported device PSK hash
-failed during activation: Unsupported device PSK hash (code: 35)
 ```
 
-State 4 is `ACTIVATE_CHECK_PSK`. The preceding states — including `ACTIVATE_CHECK_FW_VER`
-— all pass. `MCU has no config` is emitted three times, in states 1, 3 and 4, **before**
-the PSK failure.
+State 4 is `ACTIVATE_CHECK_PSK`. Everything before it passes. Flags and length match; only
+the digest differs. `MCU has no config` appears three times *before* the failure, and config
+upload is state 8, so it is a symptom of stopping early, not a second fault.
 
-**The four facts that matter:**
-
-1. Firmware is **`GFUSB_GM168SEC_APP_10019`** — the *older* of the two supported strings.
-   The fork's README names `GFUSB_GM168SEC_APP_10034` as "the active production target".
-2. The device's stored hash is `163ec2b1…`.
-3. The driver expected `66687aad…`.
-4. Flags (`0xbb020001`) and length (32) both match; **only the hash content differs.**
+The driver no longer requires this patch to reveal these values — see §9.
 
 ---
 
 ## 7. Verified cryptographic facts
 
-Computed locally and confirmed:
+Computed locally (`docs/fingerprint/tools/`, and the driver's own unit tests):
 
 | Claim | Result |
 |---|---|
@@ -219,194 +146,205 @@ Computed locally and confirmed:
 | `sha256(goodix_52xd_psk_10034)` == `goodix_52xd_pmk_hash_10034` | **true** |
 | `device_hash` == `sha256(32 zero bytes)` | false |
 | `device_hash` == `sha256(goodix_52xd_psk_10034)` | false |
+| `device_hash` == `sha256` of the white-box blob, or of any 32-byte window of it | false |
+| `device_hash` == `sha256(pmk_wrap(k))` for any of the above `k` | false |
 
-So:
+So the stored value is **plain `sha256(PSK)`** for this sensor family — no salt, no key
+derivation — and this unit's key is none of the keys obtainable anywhere.
 
-- The stored value is **plain `sha256(PSK)`** — no salt, no KDF.
-- The 10019 PSK is the well-known **32 zero bytes** constant
-  (`66687aad…` is a widely-recognised hash).
-- The 10034 PSK is the baked-in constant
-  `85c198da3a7240e2221f5d5afa4b434356c745bb77b5391392e95d0f4a39a427`.
+**Consequence: this sensor's key cannot be recovered from its digest.** It can be supplied
+from elsewhere, or replaced.
 
-A search over **267 candidate PSKs** (all-zeros, all-`0xff`, every `bytes([b])*32` for
-b in 0..255, `bytes(range(32))`, ASCII fillers, `sha256` of several strings, and the 10034
-constant) produced **no match** for `163ec2b1…`.
-
-**Consequence: the sensor's PSK cannot be recovered from its hash.** SHA-256 is one-way and
-the value is not a known constant. It can only be *replaced*, or *obtained from elsewhere*.
-
-Script: `$CLAUDE_JOB_DIR/tmp/psk-search.py`.
+Note the derivation is *not* uniform across the family. The 51x7/5125 drivers report
+`sha256(white-box blob)` while 52xd reports `sha256(plaintext key)`. A candidate key for this
+unit can therefore be checked offline with a plain `sha256`.
 
 ---
 
-## 8. Source-code facts
+## 8. The re-keying mechanism, and where the key came from
 
-All line numbers are at pinned commit `72cacc3`, under
-`libfprint/drivers/goodixtls/`.
+This is the material correction to the earlier version of this document, which concluded the
+situation was near-hopeless. It is not.
 
-### `goodix52xd.h`
+### Where the key came from
 
-| Line | Content |
+The Goodix Windows driver implements trust-on-first-use. Its own debug symbols and a
+published reverse-engineering trace show `PresetPskWriteKey` doing: *generate random psk →
+encrypt psk by white box → write to mcu*. On a host that cannot decrypt its stored copy, it
+generates a **fresh random key** and writes it. That is the most economical explanation for a
+unit running the stock community firmware while holding a digest matching nothing.
+
+### The community tool re-keys sensors routinely
+
+`goodix-fp-dump`'s `driver_52xd.py` is written for exactly this device and exactly this
+situation. Its `main()` is a state machine:
+
+- firmware is the 10019 target and the key is wrong → `mcu_erase_app`, dropping to the IAP
+  bootloader;
+- firmware is IAP and the key is wrong → `preset_psk_write(0xbb010003, white_box, …)`, then
+  reflash 10019 and reset;
+- firmware is the target and the key is right → run.
+
+The 96-byte white-box blob is a fixed constant, identical across the 52xd, 53xd and 53x5
+drivers, that encodes the **all-zero key**. After writing it the sensor reports `66687aad…`
+— exactly what our driver expects for 10019.
+
+### The recovery firmware exists and is held locally
+
+Without it, an erase would be unrecoverable. It was fetched from four independent paths
+(standalone clone, submodule checkout, a commit-pinned raw fetch, and the repository's only
+fork) which agree byte for byte.
+
+| Item | Value |
 |---|---|
-| 27 | `#define GOODIX_52XD_FIRMWARE_VERSION ("GFUSB_GM168SEC_APP_10019")` |
-| 28 | `#define GOODIX_52XD_FIRMWARE_VERSION_10034 ("GFUSB_GM168SEC_APP_10034")` |
-| 30 | `#define GOODIX_52XD_PSK_FLAGS (0xbb020001)` |
-| 34 | `goodix_52xd_pmk_hash_10019[]` |
-| 39 | `goodix_52xd_pmk_hash_10034[]` |
-| 44 | `goodix_52xd_psk_10034[]` — the actual 10034 PSK |
-| 76 | `{.vid = 0x27c6, .pid = 0x521d},` — proves this device is targeted |
+| File | `GFUSB_GM168SEC_APP_10019.bin` |
+| Size | 25200 bytes |
+| sha256 | `6ff41957f387160c089559dffff6e8a26d1fa344d01bdaa6d62c5dab61883804` |
+| Kept at | `~/.local/share/goodix-firmware/` |
 
-### `goodix52xd.c`
+Kept outside the repository deliberately: the upstream README states the images are Goodix
+property and must not be copied into other repositories. Kept outside the job directory
+because that is deleted with the job, and the source repository has had no push since
+2023-05-30 and has one fork.
 
-| Line | Content |
-|---|---|
-| 163–172 | `ACTIVATE_*` enum. Order: `READ_AND_NOP`, `ENABLE_CHIP`, `NOP`, `CHECK_FW_VER`, **`CHECK_PSK` (state 4)**, `RESET`, `OTP`, `SET_MCU_IDLE`, `SET_MCU_CONFIG` |
-| 184–189 | `goodix52xd_firmware_supported()` — accepts 10019 **or** 10034 |
-| 191–211 | `goodix52xd_set_expected_pmk_hash()` — maps firmware string → expected hash; sets `firmware_10034` flag |
-| 214–230 | `goodix52xd_get_tls_psk()` — **returns `NULL` unless `firmware_10034`** |
-| 232–250 | `check_firmware_version()` |
-| 279–330 | `check_preset_psk_read()` — validates flags, then length, then `memcmp` |
-| 314 | the `memcmp`; its error string `"Unsupported device PSK hash"` is on line 316 |
-| 366–384 | `goodix52xd_send_upload_config()` — patches 3 bytes for 10034 only |
-| 413–416 | `ACTIVATE_CHECK_PSK` → `goodix_send_preset_psk_read(dev, GOODIX_52XD_PSK_FLAGS, 32, …)` |
-| 449–462 | `activate_complete()` — **calls `goodix_tls()` only when `error == NULL`** |
+**No 10034 image exists publicly.** Its only known source is `wbdi.dll` inside the Windows
+driver store on this machine's own Windows partition.
 
-### `goodix.c`
+### Two defects in the tool that must be fixed before running it
 
-| Line | Content |
-|---|---|
-| 215 | `goodix_receive_preset_psk_read()` |
-| 270 | `goodix_receive_preset_psk_write()` |
-| 337 | `if (ack->has_no_config) fp_warn("MCU has no config");` |
-| 1196 | `goodix_send_preset_psk_write()` — **fully implemented, zero callers anywhere in the tree** |
-| 1229 | `goodix_send_preset_psk_read()` |
-| 1575 | `goodix_tls_set_psk_from_hex()` |
-| 1623 | `goodix_tls()` — reads `g_getenv("LIBFPRINT_GOODIXTLS_PSK_HEX")` at line 1632 |
+Both verified by reading the source; the fixes are applied by
+`docs/fingerprint/tools/prepare-goodix-tool.sh` and confirmed working.
 
-### Two structural conclusions from the code
-
-1. **`LIBFPRINT_GOODIXTLS_PSK_HEX` is never read on this path.** It is read inside
-   `goodix_tls()`, which `activate_complete()` invokes **only after the activation SSM
-   succeeds**. The failure occurs *inside* the SSM at state 4. Setting the variable today
-   changes nothing. (Verified by reading the call graph, not by experiment.)
-
-2. **The driver cannot provision a PSK.** `goodix_send_preset_psk_write()` exists in the
-   protocol layer but no driver calls it. `ACTIVATE_CHECK_PSK` only ever *reads* and then
-   hard-fails.
-
-Additionally: for firmware 10019, `goodix52xd_get_tls_psk()` returns `NULL`. Even if the
-hash check passed, the TLS handshake would have no PSK unless supplied via the environment
-override. The 10019 path is only usable *with* that variable.
-
-### Wire format
-
-`goodix_send_preset_psk_read` response payload:
-
-```
-[status:1][flags:4 LE][length:4 LE][psk_hash:32]
-```
-
-Searchable signature on the wire: `01 00 02 bb  20 00 00 00` followed by the 32-byte hash.
-(Derived from source; a USB capture was prepared but never needed.)
+1. `read_otp()` sends `b"\x00\x00"`. The first payload byte is the **requested length**, so
+   it asks for zero bytes, gets nothing, and raises `Invalid OTP` — *after* the erase, key
+   write and reflash have all succeeded. Every documented run hits this. The historical
+   workaround of faking the OTP is reported by two users to produce a reader that matches the
+   wrong finger; do not use it. Our C driver already requests `0x40` and does not have this
+   bug.
+2. `firmware_version()` assumes the sensor acknowledges before answering. A sensor
+   provisioned by another operating system answers without the acknowledgement, so the tool
+   dies on its **first call**, before the erase. The same sensor acknowledges normally again
+   once re-keyed, so the fix must accept both shapes. Ours dispatches on the command byte.
 
 ---
 
-## 9. Noctalia integration facts
+## 9. Driver work completed
 
-From binary inspection of `/usr/bin/noctalia` v5.0.1:
+Commit `ff4f8c0` on branch `goodixtls52xd-10019-psk` of `AH-Merii/libfprint`, pinned by
+`packages/libfprint-goodixtls52xd/PKGBUILD` at `1.94.10.r2014.gff4f8c0` (commit `eb3546c`).
 
-- Settings schema contains `settings.schema.lockscreen.fingerprint.label` /
-  `.description` → TOML key `[lockscreen] fingerprint`.
-- fprintd D-Bus methods referenced: **`Claim`, `Release`, `VerifyStart`, `VerifyStop`
-  only**. **Zero** occurrences of "enroll".
-  → **Noctalia is verify-only. It cannot enroll or delete fingerprints.** Enrollment must
-  happen elsewhere (`fprintd-enroll`, or our own task).
-- `src/auth/pam_authenticator.cpp:184` — PAM service defaults to `"login"`.
+Three changes, all in the 52xd path:
 
-Noctalia has no systemd unit; it is spawned by niri
-(`desktop/niri/.config/niri/cfg/autostart.kdl:4`). Restart with:
+1. **`goodix52xd_get_tls_psk()` returned `NULL` for 10019.** A sensor on that firmware
+   therefore reached the TLS handshake with no key at all, and `goodix_tls_server_init()`
+   fails closed on a null key. That branch could never have worked. It now returns the
+   all-zero key, which is provably the one matching the digest the driver already expects.
+2. **`LIBFPRINT_GOODIXTLS_PSK_HEX` can now satisfy the activation check**, when `sha256` of
+   the supplied key equals what the device reports. Previously the variable was read only
+   inside `goodix_tls()`, which runs *after* the activation state machine succeeds, so it
+   could never help with this gate. This is what makes a recovered key usable.
+3. **The mismatch error reports both digests.** Previously it named neither.
 
+The gate stays fail-closed in both directions. A handshake is still only attempted with a key
+the device has confirmed by digest that it holds, and a set-but-wrong override now fails at
+the gate rather than reaching OpenSSL.
+
+Verified: full `meson test` suite passes except `metainfo-validate`, the network lint the
+PKGBUILD already skips. Five new unit tests, one of which pins the all-zero key against the
+10019 digest, since that relationship failing silently is what makes the whole path wrong.
+The package builds at the new pin.
+
+**Not verified against hardware.** It cannot be until the sensor holds a key we know.
+
+### A correction to the previous version of this document
+
+It stated that `LIBFPRINT_GOODIXTLS_PSK_HEX` "does nothing on this path". That was true only
+because activation was dying at state 4. In `goodix.c`, `goodix_tls()` prefers the
+environment key over the driver's own:
+
+```c
+if (priv->tls_psk && priv->tls_psk_len) { s->psk = priv->tls_psk; ... }
+else if (gx_class->get_tls_psk) { ... }
 ```
-pkill -x noctalia; niri msg action spawn -- noctalia
-```
 
-To check whether a restart actually took effect, use
-`readlink /proc/$(pgrep -x noctalia)/exe` — a `(deleted)` suffix means the old inode is
-still running. `noctalia --version` reads the **on-disk** binary and will mislead you.
+So once the sensor holds the all-zero key, **even the already-installed `r2013` build** would
+pass the gate and get a usable key from the environment. Our fix removes the need for the
+variable and adds the recovered-key case; it is not a prerequisite for the first test.
 
 ---
 
-## 10. Security review of the driver (clean)
+## 10. Field evidence for what happens next
 
-Read at pinned commit `72cacc3`:
+From the public record. Relevant because it sets expectations for the work *after* the key
+problem is solved.
 
-- No `system`, `popen`, `exec*`, `socket`, `connect`, or `curl`.
-- The only file writes are debug frame dumps, gated behind **two** environment variables
-  (`GOODIX52XD_DUMP_DIR` **and** `GOODIX52XD_DUMP_RAW=1`), created `0700`, with an explicit
-  `refusing to dump Goodix 52xd frames into non-private directory` guard.
+- **Two** end-to-end re-keying runs on a 521d are documented publicly, both successful on the
+  first attempt. One is on a ROG Zephyrus GA503QR — same chassis generation, same sensor,
+  same firmware. A success *rate* cannot honestly be computed from two samples.
+- **No bricked 521d has ever been reported.** The one confirmed brick in the ecosystem is a
+  different sensor whose owner wrote a key valid for one firmware and then flashed another.
+  That mismatch cannot occur here: the shipped white-box blob encodes the key that the
+  shipped image expects.
+- Being stuck in the bootloader is recoverable by re-running the tool. The single reported
+  case was a missing firmware file, from a clone without submodules.
+- **Matching quality is the real risk.** On that GA503QR, enrolment worked only after six
+  separate driver patches, and verification then succeeded 3 times in 10, while a *different*
+  finger scored 21 against a threshold of 24. Another 521d user reports being able to
+  authenticate with fingers they never enrolled. Nobody has published an acceptable-accuracy
+  521d result.
+- An in-place key write **without** erasing was attempted on a sibling unit and the device
+  rejected it at the protocol level, with firmware and digest unchanged. That was on the
+  newer firmware, not 10019, so it is strong but not conclusive evidence that the erase is
+  unavoidable.
+- Merely booting Windows appears not to re-key the sensor; enrolling in Windows Hello does.
+  One observation, on a machine whose reader is the power button. Treat as unconfirmed.
 
 ---
 
-## 11. Artefacts produced
+## 11. Reproducing the current failure
 
-Scratch (job temp dir, `/home/a_merii/.config/claude/jobs/aa87c10b/tmp/`):
+```sh
+sudo systemctl stop fprintd
+printf '6\n' | G_MESSAGES_DEBUG=all \
+  ~/.cache/paru/clone/libfprint-goodixtls52xd-git/src/build/examples/enroll
+```
 
-| File | Purpose |
-|---|---|
-| `psk-diag.sh` | Stops fprintd, runs patched `examples/enroll`, prints `SMSDIAG` lines. Output tee'd live. |
-| `psk-diag.log` | Full debug log of the successful diagnostic run. |
-| `psk-search.py` | 267-candidate PSK search. Result: no match. |
-| `find-psk.sh` | **Not yet run.** Read-only scan of the Windows partition for the PSK. |
-
-Scratch patch, applied **only** in
-`~/.cache/paru/clone/libfprint-goodixtls52xd-git/src/libfprint/libfprint/drivers/goodixtls/goodix52xd.c`:
-
-- `fp_warn("SMSDIAG firmware=…")` in `check_firmware_version()`
-- a hex-dump block printing `flags`, `device_hash`, `driver_hash` before the `memcmp` in
-  `check_preset_psk_read()`
-
-> **This patch must never reach the fork.** It is diagnostic scaffolding. Per the user's
-> standing instruction, any *real* driver change must be committed to
-> `AH-Merii/libfprint` first, then `packages/libfprint-goodixtls52xd/PKGBUILD` gets its
-> `source=` commit, `pkgver` and header comment bumped together — the reviewed-bump path
-> the PKGBUILD header describes.
+`examples/enroll` reads the finger choice from stdin before opening the device, hence the
+piped `6`; without it, it looks like a silent hang.
 
 ---
 
 ## 12. Open items
 
-1. **Blocker:** PSK hash mismatch (§6). Nothing else can proceed until this is resolved.
-2. `find-psk.sh` has not been run.
-3. polkit `PermissionDenied` on unprivileged enroll (§5) — unresolved, not blocking.
-4. `mise-tasks/fingerprint` — designed in principle, not built. Intended shape: extract
-   `usb_device_present <vid> <pid>` into `lib/` (reused by the `guard` script); derive an
-   idempotent state machine from live `fprintd-list` output rather than marker files;
-   verify with 3× `fprintd-verify` after enrolling; add a conditional reminder to the
-   "things that still need you" trailer in `mise-tasks/setup` (lines 55–63), alongside the
-   existing `chsh` and `ggh` entries. Explicitly **not** to write `settings.toml`.
-   Note `mise-tasks/setup` refuses to run from a worktree (lines 17–20).
-5. `[lockscreen] fingerprint = true` in
-   `desktop/noctalia/.local/state/noctalia/settings.toml` — deferred until enrollment and
+1. **Blocker:** the sensor holds an unknown key. See `runbook.md`.
+2. The read-only Windows evidence collection has **not** been run. Needs root.
+3. The read-only hardware probe (firmware, digest, calibration data) has **not** been run.
+   Needs root.
+4. The rebuilt package is **not** installed.
+5. The polkit agent fix is **not** applied to the running session; needs a niri restart.
+6. `mise-tasks/fingerprint` — designed, not built. Deliberately deferred until enrolment and
    verification actually work.
-6. `pam_fprintd.so` in `/etc/pam.d/polkit-1` for 1Password — a separate, deferred decision.
-   CVE-2024-37408 (fprintd has no security attention mechanism) applies to the polkit path,
-   though **not** to the D-Bus lock-screen path. Covers 1Password's `unlock`,
-   `authorizeCLI` and `authorizeSshAgent`. Keep `pam_fprintd` **out** of `/etc/pam.d/sudo`
-   — the installed `shelly 3.1.2` warns about exactly this.
+7. `[lockscreen] fingerprint = true` in Noctalia's settings — deferred for the same reason.
+8. `pam_fprintd.so` for 1Password — a separate decision. CVE-2024-37408 applies to the polkit
+   path but not the lock-screen D-Bus path. Keep `pam_fprintd` **out** of `/etc/pam.d/sudo`.
 
 ---
 
-## 13. Reproducing the diagnostic
+## 13. Things a fresh reader is likely to get wrong
 
-```sh
-# fprintd holds the device exclusively
-sudo systemctl stop fprintd
+Each of these already cost time.
 
-# patched build, rpath'd to the build dir -- installs nothing
-printf '6\n' | G_MESSAGES_DEBUG=all \
-  ~/.cache/paru/clone/libfprint-goodixtls52xd-git/src/build/examples/enroll
-```
-
-`examples/enroll` is interactive: `finger_chooser()` (`utilities.c:111`) reads stdin before
-the device is opened, hence the piped `6`. `discover_device()` (`utilities.c:29`) only
-prompts when more than one device is present, which is not the case here.
+1. **Noctalia cannot enrol.** Its binary references `Claim`, `Release`, `VerifyStart`,
+   `VerifyStop` and nothing else. Enrolment happens elsewhere.
+2. **`noctalia --version` does not tell you what is running.** It execs the on-disk binary.
+   Use `readlink /proc/$(pgrep -x noctalia)/exe`; a `(deleted)` suffix means the old process
+   is still alive.
+3. **Grepping the built `.so` for `521d` finds nothing.** USB IDs are stored as integers.
+4. **`makepkg` fails `check()` on a network lint**, not on real failures.
+5. **Commits in this repo need `--no-gpg-sign`.**
+6. **A successful re-keying run ends in a traceback** (see §8). Judge it by the printed
+   `Valid PSK: True`, not by the exit code.
+7. **The sibling 5110 and 538d drivers hand the stored digest to OpenSSL as if it were the
+   key** — `goodix_511_psk_0` and `goodix_53xd_psk_0` are digests, not keys, and the
+   reference implementations use all-zero keys for both. Not fixed here, because neither
+   device is present to test against. It is the same defect fixed for 52xd in `ff4f8c0`.
