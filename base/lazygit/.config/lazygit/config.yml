@@ -1,4 +1,8 @@
 gui:
+  # File/branch icons need a Nerd Font; ghostty is set to FiraCode Nerd Font,
+  # which is a v3 glyph set (same generation starship and ccstatusline assume).
+  nerdFontsVersion: "3"
+
   theme:
     # One Dark palette refs:
     # bg  #282c34, fg #abb2bf, red #e06c75, green #98c379, yellow #e5c07b
@@ -38,3 +42,17 @@ gui:
 
     defaultFgColor:
       - "#abb2bf"
+
+git:
+  # lazygit never consults git's core.pager, so without this diffs render as
+  # plain `git diff` output even though the git config pipes through delta.
+  # delta still reads the [delta] section of the git config (syntax theme,
+  # line numbers, hyperlinks); --paging=never stops it spawning less inside
+  # the panel, and the lazygit-edit:// link format turns the line-number
+  # hyperlinks that are already enabled globally into click-to-open-in-editor
+  # instead of dead file:// URLs.
+  # (Older lazygit used git.paging.pager for this; 0.64 auto-migrates that
+  # key to diffRenderers and rewrites the file, so use the new form directly.)
+  diffRenderers:
+    - colorArg: always
+      command: 'delta --dark --paging=never --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"'

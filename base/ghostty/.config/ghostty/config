@@ -1,5 +1,8 @@
-# Use main branch builds instead of stable releases
-auto-update-channel = tip
+# Auto-update channel. Only macOS has an auto-updater (Linux gets ghostty from
+# the distro package, so this is a no-op there). The Brewfile installs the
+# stable cask; "tip" would silently move that install onto nightly main-branch
+# builds, so track tagged releases.
+auto-update-channel = stable
 
 theme = Atom One Dark
 font-size = 16
