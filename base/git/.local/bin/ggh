@@ -1158,7 +1158,14 @@ def verify_setup(host: str, org: str | None, logger: Logger) -> bool:
 
 # ── Section 7: Typer app and commands ────────────────────────────────────────
 
-app = typer.Typer(help="GitHub SSH Setup CLI", no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
+_APP_HELP = """GitHub SSH Setup CLI — configure SSH authentication and commit signing for GitHub.
+
+Missing --name/--email/--org are prompted for when run from a terminal.
+
+Output: ✓ done · ↷ already in place / kept · ! warning · ✗ error
+"""
+
+app = typer.Typer(help=_APP_HELP, no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
 op_app = typer.Typer(help="1Password-backed key management", no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
 app.add_typer(op_app, name="op")
 
@@ -1197,12 +1204,7 @@ def main(
         help="Never replace anything that already exists (keys, logins, config values); pick the keep option at every prompt",
     ),
 ) -> None:
-    """GitHub SSH Setup CLI — configure SSH authentication for GitHub.
-
-    Missing --name/--email/--org are prompted for when run from a terminal.
-
-    Output: ✓ done · ↷ already in place / kept · ! warning · ✗ error
-    """
+    """Global options; the help text lives in _APP_HELP because Typer(help=) overrides this docstring."""
     _ctx.logger = Logger(verbose=verbose, dry_run=dry_run, keep_existing=keep_existing)
 
 
