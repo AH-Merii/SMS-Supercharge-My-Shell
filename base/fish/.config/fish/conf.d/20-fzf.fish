@@ -28,15 +28,20 @@ switch $OS_KIND
             set -g _clip_cmd wl-copy
         else if type -q xclip
             set -g _clip_cmd xclip -selection clipboard
-        else
-            set -g _clip_cmd cat
         end
 end
 
-# History search options with copy-to-clipboard support
+# History search options with copy-to-clipboard support. Without a clipboard
+# tool the binding is left out and the header says so, rather than a silent no-op.
+set -l copy_bind
+set -l header 'No clipboard tool found (install wl-copy or xclip); CTRL-Y copy is off'
+if set -q _clip_cmd
+    set copy_bind ",ctrl-y:execute-silent(echo -n {2..} | $_clip_cmd)+abort"
+    set header 'Press CTRL-Y to copy command into clipboard'
+end
 set -gx fzf_history_opts \
     --preview 'echo {}' \
     --preview-window up:3:hidden:wrap \
-    --bind "ctrl-/:toggle-preview,ctrl-y:execute-silent(echo -n {2..} | $_clip_cmd)+abort" \
+    --bind "ctrl-/:toggle-preview$copy_bind" \
     --color header:italic \
-    --header 'Press CTRL-Y to copy command into clipboard'
+    --header $header

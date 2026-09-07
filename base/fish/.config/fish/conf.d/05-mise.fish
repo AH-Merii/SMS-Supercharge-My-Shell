@@ -5,6 +5,7 @@ if type -q mise
     if status is-interactive
         mise activate fish | source
     else
-        fish_add_path --prepend $XDG_DATA_HOME/mise/shims
+        # -g: global, not universal, so the shims stay out of interactive shells
+        fish_add_path -g --prepend $XDG_DATA_HOME/mise/shims
     end
 end

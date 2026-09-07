@@ -14,10 +14,15 @@ end
 
 # Shortcuts
 abbr --add b prevd
-alias explorer "xdg-open . >/dev/null 2>&1 & disown"
+if test "$OS_KIND" = macos
+    alias explorer "open ."
+else
+    alias explorer "xdg-open . >/dev/null 2>&1 & disown"
+end
 
-# Fish config access
-alias sfrc "source ~/.config/fish/config.fish"
+# Fish config access. conf.d only loads at startup, so re-sourcing config.fish
+# would miss most of the config; start a fresh shell instead.
+alias sfrc "exec fish"
 alias efrc "nvim ~/.config/fish/config.fish"
 alias cfrc "cat ~/.config/fish/config.fish"
 

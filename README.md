@@ -162,3 +162,10 @@ plugins from `fish_plugins`, and these replacements:
 `$OS_KIND` (`linux`, `macos`, `wsl`) is set once in `conf.d/00-os.fish`; Homebrew, the
 1Password SSH agent socket and the clipboard command branch on it. `conf.d/01-env.fish` moves
 gpg to `~/.local/share/gnupg` and creates it, since gpg only auto-creates `~/.gnupg`.
+
+PATH additions in `conf.d/` use `fish_add_path -g`, so they live in a per-shell global
+`fish_user_paths` that is rebuilt at every startup. Before this they were persisted as a
+universal variable, and a machine set up back then still carries that list (`set -S
+fish_user_paths` shows it, with the mise shims in every shell). Clear it once with
+`set -eU fish_user_paths`; a plain `set -e` would only erase the global copy of the current
+shell.
