@@ -17,7 +17,10 @@ uv = "latest"
 # editor, prompt, multiplexers
 neovim = "latest"
 starship = "latest"
-herdr = "latest"
+# upstream moved orgs (ogulcancelik -> herdrdev); pinned so a stale registry cannot
+# resolve the abandoned repo. Migrate an old install with:
+#   mise uninstall --all herdr && mise install herdr
+"aqua:herdrdev/herdr" = "latest"
 worktrunk = "latest"
 "github:joshmedeski/sesh" = "latest"
 
