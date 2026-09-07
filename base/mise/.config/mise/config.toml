@@ -33,6 +33,8 @@ fd = "latest"
 bat = "latest"
 eza = "latest"
 delta = "latest"
+# base/git/.config/git/config sets filter.lfs.required, so LFS checkouts fail without this
+git-lfs = "latest"
 zoxide = "latest"
 jq = "latest"
 direnv = "latest"

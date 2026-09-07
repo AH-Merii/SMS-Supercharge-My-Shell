@@ -13,7 +13,7 @@
   ws = "!f() { count=$(git log --oneline --format='%s' | awk '/^WIP:/{c++} !/^WIP:/{exit} END{print c+0}'); if [ \"$count\" -eq 0 ]; then echo 'No WIP commits found'; return 1; fi; if [ \"$1\" = '-m' ] && [ -n \"$2\" ]; then git reset --soft HEAD~$count && git commit -m \"$2\"; else git rebase -i HEAD~$((count + 1)); fi; }; f"
   uncommit = reset --soft HEAD~1
   undo = reset HEAD~1 --mixed
-  untrack = rm --cache --
+  untrack = rm --cached --
   rs = restore
   rss = restore --staged
   sync-main = "!git checkout main && git pull && git checkout - && git rebase main"
@@ -41,7 +41,7 @@
 
 [core]
   editor = nvim
-  pager = sh -c 'test $(tput cols) -ge 160 && exec delta --features side-by-side || exec delta'
+  pager = sh -c 'test \"$(tput cols 2>/dev/null || echo 0)\" -ge 160 && exec delta --features side-by-side || exec delta'
   fsmonitor = true
   untrackedCache = true
 
@@ -68,7 +68,6 @@
 [fetch]
   all = true
   prune = true
-  pruneTags = true
   writeCommitGraph = true
 
 [help]
@@ -100,9 +99,6 @@
   enabled = true
   autoupdate = true
 
-[safe]
-  directory = *
-
 [tag]
   sort = version:refname
   gpgSign = true
@@ -111,12 +107,12 @@
   fsckObjects = true
 
 [versionsort]
-  prereleaseSuffix = -pre
-  prereleaseSuffix = .pre
-  prereleaseSuffix = -beta
-  prereleaseSuffix = .beta
-  prereleaseSuffix = -rc
-  prereleaseSuffix = .rc
+  suffix = -pre
+  suffix = .pre
+  suffix = -beta
+  suffix = .beta
+  suffix = -rc
+  suffix = .rc
 [gpg]
 	format = ssh
 [credential "https://github.com"]
