@@ -136,7 +136,8 @@ the old file into the repo.
   instead of the installer's sddm. `mise run greeter` installs the files from `system/`,
   flips the enabled display manager (effective at the next boot; sddm stays installed as
   the way back), and runs `noctalia msg greeter-sync` so the wallpaper, palette and monitor
-  layout match the desktop. `settings.toml` keeps that sync automatic and turns on
+  layout match the desktop (restarting Noctalia once if it started before the greeter was
+  installed, as it has on a fresh machine). `settings.toml` keeps that sync automatic and turns on
   Noctalia's polkit agent, which is what puts the sync's password prompt on screen.
   `/etc/pam.d/greetd` carries `pam_gnome_keyring`, so the login password still unlocks the
   keyring.
