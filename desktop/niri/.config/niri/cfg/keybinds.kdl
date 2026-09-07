@@ -147,7 +147,12 @@ binds {
     Mod+CTRL+C                          hotkey-overlay-title="Center Visible Columns" { center-visible-columns; }
     // ─── Resizing ───
     // Bare -/= resize horizontally, +CTRL resizes vertically.
-    // Mod+Shift+Equal is the literal "Mod plus" and aliases the horizontal grow.
+    //
+    // Every grow bind needs a Shift twin. "+" is not its own keycode: the
+    // keyboard sends it as Shift+Equal (ZMK's PLUS is LS(EQUAL)), so pressing
+    // Mod+"+" arrives as Mod+Shift+Equal and a bare Mod+Equal bind never
+    // matches it. Shrink needs no twin -- "-" is already unshifted, which is
+    // why the minus binds worked while their plus counterparts did not.
     Mod+Minus                           hotkey-overlay-title="Shrink Column Width" { set-column-width "-10%"; }
     Mod+CTRL+ALT+Shift+Minus            { set-column-width "-10%"; }
     Mod+Equal                           hotkey-overlay-title="Grow Column Width" { set-column-width "+10%"; }
@@ -155,6 +160,7 @@ binds {
     Mod+CTRL+ALT+Shift+Equal            { set-column-width "+10%"; }
     Mod+CTRL+Minus                      hotkey-overlay-title="Shrink Window Height" { set-window-height "-10%"; }
     Mod+CTRL+Equal                      hotkey-overlay-title="Grow Window Height" { set-window-height "+10%"; }
+    Mod+CTRL+Shift+Equal                { set-window-height "+10%"; }
 
     Mod+R                               hotkey-overlay-title="Cycle Column Width Presets" { switch-preset-column-width; }
     Mod+CTRL+R                          hotkey-overlay-title="Cycle Window Height Presets" { switch-preset-window-height; }
