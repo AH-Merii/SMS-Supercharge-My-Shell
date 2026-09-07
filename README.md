@@ -13,7 +13,6 @@ desktop/     Linux desktop only: niri noctalia (v5, ~/.local/state/noctalia/sett
 macos/       macOS only: karabiner
 plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)
 pkglist/     pacman / AUR / apt package lists
-packages/    PKGBUILDs this repo vendors and pins itself, built by `mise run localpkgs`
 Brewfile     Homebrew packages for macOS and WSL
 mise.toml    tasks (see below); mise-tasks/ holds the scripts
 lib/         ui.sh (colours, Y/n prompt) and plan.sh (what a task would do), sourced by
@@ -81,7 +80,6 @@ reminder until the latter is done.
 | `check`   | Dry-run `link`                                                      |
 | `tools`   | `mise install` everything in the global mise config                 |
 | `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
-| `localpkgs` | `makepkg -si` the vendored PKGBUILDs in `packages/` (Arch desktop only, not part of `setup`) |
 | `profile` | Print the detected profile                                          |
 
 Run with `mise run <task>`; `mise tasks` lists them. Every task except `check` and
@@ -98,12 +96,6 @@ combined one `setup` prints cannot disagree.
 2. **`pkglist/`** on Arch and Debian, **`Brewfile`** on macOS and WSL, for what mise cannot
    build: fish, stow, tmux, gnupg, luarocks, GUI apps and fonts. Desktop-only packages go in
    `pkglist/arch-desktop.txt`; AUR packages in `pkglist/aur.txt`.
-3. **`packages/`** for the rare thing that has to be built from source and pinned rather
-   than tracked: today only the Goodix 27c6:521d fingerprint driver, whose AUR package
-   follows an unpinned `master` into a library that PAM loads as root. Each directory holds
-   a PKGBUILD pinned to a reviewed commit, plus an optional executable `guard` that exits
-   non-zero (with a reason on stdout) when the package does not apply to this machine.
-   `mise run localpkgs` builds them; `setup` deliberately does not.
 
 Homebrew is not installed on Arch: `brew shellenv` would put its own python, perl and git in
 front of pacman's.
