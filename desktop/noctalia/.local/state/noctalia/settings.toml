@@ -188,9 +188,13 @@ corner_radius_scale = 1.1500000171363354
 lang = "en"
 niri_overview_type_to_launch_enabled = true
 password_style = "random"
+polkit_agent = true
 settings_show_advanced = true
 telemetry_enabled = true
 ui_scale = 1.1500000096857548
+
+    [shell.greeter_sync]
+    auto_sync = true
 
     [shell.launcher]
     app_grid = true

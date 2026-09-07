@@ -1,0 +1,11 @@
+# greetd runs the Noctalia greeter on VT 1 -- its own wlroots compositor, no Xorg -- and
+# after PAM hands the chosen /usr/share/wayland-sessions/*.desktop entry to niri-session.
+# Installed by `mise run greeter`; the greetd package's copy becomes a .pacnew on upgrades.
+
+[terminal]
+vt = 1
+
+[default_session]
+# The wrapper, not the greeter binary: it starts the compositor and a session bus first.
+command = "/usr/bin/noctalia-greeter-session"
+user = "greeter"

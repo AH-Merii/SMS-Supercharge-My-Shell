@@ -1,0 +1,18 @@
+#%PAM-1.0
+# Arch's stock greetd stack plus gnome-keyring, so the login password unlocks
+# ~/.local/share/keyrings/login.keyring the way it did under sddm. pam_systemd, which
+# gives the session its XDG_RUNTIME_DIR, comes in through system-login.
+# Installed by `mise run greeter`; the greetd package's copy becomes a .pacnew on upgrades.
+
+auth       required     pam_securetty.so
+auth       requisite    pam_nologin.so
+auth       include      system-local-login
+-auth      optional     pam_gnome_keyring.so
+
+account    include      system-local-login
+
+password   include      system-local-login
+-password  optional     pam_gnome_keyring.so    use_authtok
+
+session    include      system-local-login
+-session   optional     pam_gnome_keyring.so    auto_start
