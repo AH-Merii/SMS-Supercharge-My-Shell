@@ -40,8 +40,10 @@ if command -v pacman >/dev/null 2>&1; then
   fi
 elif command -v apt-get >/dev/null 2>&1; then
   sudo apt-get update
+  # apt_pkgs (lib/plan.sh) is debian.txt minus what the Brewfile supplies on WSL, the
+  # same list the plan showed (#71).
   # shellcheck disable=SC2046,SC2086
-  sudo apt-get install $confirm_apt $(pkgs pkglist/debian.txt)
+  sudo apt-get install $confirm_apt $(apt_pkgs)
 fi
 
 # use_brew (mise-tasks/profile) keeps a linuxbrew on Arch from installing the Brewfile
