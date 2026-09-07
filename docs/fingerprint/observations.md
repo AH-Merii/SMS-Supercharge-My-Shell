@@ -11,6 +11,49 @@ lives in `runbook.md`. Anything unverified is marked as such.
 
 ---
 
+## 0. Resume here
+
+Nothing has touched the sensor or the Windows partition. Every remaining step needs root,
+which is why they have not been run.
+
+### What changed on this branch
+
+| Commit | Change | Verified |
+|---|---|---|
+| `ff4f8c0` (libfprint fork) | 52xd driver supplies the 10019 key; env key can satisfy the gate; mismatch error names both digests | tests pass, **not** against hardware |
+| `eb3546c` | PKGBUILD pinned to `ff4f8c0`, `1.94.10.r2014.gff4f8c0` | builds clean |
+| `80fc359` | polkit authentication agent added to package list and niri autostart | agent's absence confirmed, prompt **not** confirmed |
+| `ef74db1` | these docs rewritten, `tools/` added | tools tested against synthetic and real inputs |
+| `b25b51d` | `docs/` added to the README layout map | trivial |
+
+The driver commit lives on branch `goodixtls52xd-10019-psk` of `AH-Merii/libfprint`, pushed.
+
+### What is and is not live
+
+- The rebuilt package is **built but not installed**. `r2013` is still the installed one.
+- The polkit fix is **committed but not applied**; it needs a niri restart.
+- The recovery firmware is saved at `~/.local/share/goodix-firmware/`, outside both the repo
+  and the disposable job directory. **Do not lose it**; an erase without it is unrecoverable.
+
+### The one thing blocking everything else
+
+Making this sensor work means overwriting the key Windows wrote to it, which means erasing
+and reflashing its firmware. That is irreversible and it breaks Windows Hello, repeatedly.
+See `hypothesis.md` §10 for the decision as it stands, and §8 for the accuracy criterion
+agreed before any of it runs.
+
+### First command when picking this back up
+
+The read-only search that would make the irreversible step unnecessary. Poor odds, no risk,
+and the last moment it can be asked.
+
+```sh
+sudo docs/fingerprint/tools/collect-windows-psk-evidence.sh
+python3 docs/fingerprint/tools/check-psk-candidates.py ~/goodix-psk-evidence
+```
+
+---
+
 ## 1. Goal
 
 Biometric authentication on an ASUS ROG Zephyrus G15 (GA503QS) for two consumers:
@@ -312,21 +355,34 @@ printf '6\n' | G_MESSAGES_DEBUG=all \
 `examples/enroll` reads the finger choice from stdin before opening the device, hence the
 piped `6`; without it, it looks like a silent hang.
 
+That build carries the scratch `fp_warn()` patch described in §6, which is what made the two
+digests visible. It is no longer needed: the driver in `r2014` reports both digests in the
+failure itself, so `journalctl -u fprintd` shows them after installing it. The scratch patch
+must never reach the fork.
+
 ---
 
 ## 12. Open items
 
-1. **Blocker:** the sensor holds an unknown key. See `runbook.md`.
-2. The read-only Windows evidence collection has **not** been run. Needs root.
-3. The read-only hardware probe (firmware, digest, calibration data) has **not** been run.
-   Needs root.
-4. The rebuilt package is **not** installed.
-5. The polkit agent fix is **not** applied to the running session; needs a niri restart.
+In the order `runbook.md` runs them. Items 1 to 3 are reversible; item 4 is not.
+
+1. **Read-only Windows key search.** Not run. Needs root. Would make everything below
+   unnecessary if it hits, which it probably will not.
+2. **Read-only sensor probe** for firmware, digest and calibration data. Not run. Needs root.
+   `tools/prepare-goodix-tool.sh` is done and tested, so this is one command.
+3. **Install the rebuilt package**, and restart niri so the polkit agent runs. Neither done.
+4. **Re-key the sensor.** Blocked on a decision, not on effort. See `hypothesis.md` §10.
+5. **Enrol, then measure** against the criterion in `hypothesis.md` §8 before wiring anything
+   to the authentication path.
 6. `mise-tasks/fingerprint` — designed, not built. Deliberately deferred until enrolment and
    verification actually work.
 7. `[lockscreen] fingerprint = true` in Noctalia's settings — deferred for the same reason.
 8. `pam_fprintd.so` for 1Password — a separate decision. CVE-2024-37408 applies to the polkit
    path but not the lock-screen D-Bus path. Keep `pam_fprintd` **out** of `/etc/pam.d/sudo`.
+
+Known and deliberately not fixed: the sibling 5110 and 538d drivers hand a digest to OpenSSL
+as if it were a key (§13 item 7), and the four suspect defects in the driver's 10019 scan path
+(`hypothesis.md` §7). Both wait on hardware that can exercise them.
 
 ---
 

@@ -225,3 +225,42 @@ having got enrolment working.
 - The all-zero key is not a secret at all. It is a published constant, and a sensor holding it
   offers no protection against a local attacker — worth knowing, though it does not change the
   decision, since the alternative is a sensor that does not work.
+
+---
+
+## 10. The pending decision
+
+Recorded because the work stopped here, and whoever resumes should not have to reconstruct
+what was being asked or re-open a question that was already settled.
+
+**Everything reversible has been done.** The driver defect is fixed and pinned, the package is
+built, the polkit cause is found and fixed, the recovery firmware is verified and stored, the
+tooling is written and tested. What remains needs root, and one step of it cannot be undone.
+
+**The question is whether to overwrite the key Windows wrote to this sensor.** There is no
+version of "make this sensor work on Linux" that avoids it, unless the read-only search in §3
+finds the existing key, which is unlikely.
+
+Answering it means accepting three things:
+
+1. **Windows Hello stops working on this machine.** Not temporarily. It works again only by
+   letting Windows re-key the sensor, which breaks Linux again.
+2. **The cost recurs.** Every Windows Hello enrolment means repeating the whole re-keying
+   cycle on the Linux side. This is a standing obligation, on the authentication path, on a
+   laptop whose vendor tools install drivers unattended.
+3. **It may not be worth it.** The published accuracy for this sensor under libfprint is a
+   reader that recognised its owner 3 times in 10 while a different finger scored 21 against a
+   threshold of 24. The criterion in §8 exists so that this is judged on measurement rather
+   than on the momentum of having got this far.
+
+**What was not decided and should not be assumed:** whether that trade is acceptable. It
+depends on how much the Windows install is actually used, which is not something the evidence
+here can answer.
+
+**If the answer is yes**, `runbook.md` steps 1 through 7 are the procedure, in that order. The
+ordering is the safety property, not a formality.
+
+**If the answer is no**, the work already committed is not wasted. The driver fix is correct
+independently and upstreamable, the polkit fix solves a session-wide problem that had nothing
+to do with fingerprints, and the recovery firmware is stored against the day the answer
+changes. Nothing needs reverting.
