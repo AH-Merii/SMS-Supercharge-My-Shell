@@ -22,11 +22,14 @@ if status is-interactive
         $XDG_CACHE_HOME/repos
 end
 
-# PATH additions
-fish_add_path $HOME/.local/bin
-fish_add_path $HOME/.cargo/bin
-fish_add_path $XDG_DATA_HOME/go/bin
-fish_add_path $XDG_DATA_HOME/nvim/mason/bin
+# PATH additions. -g keeps them in a global fish_user_paths that is rebuilt
+# every startup; without it fish_add_path persists them as a universal
+# variable, so removing a line here would never remove the directory.
+fish_add_path -g $HOME/.local/bin
+fish_add_path -g $HOME/.cargo/bin
+fish_add_path -g $XDG_DATA_HOME/go/bin
+# Mason's copies of shellcheck, shfmt etc. go last so the mise-managed ones win.
+fish_add_path -g --append $XDG_DATA_HOME/nvim/mason/bin
 
 # XDG DATA
 set -gx CLAUDE_CONFIG_DIR $XDG_CONFIG_HOME/claude
@@ -47,11 +50,14 @@ set -gx AWS_CLI_AUTO_PROMPT on-partial
 # Man pager
 set -gx MANPAGER 'nvim +Man!'
 
-# macOS: Add Homebrew library path for dynamic libraries (Cairo, etc.)
-if test "$OS_KIND" = macos
-    if test -d /opt/homebrew/lib
-        set -gx DYLD_LIBRARY_PATH /opt/homebrew/lib $DYLD_LIBRARY_PATH
-    else if test -d /usr/local/lib
-        set -gx DYLD_LIBRARY_PATH /usr/local/lib $DYLD_LIBRARY_PATH
-    end
+# macOS on Apple Silicon: let tools that dlopen Homebrew libraries (Cairo, etc.)
+# find /opt/homebrew/lib. The fallback path is only searched after a binary's own
+# library paths; DYLD_LIBRARY_PATH would be searched first and inject Homebrew
+# libs into every process. Setting the variable replaces dyld's default fallback
+# list (/usr/local/lib:/usr/lib), so that is kept, which is also why Intel
+# Homebrew (/usr/local/lib) needs nothing here.
+if test "$OS_KIND" = macos; and test -d /opt/homebrew/lib
+    set -q DYLD_FALLBACK_LIBRARY_PATH; or set -gx DYLD_FALLBACK_LIBRARY_PATH /usr/local/lib /usr/lib
+    contains /opt/homebrew/lib $DYLD_FALLBACK_LIBRARY_PATH
+    or set -gx DYLD_FALLBACK_LIBRARY_PATH /opt/homebrew/lib $DYLD_FALLBACK_LIBRARY_PATH
 end

@@ -1,4 +1,9 @@
-# 1Password SSH agent
+# 1Password SSH agent.
+# Not over SSH: with `ssh -A` SSH_AUTH_SOCK is the forwarded agent, keep it.
+if set -q SSH_CONNECTION
+    return
+end
+
 set -l op_sock
 switch $OS_KIND
     case macos
