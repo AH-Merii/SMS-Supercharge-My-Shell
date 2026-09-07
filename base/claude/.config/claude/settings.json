@@ -5,9 +5,7 @@
     "DISABLE_ERROR_REPORTING": "1",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "16000",
-    "MAX_THINKING_TOKENS": "8000",
-    "MAX_MCP_OUTPUT_TOKENS": "25000",
-    "TASK_MAX_OUTPUT_LENGTH": "20000"
+    "MAX_MCP_OUTPUT_TOKENS": "25000"
   },
   "feedbackSurveyRate": 0,
   "cleanupPeriodDays": 365,
@@ -28,34 +26,30 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git branch:*)",
-      "Bash(git checkout:*)",
       "Bash(git switch:*)",
-      "Bash(git stash:*)",
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
-      "Bash(git restore:*)",
       "Bash(git rev-parse:*)",
       "Bash(git remote:*)",
       "Bash(git tag:*)",
       "Bash(git blame:*)",
       "Bash(git worktree:*)",
-      "Bash(npm *)",
-      "Bash(pnpm *)",
-      "Bash(node *)",
       "Bash(ls *)",
       "Bash(which *)",
-      "Bash(mkdir *)",
-      "Bash(cat *)",
-      "Bash(jq *)"
+      "Bash(mkdir *)"
+    ],
+    "ask": [
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [
-      "Read(.env*)",
-      "Edit(.env*)",
-      "Bash(cat *.env*)",
-      "Bash(head *.env*)",
-      "Bash(tail *.env*)",
-      "Bash(less *.env*)",
-      "Bash(more *.env*)"
+      "Read(//**/.env)",
+      "Read(//**/.env.*)",
+      "Read(//**/*.pem)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/op/**)"
     ]
   },
   "spinnerVerbs": {
