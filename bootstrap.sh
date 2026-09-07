@@ -220,28 +220,10 @@ case $mgr in
     sudo apt-get update
     # shellcheck disable=SC2086
     sudo apt-get install $confirm_yes $pkgs
-    if ! command -v mise >/dev/null 2>&1; then
-      # mise from its signed apt repo, so apt keeps it current; extrepo carries the repo
-      # definition and key (mise.jdx.dev/installing-mise.html#apt: Debian 11+, Ubuntu
-      # 22.04+). Falls through to the pinned installer below where that is not available.
-      # shellcheck disable=SC2086
-      sudo apt-get install $confirm_yes extrepo &&
-        sudo extrepo enable mise &&
-        sudo apt-get update &&
-        sudo apt-get install $confirm_yes mise ||
-        printf '    %smise apt repo unavailable, using the pinned installer%s\n' "$c_yellow" "$c_reset"
-    fi
     ;;
   dnf)
     # shellcheck disable=SC2086
     sudo dnf install $confirm_yes $pkgs
-    if ! command -v mise >/dev/null 2>&1; then
-      # mise from its COPR (mise.jdx.dev/installing-mise.html#dnf), same reasoning as apt.
-      # shellcheck disable=SC2086
-      sudo dnf $confirm_yes copr enable jdxcode/mise &&
-        sudo dnf install $confirm_yes mise ||
-        printf '    %smise COPR unavailable, using the pinned installer%s\n' "$c_yellow" "$c_reset"
-    fi
     ;;
 esac
 
