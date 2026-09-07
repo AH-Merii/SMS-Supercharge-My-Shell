@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-#MISE description="Stow the layers for this machine's profile (STOW_FLAGS=-n to dry-run)"
+#MISE description="Stow the layers for this machine's profile (check previews it)"
 #MISE raw=true
 #
 # Idempotent: `stow -R` restows, and anything already sitting where a link belongs
 # (a real file, or a symlink stow does not own) is moved to <path>.bak first, so a
 # fresh machine, a re-run, and a layout change all converge without manual steps.
+#
+# No dry-run mode: `check` renders the same plan_links preview and stops there.
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
 # shellcheck source=mise-tasks/profile
@@ -12,9 +14,8 @@ source mise-tasks/profile
 # shellcheck source=lib/plan.sh
 source lib/plan.sh
 
-flags=${STOW_FLAGS:-}
 target=$HOME
-if [[ -z $flags && $PWD == */.claude/worktrees/* ]]; then
+if [[ $PWD == */.claude/worktrees/* ]]; then
   sms_err "refusing to link from a worktree ($PWD); run from the main checkout"
   exit 1
 fi
@@ -35,22 +36,16 @@ backup_conflicts() {
   done < <(stow_conflicts "$@")
 }
 
-# A dry run is already a preview, so asking first would be a question about nothing.
-if [[ -n $flags ]]; then
-  plan_links
-else
-  sms_preview plan_links 'Link these packages?' || exit 0
-fi
+sms_preview plan_links 'Link these packages?' || exit 0
 
 for layer in "${layers[@]}"; do
   mapfile -t lpkgs < <(layer_pkgs "$layer")
-  [[ -n $flags ]] || backup_conflicts "$layer" "${lpkgs[@]}"
+  backup_conflicts "$layer" "${lpkgs[@]}"
   # .stowrc supplies --target and --no-folding
-  # shellcheck disable=SC2086
-  stow $flags -d "$layer" -R "${lpkgs[@]}"
+  stow -d "$layer" -R "${lpkgs[@]}"
 done
 
-if [[ -z $flags && " ${layers[*]} " == *" desktop "* ]]; then
+if [[ " ${layers[*]} " == *" desktop "* ]]; then
   # niri includes noctalia.kdl, which Noctalia generates on first run
   mkdir -p "$target/.config/niri"
   touch "$target/.config/niri/noctalia.kdl"
