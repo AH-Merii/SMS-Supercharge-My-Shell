@@ -2,3 +2,9 @@
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 
     spawn-at-startup "noctalia"
+
+// polkit authentication agent. niri starts none by default and Noctalia does not
+// provide one, so without this every action needing authorisation is denied with no
+// prompt at all -- polkitd is running, but it has nobody to ask. `fprintd-enroll` as
+// an unprivileged user is one such action.
+    spawn-at-startup "/usr/lib/mate-polkit/polkit-mate-authentication-agent-1"

@@ -6,6 +6,14 @@ noctalia
 xdg-desktop-portal-gnome
 xdg-desktop-portal-gtk
 gnome-keyring
+# Fingerprint daemon. The Goodix 27c6:521d reader in this laptop is unsupported by the
+# stock libfprint that pacman pulls in here; packages/libfprint-goodixtls52xd is a pinned
+# fork that drives it, built by `mise run localpkgs` and replacing libfprint when it does.
+fprintd
+# polkit authentication agent, spawned from niri's autostart.kdl. niri starts none and
+# Noctalia provides none, so without it polkitd has nobody to prompt and every request
+# needing authorisation is denied silently -- `fprintd-enroll` as a user included.
+mate-polkit
 adw-gtk-theme
 brightnessctl
 wl-clipboard
