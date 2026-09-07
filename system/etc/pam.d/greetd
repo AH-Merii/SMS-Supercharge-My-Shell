@@ -14,5 +14,9 @@ password   include      system-local-login
 -password  optional     pam_gnome_keyring.so    use_authtok
 
 session    include      system-local-login
+# Redundant but harmless: system-local-login -> system-login already runs pam_systemd
+# (as `-session optional`). Kept because noctalia-greeter's setup_greetd_pam.sh greps
+# this file for the literal `pam_systemd.so` and inserts exactly this line when absent;
+# dropping it would just make the file drift from what that script converges on.
 session    required     pam_systemd.so
 -session   optional     pam_gnome_keyring.so    auto_start

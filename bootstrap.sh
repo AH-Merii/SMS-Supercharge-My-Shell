@@ -78,7 +78,6 @@ installed_set() {
     pacman) pacman -Qq 2>/dev/null ;;
     apt) dpkg-query -f '${db:Status-Status} ${Package}\n' -W 2>/dev/null |
       awk '$1 == "installed" { print $2 }' ;;
-    dnf) rpm -qa --qf '%{NAME}\n' 2>/dev/null ;;
     brew) { brew list --formula -1; brew list --cask -1; } 2>/dev/null ;;
     *) : ;;
   esac
@@ -96,8 +95,12 @@ show_plan() {
       want="$want $p"
     fi
   done
+  # On Arch the install line below is `pacman -Syu`, a full system upgrade, not just
+  # these N packages; say so, as lib/plan.sh does for deps.
+  note=''
+  if [ "$mgr" = pacman ]; then note='full system upgrade (-Syu) first'; fi
   printf '\n%sSMS · bootstrap%s\n' "$c_bold$c_cyan" "$c_reset"
-  printf '\n  %s%s%s\n' "$c_bold" "$mgr" "$c_reset"
+  printf '\n  %s%s%s  %s%s%s\n' "$c_bold" "$mgr" "$c_reset" "$c_dim" "$note" "$c_reset"
   if [ -n "$have" ]; then
     printf '    %s%-18s%s%s\n' "$c_dim$c_green" 'already installed' "$c_reset" "$have"
   fi
@@ -111,9 +114,12 @@ show_plan() {
 
 # --- detect -----------------------------------------------------------------------
 
-# Running from inside a checkout (./bootstrap.sh)? Use it instead of cloning.
+# Running from inside a checkout (./bootstrap.sh)? Use it instead of cloning. Under
+# `curl | sh` $0 is `sh`, so $script_dir is whatever directory you ran curl from: test for
+# files only this repo has, not mise.toml, or any mise project you happen to be standing
+# in would be taken for the checkout and its own `setup` task run.
 script_dir=$(cd "$(dirname "$0")" 2>/dev/null && pwd) || script_dir=""
-if [ -n "$script_dir" ] && [ -f "$script_dir/mise.toml" ]; then
+if [ -n "$script_dir" ] && [ -f "$script_dir/bootstrap.sh" ] && [ -f "$script_dir/mise-tasks/setup" ]; then
   DEST=$script_dir
 fi
 
@@ -130,10 +136,9 @@ elif [ "$os" = Darwin ] || [ "$wsl" = 1 ]; then
 elif command -v apt-get >/dev/null 2>&1; then
   mgr=apt
   pkgs="curl git stow fish"
-elif command -v dnf >/dev/null 2>&1; then
-  mgr=dnf
-  pkgs="curl git stow fish"
 else
+  # No dnf branch: deps and lib/plan.sh have none and there is no pkglist/fedora.txt, so
+  # a Fedora bootstrap would only ever get this far. Fedora is unsupported (README).
   mgr=none
   pkgs=""
 fi
@@ -141,7 +146,7 @@ fi
 # --- install ----------------------------------------------------------------------
 
 if [ "$mgr" = none ]; then
-  printf '\n  %sno supported package manager found; install git, stow, fish and mise yourself%s\n' \
+  printf '\n  %sno pacman, apt or Homebrew here; install git, stow, fish and mise yourself%s\n' \
     "$c_yellow" "$c_reset"
 else
   show_plan
@@ -166,9 +171,10 @@ case $mgr in
     sudo pacman -Syu --needed $confirm_pacman $pkgs
     ;;
   brew)
-    if [ "$os" = Darwin ]; then
-      xcode-select -p >/dev/null 2>&1 || xcode-select --install
-    elif command -v apt-get >/dev/null 2>&1; then
+    # No `xcode-select --install` on macOS: it opens a GUI dialog and returns at once, so
+    # the script would carry straight on without the Command Line Tools. Homebrew's
+    # installer puts them in itself (headless, via softwareupdate) when they are missing.
+    if command -v apt-get >/dev/null 2>&1; then
       sudo apt-get update
       # shellcheck disable=SC2086
       sudo apt-get install $confirm_yes build-essential procps curl file git
@@ -189,10 +195,6 @@ case $mgr in
     sudo apt-get update
     # shellcheck disable=SC2086
     sudo apt-get install $confirm_yes $pkgs
-    ;;
-  dnf)
-    # shellcheck disable=SC2086
-    sudo dnf install $confirm_yes $pkgs
     ;;
 esac
 
