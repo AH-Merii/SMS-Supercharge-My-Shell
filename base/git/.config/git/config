@@ -117,20 +117,8 @@
   prereleaseSuffix = .beta
   prereleaseSuffix = -rc
   prereleaseSuffix = .rc
-[user]
-    # run ggh init to configure
 [gpg]
 	format = ssh
-[gpg "ssh"]
-    # run ggh init to configure
-[filter "remove_gitconfig_user"]
-	clean = "awk '/^\\[user\\]/{skip=1; print \"[user]\"; print \"    # run ggh init to configure\"; next} /^\\[gpg \"ssh\"\\]/{skip=1; print \"[gpg \\\"ssh\\\"]\"; print \"    # run ggh init to configure\"; next} /^\\[url /{skip=1; next} /^\\[/ && !/^\\[user\\]/ && !/^\\[gpg \"ssh\"\\]/ && !/^\\[url /{skip=0} !skip'"
-	smudge = cat
-[includeIf "hasconfig:remote.*.url:git@github-aecom-ai-engineering:**"]
-    path = ~/.config/git/config-aecom-ai-engineering
-
-[includeIf "hasconfig:remote.*.url:git@github.com:AECOM-AI-Engineering/**"]
-    path = ~/.config/git/config-aecom-ai-engineering
 [credential "https://github.com"]
 	helper =
 	helper = !gh auth git-credential
@@ -142,3 +130,9 @@
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
+
+# Identity, signing key and per-org routing are machine-specific and never tracked:
+# ggh writes them to config.local, which git skips silently until it exists.
+# Kept last so its values win over anything above.
+[include]
+	path = ~/.config/git/config.local

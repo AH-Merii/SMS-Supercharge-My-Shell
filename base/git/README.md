@@ -36,7 +36,19 @@ The [settings reference](#settings-reference) at the bottom documents every opti
 
 ## Post-Clone Setup
 
-The `[user]`, `[gpg "ssh"]`, and `[url "..."]` sections are stripped from commits via a clean filter. After cloning, run `ggh` to configure:
+Nothing machine-specific is tracked. The stowed `config` ends with an include of
+`~/.config/git/config.local`, which is a plain untracked file that `ggh` writes:
+
+| File                            | Tracked | Holds                                                        |
+| ------------------------------- | ------- | ------------------------------------------------------------ |
+| `~/.config/git/config`          | yes     | aliases, pager, signing policy — everything shared           |
+| `~/.config/git/config.local`    | no      | `[user]`, `[gpg "ssh"]`, `[url]` rewrites, org `includeIf`s  |
+| `~/.config/git/config-<org>`    | no      | per-org `[user]` override, pulled in by an `includeIf`       |
+| `~/.config/git/allowed_signers` | no      | public keys for local signature verification                 |
+
+`config.local` and `config-*` sit next to the stow symlinks as real files. They have no path inside the repo, so no git command can commit, overwrite or push them; the repo `.gitignore` also refuses them in case they are ever copied into the package directory. Git silently skips the include while the file is missing, so a fresh clone works and the fish shell prints a reminder to run `ggh`.
+
+After cloning, run `ggh` once per machine:
 
 ```bash
 # Standard SSH setup
@@ -46,7 +58,9 @@ ggh init --name "Your Name" --email "you@example.com"
 ggh op init --name "Your Name" --email "you@example.com"
 ```
 
-For org-specific accounts:
+### Adding an organization
+
+No org is configured by default. To commit to an org's repos under a different identity (and, if needed, a different key):
 
 ```bash
 # Standard SSH org
@@ -56,7 +70,14 @@ ggh add --org MyOrg --name "Your Name" --email "you@work.com"
 ggh op add --org MyOrg --name "Your Name" --email "you@work.com"
 ```
 
-> **Note:** `ggh add`/`ggh op add` create a per-org SSH key, SSH host alias, and `url.insteadOf` rewrite. The URL rewrite means you can clone with standard `git@github.com:Org/repo.git` URLs — git transparently routes to the org-specific key. Two `includeIf` conditions are set (one for the host alias, one for `github.com:Org/**`) so both old and new clone URLs resolve the correct identity.
+This writes, all outside the repo:
+
+- an SSH host alias `github-myorg` in `~/.ssh/config` pinned to the org key
+- `url.git@github-myorg:MyOrg/.insteadOf = git@github.com:MyOrg/` in `config.local`, so plain `git clone git@github.com:MyOrg/repo.git` URLs route to that key
+- two `includeIf` blocks in `config.local` (one for the host alias, one for `github.com:MyOrg/**`) pointing at `~/.config/git/config-myorg`
+- `~/.config/git/config-myorg` with the org `[user]` section and signing key
+
+Run `ggh status` to see what is configured. Repeat `ggh add` for each org.
 
 ### Commit signing
 
@@ -266,7 +287,7 @@ Side-by-side is defined as a named feature (`[delta "side-by-side"]`) and toggle
 
 ### Org URL Rewrites
 
-`ggh add` and `ggh op add` configure `url.<base>.insteadOf` rules so that standard `github.com` clone URLs transparently route to the correct SSH host alias:
+`ggh add` and `ggh op add` write `url.<base>.insteadOf` rules to `config.local` so that standard `github.com` clone URLs transparently route to the correct SSH host alias:
 
 ```ini
 [url "git@github-acme:Acme/"]
@@ -298,7 +319,7 @@ This means `git clone git@github.com:Acme/repo.git` works directly — git rewri
 | `gpg.ssh.program`            | (platform-specific)             | Direct path to op-ssh-sign binary (1Password only) |
 | `gpg.ssh.allowedSignersFile` | `~/.config/git/allowed_signers` | Local signature verification                       |
 
-Signing is configured by `ggh init` or `ggh op init`. The `user.signingkey` points to a public key file on disk (e.g., `~/.ssh/github_jane`). Git reads the key from the file, so re-exporting the `.pub` file after key rotation is enough — no config change needed.
+Signing is configured by `ggh init` or `ggh op init`, which write these keys to the untracked `config.local`. The `user.signingkey` points to a public key file on disk (e.g., `~/.ssh/github_jane`). Git reads the key from the file, so re-exporting the `.pub` file after key rotation is enough — no config change needed.
 
 #### 1Password SSH Key Routing
 
@@ -323,13 +344,9 @@ vault = "Personal"
 
 Use `ggh status` to see which keys are registered.
 
-#### Clean Filters
+#### Why identity is not a clean filter
 
-| Filter                  | Files              | Effect                                                      |
-| ----------------------- | ------------------ | ----------------------------------------------------------- |
-| `remove_gitconfig_user` | `config`, `config-*` | Strips `[user]`, `[gpg "ssh"]`, and `[url "..."]` sections |
-
-These sections contain machine-specific values (identity, signing keys, org URL rewrites). After cloning, run `ggh init` to populate — see [README.md](README.md#post-clone-setup).
+An earlier layout kept `[user]` inside the tracked `config` and relied on a clean filter to strip it on commit. That hid the edits from git entirely, so `git status` stayed clean and any checkout, pull, stash or reset silently overwrote the identity with the placeholder — and the filter only matched three section headers, so anything else written to the file would have been committed. Keeping identity in a file with no path inside the repo removes both failure modes structurally. See [Post-Clone Setup](#post-clone-setup).
 
 ### Requirements
 

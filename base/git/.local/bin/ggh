@@ -7,6 +7,10 @@
 
 Configure GitHub SSH authentication with standard keys or 1Password-backed keys.
 Supports multiple organizations with per-org git identity and signing config.
+
+Everything machine-specific is written to ~/.config/git/config.local (plus
+config-<org> files), never to the main config, so a dotfiles-tracked config
+can be committed without ever carrying identity.
 """
 from __future__ import annotations
 
@@ -718,50 +722,28 @@ def write_org_config(
     logger.success(f"Wrote {org_cfg} with name/email")
 
 
-def setup_clean_filter(main_cfg: Path, logger: Logger) -> None:
-    """Set up expanded awk filter for [user] + [gpg "ssh"] + [url] stripping."""
-    awk_script = (
-        r"""/^\[user\]/{skip=1; print "[user]"; print "    # run ggh init to configure"; next} """
-        r"""/^\[gpg "ssh"\]/{skip=1; print "[gpg \"ssh\"]"; print "    # run ggh init to configure"; next} """
-        r"""/^\[url /{skip=1; next} """
-        r"""/^\[/ && !/^\[user\]/ && !/^\[gpg "ssh"\]/ && !/^\[url /{skip=0} !skip"""
+def ensure_local_include(main_cfg: Path, local_cfg: Path, logger: Logger) -> None:
+    """Make sure main_cfg includes local_cfg. Appended last so local values win."""
+    rel = f"~/{local_cfg.relative_to(Path.home())}"
+    result = run(
+        ["git", "config", "--file", str(main_cfg), "--get-all", "include.path"],
+        check=False,
     )
-
-    expected_filter = f"awk '{awk_script}'"
-    current = git_config_get(main_cfg, "filter.remove_gitconfig_user.clean")
-    if current and current.strip() == expected_filter.strip():
-        logger.info("Clean filter already configured — skipping")
-        return
-
-    git_config_set(main_cfg, "filter.remove_gitconfig_user.clean", f"awk '{awk_script}'", logger)
-    git_config_set(main_cfg, "filter.remove_gitconfig_user.smudge", "cat", logger)
-
-
-def setup_gitattributes(git_config_dir: Path, logger: Logger) -> None:
-    """Ensure config and config-* entries in .gitattributes."""
-    attrs_path = git_config_dir / ".gitattributes"
-
-    existing = attrs_path.read_text() if attrs_path.exists() else ""
-    lines_to_add = []
-
-    if "config filter=remove_gitconfig_user" not in existing:
-        lines_to_add.append("config filter=remove_gitconfig_user")
-    if "config-* filter=remove_gitconfig_user" not in existing:
-        lines_to_add.append("config-* filter=remove_gitconfig_user")
-
-    if not lines_to_add:
-        logger.info(".gitattributes already configured — skipping")
+    existing = result.stdout.split("\n") if result.returncode == 0 else []
+    if rel in existing or str(local_cfg) in existing:
+        logger.info(f"{main_cfg.name} already includes {rel} — skipping")
         return
 
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would update .gitattributes at {attrs_path}")
+        logger.info(f"[DRY RUN] Would add include.path = {rel} to {main_cfg}")
         return
 
-    _ensure_trailing_newline(attrs_path)
-    with attrs_path.open("a") as f:
-        for line in lines_to_add:
-            f.write(line + "\n")
-    logger.success(f"Updated .gitattributes at {attrs_path}")
+    main_cfg.parent.mkdir(parents=True, exist_ok=True)
+    run(
+        ["git", "config", "--file", str(main_cfg), "--add", "include.path", rel],
+        logger=logger,
+    )
+    logger.success(f"Added include.path = {rel} to {main_cfg}")
 
 
 def update_allowed_signers(
@@ -1029,13 +1011,17 @@ class AppContext:
     logger: Logger
     git_config_dir: Path
     main_cfg: Path
+    local_cfg: Path
     signers_path: Path
 
 
+# main_cfg is the shared (usually dotfiles-tracked) config; everything machine-specific
+# (identity, signing key, org routing) goes to local_cfg, which main_cfg includes last.
 _ctx = AppContext(
     logger=Logger(),
     git_config_dir=resolve_git_config_dir(),
     main_cfg=resolve_git_config_dir() / "config",
+    local_cfg=resolve_git_config_dir() / "config.local",
     signers_path=resolve_git_config_dir() / "allowed_signers",
 )
 
@@ -1067,11 +1053,11 @@ def init(
         ggh init -i
     """
     log = _ctx.logger
-    total = 9
+    total = 8
 
     if log.interactive:
-        default_name = git_config_get(_ctx.main_cfg, "user.name") or ""
-        default_email = git_config_get(_ctx.main_cfg, "user.email") or ""
+        default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
+        default_email = git_config_get(_ctx.local_cfg, "user.email") or ""
         name = _prompt("Git author name", name or default_name)
         email = _prompt("Git author email", email or default_email)
     else:
@@ -1096,23 +1082,20 @@ def init(
     upload_ssh_key(pub_key, name, log)
 
     log.step(5, total, "Configuring git identity")
-    git_config_set(_ctx.main_cfg, "user.name", name, log)
-    git_config_set(_ctx.main_cfg, "user.email", email, log)
-    git_config_set(_ctx.main_cfg, "commit.gpgSign", "true", log)
-    git_config_set(_ctx.main_cfg, "tag.gpgSign", "true", log)
+    git_config_set(_ctx.local_cfg, "user.name", name, log)
+    git_config_set(_ctx.local_cfg, "user.email", email, log)
+    git_config_set(_ctx.local_cfg, "commit.gpgSign", "true", log)
+    git_config_set(_ctx.local_cfg, "tag.gpgSign", "true", log)
 
     log.step(6, total, "Configuring commit signing")
-    backend.configure_signing(_ctx.main_cfg, pub_key, log)
+    backend.configure_signing(_ctx.local_cfg, pub_key, log)
 
     log.step(7, total, "Updating allowed_signers")
     update_allowed_signers(_ctx.signers_path, email, pub_key, log)
-    git_config_set(_ctx.main_cfg, "gpg.ssh.allowedSignersFile", str(_ctx.signers_path), log)
+    git_config_set(_ctx.local_cfg, "gpg.ssh.allowedSignersFile", str(_ctx.signers_path), log)
 
-    log.step(8, total, "Setting up clean filter")
-    setup_clean_filter(_ctx.main_cfg, log)
-
-    log.step(9, total, "Configuring .gitattributes")
-    setup_gitattributes(_ctx.git_config_dir, log)
+    log.step(8, total, "Including config.local from the main git config")
+    ensure_local_include(_ctx.main_cfg, _ctx.local_cfg, log)
 
     _print_init_summary(name, email)
 
@@ -1141,8 +1124,8 @@ def add(
         org = _prompt("Organization", org or "")
         org_lower = org.lower()
         host = _prompt("Host alias", host or f"github-{org_lower}")
-        default_name = git_config_get(_ctx.main_cfg, "user.name") or ""
-        default_email = git_config_get(_ctx.main_cfg, "user.email") or ""
+        default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
+        default_email = git_config_get(_ctx.local_cfg, "user.email") or ""
         name = _prompt("Git author name", name or default_name)
         email = _prompt("Git author email", email or default_email)
     else:
@@ -1176,13 +1159,13 @@ def add(
     add_ssh_host(host, "github.com", "git", backend.ssh_host_extras(), log)
 
     log.step(6, total, "Configuring URL rewrite")
-    add_url_rewrite(_ctx.main_cfg, org, host, log)
+    add_url_rewrite(_ctx.local_cfg, org, host, log)
 
     log.step(7, total, "Adding includeIf to git config")
     condition = f"hasconfig:remote.*.url:git@{host}:**"
-    add_include_if(_ctx.main_cfg, condition, org_cfg_rel, log)
+    add_include_if(_ctx.local_cfg, condition, org_cfg_rel, log)
     gh_condition = f"hasconfig:remote.*.url:git@github.com:{org}/**"
-    add_include_if(_ctx.main_cfg, gh_condition, org_cfg_rel, log)
+    add_include_if(_ctx.local_cfg, gh_condition, org_cfg_rel, log)
 
     log.step(8, total, "Writing org git config")
     write_org_config(org_cfg, name, email, log)
@@ -1192,8 +1175,8 @@ def add(
     log.step(9, total, "Updating allowed_signers")
     update_allowed_signers(_ctx.signers_path, email, pub_key, log)
 
-    log.step(10, total, "Configuring .gitattributes")
-    setup_gitattributes(_ctx.git_config_dir, log)
+    log.step(10, total, "Including config.local from the main git config")
+    ensure_local_include(_ctx.main_cfg, _ctx.local_cfg, log)
 
     _print_add_summary(org, host)
 
@@ -1216,11 +1199,11 @@ def op_init(
         ggh op init -i
     """
     log = _ctx.logger
-    total = 13
+    total = 12
 
     if log.interactive:
-        default_name = git_config_get(_ctx.main_cfg, "user.name") or ""
-        default_email = git_config_get(_ctx.main_cfg, "user.email") or ""
+        default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
+        default_email = git_config_get(_ctx.local_cfg, "user.email") or ""
         name = _prompt("Git author name", name or default_name)
         email = _prompt("Git author email", email or default_email)
         vault = _prompt("1Password vault", vault)
@@ -1261,23 +1244,20 @@ def op_init(
     update_agent_toml(key_name, vault, log)
 
     log.step(9, total, "Configuring git identity")
-    git_config_set(_ctx.main_cfg, "user.name", name, log)
-    git_config_set(_ctx.main_cfg, "user.email", email, log)
-    git_config_set(_ctx.main_cfg, "commit.gpgSign", "true", log)
-    git_config_set(_ctx.main_cfg, "tag.gpgSign", "true", log)
+    git_config_set(_ctx.local_cfg, "user.name", name, log)
+    git_config_set(_ctx.local_cfg, "user.email", email, log)
+    git_config_set(_ctx.local_cfg, "commit.gpgSign", "true", log)
+    git_config_set(_ctx.local_cfg, "tag.gpgSign", "true", log)
 
     log.step(10, total, "Configuring commit signing")
-    backend.configure_signing(_ctx.main_cfg, pub_key, log)
+    backend.configure_signing(_ctx.local_cfg, pub_key, log)
 
     log.step(11, total, "Updating allowed_signers")
     update_allowed_signers(_ctx.signers_path, email, pub_key, log)
-    git_config_set(_ctx.main_cfg, "gpg.ssh.allowedSignersFile", str(_ctx.signers_path), log)
+    git_config_set(_ctx.local_cfg, "gpg.ssh.allowedSignersFile", str(_ctx.signers_path), log)
 
-    log.step(12, total, "Setting up clean filter")
-    setup_clean_filter(_ctx.main_cfg, log)
-
-    log.step(13, total, "Configuring .gitattributes")
-    setup_gitattributes(_ctx.git_config_dir, log)
+    log.step(12, total, "Including config.local from the main git config")
+    ensure_local_include(_ctx.main_cfg, _ctx.local_cfg, log)
 
     _print_init_summary(name, email)
 
@@ -1311,8 +1291,8 @@ def op_add(
         vault = _prompt("1Password vault", vault)
         key_name_default = key_name or f"GitHub {org}"
         key_name = _prompt("1Password key name", key_name_default)
-        default_name = git_config_get(_ctx.main_cfg, "user.name") or ""
-        default_email = git_config_get(_ctx.main_cfg, "user.email") or ""
+        default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
+        default_email = git_config_get(_ctx.local_cfg, "user.email") or ""
         name = _prompt("Git author name", name or default_name)
         email = _prompt("Git author email", email or default_email)
     else:
@@ -1357,13 +1337,13 @@ def op_add(
     update_agent_toml(key_name, vault, log)
 
     log.step(9, total, "Configuring URL rewrite")
-    add_url_rewrite(_ctx.main_cfg, org, host, log)
+    add_url_rewrite(_ctx.local_cfg, org, host, log)
 
     log.step(10, total, "Adding includeIf to git config")
     condition = f"hasconfig:remote.*.url:git@{host}:**"
-    add_include_if(_ctx.main_cfg, condition, org_cfg_rel, log)
+    add_include_if(_ctx.local_cfg, condition, org_cfg_rel, log)
     gh_condition = f"hasconfig:remote.*.url:git@github.com:{org}/**"
-    add_include_if(_ctx.main_cfg, gh_condition, org_cfg_rel, log)
+    add_include_if(_ctx.local_cfg, gh_condition, org_cfg_rel, log)
 
     log.step(11, total, "Writing org git config")
     write_org_config(org_cfg, name, email, log)
@@ -1373,8 +1353,8 @@ def op_add(
     log.step(12, total, "Updating allowed_signers")
     update_allowed_signers(_ctx.signers_path, email, pub_key, log)
 
-    log.step(13, total, "Configuring .gitattributes")
-    setup_gitattributes(_ctx.git_config_dir, log)
+    log.step(13, total, "Including config.local from the main git config")
+    ensure_local_include(_ctx.main_cfg, _ctx.local_cfg, log)
 
     _print_add_summary(org, host)
 
@@ -1391,7 +1371,7 @@ def status() -> None:
     console.print("\n[bold]GitHub SSH Configuration Status[/]\n")
 
     # Git identity
-    cfg = _ctx.main_cfg
+    cfg = _ctx.local_cfg
     uname = git_config_get(cfg, "user.name")
     uemail = git_config_get(cfg, "user.email")
     console.print("[bold cyan]Identity[/]")
@@ -1484,7 +1464,7 @@ def status() -> None:
         else:
             console.print("  [dim]No includeIf blocks found[/]")
     else:
-        console.print("  [dim]Git config not found[/]")
+        console.print(f"  [dim]{cfg.name} not found — run ggh init[/]")
 
     # Allowed signers
     console.print("\n[bold cyan]Allowed Signers[/]")
