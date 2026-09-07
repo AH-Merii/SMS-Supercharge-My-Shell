@@ -241,28 +241,24 @@ Settings in `config` grouped by impact.
 | ---------------------- | ------ | ---------------------------------------- |
 | `transfer.fsckObjects` | `true` | Validates object integrity on fetch/push |
 
-### Delta Pager
+### Hunk Pager
 
-The config uses [delta](https://github.com/dandavison/delta) as the pager.
+`core.pager = hunk pager` routes all paged git output through [hunk](https://github.com/hunk-dev/hunk), a terminal diff reviewer installed via mise. Hunk detects diff input and opens its review TUI (sidebar, split/stack layout picked automatically for the terminal width); anything that is not a diff — `git log`, `git show --stat`, `git config --list` — passes straight through unchanged.
 
-| Setting                      | Description                                      |
-| ---------------------------- | ------------------------------------------------ |
-| `navigate = true`            | Use n/N to jump between hunks                    |
-| `line-numbers = true`        | Show line numbers                                |
-| `hyperlinks = true`          | Clickable file paths (terminal support required) |
-| `syntax-theme = OneHalfDark` | Syntax highlighting theme                        |
-| `tabs = 4`                   | Tab width for display                            |
-| `true-color = always`        | Force true-color output                          |
-| `file-modified-label`        | Label for modified files                         |
-| `wrap-max-lines = unlimited` | No line wrapping limit                           |
+Because git only invokes a pager on a TTY, redirecting or piping (`git diff > patch`, `git diff | grep`) bypasses hunk entirely and yields plain diff text as before.
 
-#### Responsive Side-by-Side
+| Command             | Result                            |
+| ------------------- | --------------------------------- |
+| `git diff`          | Hunk review TUI                   |
+| `git show`          | Hunk review TUI                   |
+| `git log`           | Plain paged output                |
+| `git diff \| grep`  | Plain diff text (no pager at all) |
 
-Side-by-side is defined as a named feature (`[delta "side-by-side"]`) and toggled via `core.pager`. The pager command checks terminal width at invocation — side-by-side activates when the terminal is >= 160 columns wide.
+Hunk has its own subcommands (`hunk diff`, `hunk show`, `hunk stash show`) that work without the pager wiring; the pager just makes them the default path.
 
-#### Interactive Diff
+#### Delta
 
-`interactive.diffFilter = delta --color-only` enables delta syntax highlighting during `git add -p`.
+[delta](https://github.com/dandavison/delta) is still configured and used for interactive staging: `interactive.diffFilter = delta --color-only` gives syntax highlighting during `git add -p`, where a full TUI cannot be substituted. The `[delta]` block (`navigate`, `line-numbers`, `hyperlinks`, `syntax-theme = OneHalfDark`, `tabs = 4`, `true-color`, `wrap-max-lines`) and the named `[delta "side-by-side"]` feature remain available for direct use, e.g. `git diff | delta --features side-by-side`.
 
 ### Org URL Rewrites
 
@@ -333,7 +329,8 @@ These sections contain machine-specific values (identity, signing keys, org URL 
 
 ### Requirements
 
-- [delta](https://github.com/dandavison/delta) - Diff viewer with syntax highlighting
+- [hunk](https://github.com/hunk-dev/hunk) - Terminal diff reviewer used as `core.pager` (installed via mise)
+- [delta](https://github.com/dandavison/delta) - Diff viewer used for `interactive.diffFilter` (`git add -p`)
 - `ggh` - GitHub SSH setup CLI (included in `~/.local/bin`)
 - [1Password](https://1password.com/) desktop app with SSH agent enabled (for 1Password signing mode)
 - `git-whichside` - Conflict helper showing ours vs theirs (included in `~/.local/bin`)
