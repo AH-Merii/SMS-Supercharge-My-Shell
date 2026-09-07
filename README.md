@@ -12,6 +12,8 @@ base/        stow packages every machine gets: fish git nvim tmux starship lazyg
 desktop/     Linux desktop only: niri noctalia (v5, ~/.local/state/noctalia/settings.toml)
 macos/       macOS only: karabiner
 plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)
+system/      root-owned files, mirroring /: greetd config, its PAM stack, the greeter's
+             greeter.toml. Installed by `mise run greeter`, not stowed
 pkglist/     pacman / AUR / apt package lists
 Brewfile     Homebrew packages for macOS and WSL
 mise.toml    tasks (see below); mise-tasks/ holds the scripts
@@ -47,13 +49,14 @@ curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/m
 
 `bootstrap.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
 macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` if needed, and runs
-`mise run setup`: OS packages, symlinks, tools, plugins. Files already sitting where a link
-belongs are moved to `<name>.bak`, never overwritten.
+`mise run setup`: OS packages, symlinks, tools, plugins and, on the Arch desktop, the login
+screen. Files already sitting where a link belongs are moved to `<name>.bak`, never
+overwritten.
 
 Nothing installs before you have seen it. Both steps print what they are about to do —
 packages split into what is already installed and what is not, the stow layers and any
 files that would be backed up, the missing mise tools — and ask `Proceed? [Y/n]`, default
-yes. `setup` asks once for all four steps; answering yes there also skips pacman's and
+yes. `setup` asks once for all its steps; answering yes there also skips pacman's and
 apt's own prompts, since the plan already named every package. paru is the exception: its
 PKGBUILD review survives, because the plan never showed you a PKGBUILD.
 
@@ -73,13 +76,14 @@ reminder until the latter is done.
 
 | Task      | What it does                                                        |
 | --------- | ------------------------------------------------------------------- |
-| `setup`   | `deps`, `link`, `tools`, `plugins` in order                         |
+| `setup`   | `deps`, `link`, `tools`, `plugins`, `greeter` in order              |
 | `deps`    | OS packages: pacman/paru on Arch, apt on Debian, `brew bundle` on macOS/WSL |
 | `link`    | Stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run) |
 | `unlink`  | Remove those symlinks                                               |
 | `check`   | Dry-run `link`                                                      |
 | `tools`   | `mise install` everything in the global mise config                 |
 | `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
+| `greeter` | Arch desktop: greetd + noctalia-greeter as the login screen, synced to the Noctalia theme; a no-op elsewhere |
 | `profile` | Print the detected profile                                          |
 
 Run with `mise run <task>`; `mise tasks` lists them. Every task except `check` and
@@ -127,6 +131,16 @@ the old file into the repo.
   checks it). Monitor names, wallpaper paths and battery device paths in it are
   machine-specific. niri includes `noctalia.kdl`, which Noctalia generates from the theme
   templates; `mise run link` creates an empty placeholder for the first login.
+  The login screen is [greetd](https://sr.ht/~kennylevinsen/greetd/) running
+  [noctalia-greeter](https://github.com/noctalia-dev/noctalia-greeter) (Wayland, no Xorg)
+  instead of the installer's sddm. `mise run greeter` installs the files from `system/`,
+  flips the enabled display manager (effective at the next boot; sddm stays installed as
+  the way back), and runs `noctalia msg greeter-sync` so the wallpaper, palette and monitor
+  layout match the desktop (restarting Noctalia once if it started before the greeter was
+  installed, as it has on a fresh machine). `settings.toml` keeps that sync automatic and turns on
+  Noctalia's polkit agent, which is what puts the sync's password prompt on screen.
+  `/etc/pam.d/greetd` carries `pam_gnome_keyring`, so the login password still unlocks the
+  keyring.
 - **macOS.** Homebrew installs the casks in the `Brewfile` (ghostty, karabiner-elements,
   1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`.
 - **WSL2.** apt covers the base packages, Homebrew supplies mise and a current fish. The

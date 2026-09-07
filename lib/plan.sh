@@ -308,3 +308,41 @@ plan_plugins() {
   [[ ${#want[@]} -gt 0 ]] && sms_want "${want[@]}"
   return 0
 }
+
+# --- login screen (Arch desktop) ----------------------------------------------------
+
+# What `greeter` would change. Only what this user can read is compared here:
+# /var/lib/noctalia-greeter is 0750 greeter:greeter, so greeter.toml is left to the task,
+# which compares it through sudo.
+plan_greeter() {
+  if [[ $profile != desktop ]] || ! command -v pacman >/dev/null 2>&1; then
+    return 0
+  fi
+  sms_section 'login screen' 'greetd + noctalia-greeter in place of sddm'
+
+  local missing
+  missing=$(pacman -T greetd noctalia-greeter 2>/dev/null) || true
+  _split_by_missing "$missing" greetd noctalia-greeter
+  _show_split
+  [[ ${#_want[@]} -gt 0 ]] && sms_note 'deps installs those; greeter runs after it'
+
+  local f
+  for f in etc/greetd/config.toml etc/pam.d/greetd; do
+    if cmp -s "$MISE_PROJECT_ROOT/system/$f" "/$f" 2>/dev/null; then
+      sms_note "unchanged /$f"
+    else
+      sms_want "/$f"
+    fi
+  done
+  sms_note "/var/lib/noctalia-greeter/greeter.toml (user: ${USER:-$(id -un)}) is compared under sudo"
+
+  if systemctl is-enabled -q greetd 2>/dev/null; then
+    sms_note 'greetd is already the display manager'
+  else
+    sms_warn 'will switch the display manager sddm -> greetd (takes effect at next boot)'
+  fi
+  if pgrep -x noctalia >/dev/null 2>&1; then
+    sms_note 'will sync Noctalia wallpaper, palette and outputs to the greeter (asks for your password)'
+  fi
+  return 0
+}

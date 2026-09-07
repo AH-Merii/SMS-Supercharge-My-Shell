@@ -3,6 +3,10 @@
 niri
 xwayland-satellite
 noctalia
+# Login screen. `mise run greeter` (part of setup) points greetd at noctalia-greeter and
+# disables the installer's sddm; the files it installs live under system/.
+greetd
+noctalia-greeter
 xdg-desktop-portal-gnome
 xdg-desktop-portal-gtk
 gnome-keyring

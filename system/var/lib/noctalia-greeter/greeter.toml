@@ -1,0 +1,24 @@
+# Declarative settings for the Noctalia greeter. Installed by `mise run greeter`, which
+# replaces @USER@ with whoever ran it.
+#
+# Wallpaper, palette, font and output layout are left out on purpose: anything set here
+# overrides what Noctalia syncs from the desktop, and that sync is what keeps the login
+# screen matching the shell. Reference:
+# https://github.com/noctalia-dev/noctalia-greeter/blob/main/docs/user/configuration.md
+
+[session]
+# Name= of /usr/share/wayland-sessions/niri.desktop (case-insensitive).
+default = "Niri"
+
+[user]
+# Opens straight on the password field instead of the user picker.
+default = "@USER@"
+
+[keyboard]
+# Mirrors `numlock` in niri's input.kdl.
+numlock = true
+
+[cursor]
+# Mirrors the cursor block in niri's misc.kdl.
+theme = "phinger-cursors-dark"
+size = 48

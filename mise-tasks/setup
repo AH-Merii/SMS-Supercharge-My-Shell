@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-#MISE description="Fresh machine: deps, link, tools, plugins"
+#MISE description="Fresh machine: deps, link, tools, plugins, greeter"
 #MISE raw=true
 #
-# Shows one plan for all four steps and asks once. The steps then run with
+# Shows one plan for all the steps and asks once. The steps then run with
 # SMS_PLAN_CONFIRMED=1, which skips their own prompts and lets pacman/apt/mise skip
 # theirs -- everything they would have asked about is already on screen above.
 set -euo pipefail
@@ -28,6 +28,7 @@ plan_os_packages
 plan_links
 plan_tools
 plan_plugins
+plan_greeter
 
 if ! sms_confirm 'Proceed?'; then
   # Exit 0: declining is an answer, not a failure, and a non-zero code here would make
@@ -43,9 +44,9 @@ if command -v sudo >/dev/null 2>&1 &&
 fi
 
 export SMS_PLAN_CONFIRMED=1
-# Four sequential runs, not `mise run deps link tools plugins`: that would run them in
-# parallel, and each one depends on the last.
-for task in deps link tools plugins; do
+# Sequential runs, not `mise run deps link tools ...`: that would run them in parallel,
+# and each one depends on the last. greeter is a no-op outside the Arch desktop profile.
+for task in deps link tools plugins greeter; do
   sms_header "==> $task"
   mise run "$task"
 done

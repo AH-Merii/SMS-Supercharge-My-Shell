@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+#MISE description="Login screen: greetd + noctalia-greeter in place of sddm, themed from Noctalia (Arch desktop)"
+#MISE raw=true
+#
+# Idempotent: every step compares before it changes. The files under system/ are
+# installed only when they differ from what is on disk, the display manager is switched
+# only while sddm is still the enabled one, and the appearance sync rewrites the same
+# state each time. A fresh CachyOS install, a re-run and a config change all converge.
+#
+# Nothing here stops or starts a display manager: that would end the session this runs
+# in. The switch takes effect at the next boot.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
+
+if [[ $profile != desktop ]] || ! command -v pacman >/dev/null 2>&1; then
+  sms_note "the login screen is set up on the Arch desktop profile only (profile: $profile)"
+  exit 0
+fi
+
+sms_preview plan_greeter 'Set up the login screen?' || exit 0
+
+# deps owns the packages (pkglist/arch-desktop.txt); the plan already named any missing.
+missing=$(pacman -T greetd noctalia-greeter 2>/dev/null) || true
+if [[ -n $missing ]]; then
+  sms_err "not installed: ${missing//$'\n'/ } -- run \`mise run deps\` first"
+  exit 1
+fi
+
+sudo -v
+
+# --- files ----------------------------------------------------------------------------
+
+# `install -C` would skip unchanged files by itself, but silently; the note is the point,
+# so a re-run visibly changes nothing.
+put() { # put <src> <dst> <mode> <owner:group>
+  local src=$1 dst=$2 mode=$3 own=$4
+  if sudo cmp -s "$src" "$dst" 2>/dev/null; then
+    sms_note "unchanged $dst"
+  else
+    sudo install -D -m "$mode" -o "${own%:*}" -g "${own#*:}" "$src" "$dst"
+    sms_note "installed $dst"
+  fi
+}
+
+put system/etc/greetd/config.toml /etc/greetd/config.toml 0644 root:root
+put system/etc/pam.d/greetd /etc/pam.d/greetd 0644 root:root
+
+# The state dir belongs to the account greetd runs the greeter as (0750, matching the
+# package's tmpfiles.d drop-in). greeter.toml preselects whoever ran this task.
+sudo install -d -m 0750 -o greeter -g greeter /var/lib/noctalia-greeter
+rendered=$(mktemp)
+trap 'rm -f "$rendered"' EXIT
+sed "s/@USER@/${USER:-$(id -un)}/" system/var/lib/noctalia-greeter/greeter.toml >"$rendered"
+put "$rendered" /var/lib/noctalia-greeter/greeter.toml 0640 greeter:greeter
+
+# --- display manager ------------------------------------------------------------------
+
+# greetd's unit carries Alias=display-manager.service, the same alias sddm holds, so sddm
+# must be disabled before greetd can be enabled. sddm stays installed as the way back:
+# `sudo systemctl disable greetd && sudo systemctl enable sddm`.
+if systemctl is-enabled -q sddm 2>/dev/null; then
+  sudo systemctl disable sddm
+  sms_note 'disabled sddm'
+fi
+if systemctl is-enabled -q greetd 2>/dev/null; then
+  sms_note 'greetd already enabled'
+else
+  sudo systemctl enable greetd
+  sms_note 'enabled greetd'
+fi
+
+# --- appearance -----------------------------------------------------------------------
+
+# Noctalia stages wallpaper, palette and output layout under $XDG_RUNTIME_DIR, then hands
+# the staged tree to the greeter's apply helper as root. With its polkit agent on (see
+# settings.toml) that hand-off goes through pkexec and prompts on screen; without one
+# Noctalia stages and stops. The CLI reply is a bare "ok" either way, so the signal that
+# the apply happened is the greeter's sync.toml changing; if it has not once Noctalia has
+# had its chance, the helper runs through sudo here.
+#
+# The greeter-sync handler only exists in a Noctalia that started after noctalia-greeter
+# was installed. On a fresh machine it was up long before deps ran, and the reply is then
+# "unknown command": restart Noctalia once (the bar blinks) and try again.
+
+synced_at() { sudo stat -c %Y /var/lib/noctalia-greeter/sync.toml 2>/dev/null || echo 0; }
+
+restart_noctalia() {
+  pkill -x noctalia || true
+  setsid -f noctalia -d >/dev/null 2>&1
+  for _ in $(seq 1 20); do
+    noctalia msg log-level-status >/dev/null 2>&1 && return 0
+    sleep 0.5
+  done
+  return 1
+}
+
+sync_appearance() {
+  local staging=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/noctalia-greeter-sync
+  local before out
+  before=$(synced_at)
+  out=$(noctalia msg greeter-sync 2>&1) || true
+  if [[ $out == *'unknown command'* ]]; then
+    sms_note 'Noctalia started before the greeter was installed; restarting it'
+    if ! restart_noctalia; then
+      sms_warn 'Noctalia did not come back; appearance sync skipped (re-run this task)'
+      return 0
+    fi
+    out=$(noctalia msg greeter-sync 2>&1) || true
+  fi
+  if [[ $out != ok* ]]; then
+    sms_warn "appearance sync failed: $out"
+    return 0
+  fi
+  # Room for Noctalia's own hand-off, including a password prompt being answered, but
+  # only when its polkit agent is on: without one there is nothing to wait for.
+  # Whatever it did not finish converges through sudo below.
+  local wait=0
+  if noctalia config export full 2>/dev/null | grep -qE '^polkit_agent = true$'; then
+    wait=30
+  fi
+  for _ in $(seq 1 "$wait"); do
+    [[ $(synced_at) == "$before" ]] || break
+    sleep 1
+  done
+  if [[ $(synced_at) == "$before" ]]; then
+    if [[ -d $staging ]]; then
+      sudo noctalia-greeter-apply-appearance "$staging"
+      sms_note 'synced Noctalia appearance to the greeter (sudo)'
+    else
+      sms_warn 'Noctalia staged nothing to sync; re-run this task from the desktop'
+    fi
+  else
+    sms_note 'synced Noctalia appearance to the greeter'
+  fi
+}
+
+if command -v noctalia >/dev/null 2>&1 && pgrep -x noctalia >/dev/null 2>&1; then
+  sync_appearance
+else
+  sms_note 'Noctalia is not running; appearance sync skipped (re-run from a desktop session)'
+fi
+
+# --- done -----------------------------------------------------------------------------
+
+if systemctl is-active -q sddm 2>/dev/null; then
+  sms_warn 'sddm is still running this session; reboot to log in through greetd'
+fi
