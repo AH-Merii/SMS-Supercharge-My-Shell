@@ -10,21 +10,28 @@
 # a PKGBUILD review at install time can protect you from, because the code changes after
 # the review. So we vendor the PKGBUILD and pin an exact commit.
 #
-# Pinned commit: 72cacc37ca6524390a112e7df7bf2c6972be8217
-#   "goodixtls: harden TLS and debug handling" (2026-05-25)
-# Reviewed at that commit. It supports the Goodix 27c6:521d reader (ASUS Zephyrus G15)
-# against stock GFUSB_GM168SEC_APP_10034 firmware, so no firmware flashing is involved.
+# Pinned commit: ff4f8c0ecf98ab760358b60b14e736832ef7cbd3
+#   "goodixtls52xd: supply the 10019 TLS key and explain hash mismatches"
+#   on branch goodixtls52xd-10019-psk, one commit on top of upstream 72cacc3
+#   "goodixtls: harden TLS and debug handling" (2026-05-25).
+#
+# Reviewed at both commits. Supports the Goodix 27c6:521d reader (ASUS Zephyrus G15).
+# Upstream targets stock GFUSB_GM168SEC_APP_10034 firmware. Our commit makes the older
+# GFUSB_GM168SEC_APP_10019 firmware usable too: upstream never supplied a TLS key on that
+# path, and a sensor re-keyed by another OS could not be driven at all. See
+# docs/fingerprint/ for why this machine needs it. No firmware flashing happens here --
+# this package only ever talks to an already-provisioned sensor.
 #
 # Sourced from github.com/AH-Merii/libfprint, our own fork of djnz00/libfprint. The fork
-# carries no changes; it exists so the pinned commit cannot vanish if upstream is deleted,
-# renamed or force-pushed.
+# now carries one local commit; it also exists so the pinned commit cannot vanish if
+# upstream is deleted, renamed or force-pushed.
 #
 # Bumping pkgver/the commit is a deliberate, reviewed action: read the upstream diff first,
 # then update source=, pkgver and this comment together. There is intentionally no pkgver()
 # function -- auto-bumping is exactly the behaviour we are removing.
 
 pkgname=libfprint-goodixtls52xd
-pkgver=1.94.10.r2013.g72cacc3
+pkgver=1.94.10.r2014.gff4f8c0
 pkgrel=1
 pkgdesc="Library for fingerprint readers with Goodix TLS 52xd support"
 url="https://fprint.freedesktop.org/"
@@ -64,7 +71,7 @@ conflicts=(
   libfprint-goodixtls52xd-git
 )
 groups=(fprint)
-source=("git+https://github.com/AH-Merii/libfprint.git#commit=72cacc37ca6524390a112e7df7bf2c6972be8217")
+source=("git+https://github.com/AH-Merii/libfprint.git#commit=ff4f8c0ecf98ab760358b60b14e736832ef7cbd3")
 sha256sums=(SKIP)
 
 build() {
