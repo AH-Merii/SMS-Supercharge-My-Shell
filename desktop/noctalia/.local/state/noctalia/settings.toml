@@ -94,8 +94,8 @@ behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
 
     [idle.behavior.lock]
     action = "lock"
-    enabled = false
-    timeout = 600.0
+    enabled = true
+    timeout = 300.0
 
     [idle.behavior.lock-and-suspend]
     action = "lock_and_suspend"
@@ -105,7 +105,7 @@ behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
     [idle.behavior.screen-off]
     action = "screen_off"
     enabled = true
-    timeout = 660.0
+    timeout = 330.0
 
 [location]
 auto_locate = true
@@ -142,7 +142,7 @@ widget_order = [ "lockscreen-login-box@DP-1", "lockscreen-login-box@eDP-1" ]
         show_caps_lock = true
         show_keyboard_layout = true
         show_login_button = true
-        show_media = true
+        show_media = false
         show_session_buttons = true
         show_unlock_hint = true
         show_weather = true
@@ -169,7 +169,7 @@ widget_order = [ "lockscreen-login-box@DP-1", "lockscreen-login-box@eDP-1" ]
         show_caps_lock = true
         show_keyboard_layout = true
         show_login_button = true
-        show_media = true
+        show_media = false
         show_session_buttons = true
         show_unlock_hint = true
         show_weather = true
@@ -190,7 +190,7 @@ niri_overview_type_to_launch_enabled = true
 password_style = "random"
 polkit_agent = true
 settings_show_advanced = true
-telemetry_enabled = true
+telemetry_enabled = false
 ui_scale = 1.1500000096857548
 
     [shell.greeter_sync]
