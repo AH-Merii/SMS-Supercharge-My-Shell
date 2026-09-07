@@ -6,10 +6,6 @@ noctalia
 xdg-desktop-portal-gnome
 xdg-desktop-portal-gtk
 gnome-keyring
-# Fingerprint daemon. The Goodix 27c6:521d reader in this laptop is unsupported by the
-# stock libfprint that pacman pulls in here; packages/libfprint-goodixtls52xd is a pinned
-# fork that drives it, built by `mise run localpkgs` and replacing libfprint when it does.
-fprintd
 adw-gtk-theme
 brightnessctl
 wl-clipboard
