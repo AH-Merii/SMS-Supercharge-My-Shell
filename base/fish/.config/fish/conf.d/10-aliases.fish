@@ -24,5 +24,8 @@ alias cfrc "cat ~/.config/fish/config.fish"
 # lazygit
 abbr --add lg lazygit
 
+# tuicr (review TUI) on the working tree
+abbr --add gd "tuicr -w"
+
 # pandoc
 abbr pandoc "pandoc --pdf-engine=typst"
