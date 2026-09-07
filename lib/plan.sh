@@ -312,8 +312,8 @@ plan_plugins() {
 # --- login screen (Arch desktop) ----------------------------------------------------
 
 # What `greeter` would change. Only what this user can read is compared here:
-# /var/lib/noctalia-greeter is 0750 greeter:greeter, so greeter.toml shows as "will
-# install" until the task itself compares it through sudo.
+# /var/lib/noctalia-greeter is 0750 greeter:greeter, so greeter.toml is left to the task,
+# which compares it through sudo.
 plan_greeter() {
   if [[ $profile != desktop ]] || ! command -v pacman >/dev/null 2>&1; then
     return 0
@@ -334,7 +334,7 @@ plan_greeter() {
       sms_want "/$f"
     fi
   done
-  sms_want "/var/lib/noctalia-greeter/greeter.toml (user: ${USER:-$(id -un)})"
+  sms_note "/var/lib/noctalia-greeter/greeter.toml (user: ${USER:-$(id -un)}) is compared under sudo"
 
   if systemctl is-enabled -q greetd 2>/dev/null; then
     sms_note 'greetd is already the display manager'

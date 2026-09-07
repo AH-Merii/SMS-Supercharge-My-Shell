@@ -115,9 +115,14 @@ sync_appearance() {
     sms_warn "appearance sync failed: $out"
     return 0
   fi
-  # Room for Noctalia's own hand-off, including a password prompt being answered.
+  # Room for Noctalia's own hand-off, including a password prompt being answered, but
+  # only when its polkit agent is on: without one there is nothing to wait for.
   # Whatever it did not finish converges through sudo below.
-  for _ in $(seq 1 30); do
+  local wait=0
+  if noctalia config export full 2>/dev/null | grep -qE '^polkit_agent = true$'; then
+    wait=30
+  fi
+  for _ in $(seq 1 "$wait"); do
     [[ $(synced_at) == "$before" ]] || break
     sleep 1
   done
