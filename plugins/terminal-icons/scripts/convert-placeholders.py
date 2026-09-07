@@ -33,17 +33,22 @@ def is_pua(codepoint):
 
 
 def atomic_write(file_path, content):
-    """Write content to file_path via a temp file in the same directory."""
-    directory = os.path.dirname(os.path.abspath(file_path))
+    """Write content to file_path via a temp file, then os.replace().
+
+    Symlinks are resolved first so the real target is replaced and the link
+    itself (e.g. a stowed config pointing into a dotfiles repo) stays intact.
+    """
+    target = os.path.realpath(file_path)
+    directory = os.path.dirname(target)
     fd, tmp_path = tempfile.mkstemp(prefix=".convert-", dir=directory)
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
             f.write(content)
         try:
-            os.chmod(tmp_path, os.stat(file_path).st_mode)
+            os.chmod(tmp_path, os.stat(target).st_mode)
         except OSError:
             pass
-        os.replace(tmp_path, file_path)
+        os.replace(tmp_path, target)
     except BaseException:
         try:
             os.unlink(tmp_path)
