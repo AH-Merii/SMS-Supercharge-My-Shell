@@ -8,17 +8,24 @@ source lib/plan.sh
 
 sms_preview plan_plugins 'Install these plugins?' || exit 0
 
+# fish_plugins pins every plugin, fisher itself included (`jorgebucaran/fisher@<tag>`), and
+# a bare `fisher update` installs whatever is listed there. The bootstrap only sources a
+# copy of fisher to run that first update with; a `fisher install jorgebucaran/fisher` here
+# would be a second, unpinned entry that fisher writes back into the stowed file.
 if command -v fish >/dev/null 2>&1; then
   fish -c '
     if not functions -q fisher
       curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
-      and fisher install jorgebucaran/fisher
     end
     fisher update'
 fi
 
+# Clone TPM at the tag its own @plugin line pins, so the version lives in one place.
 tpm="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm"
 if [[ ! -d $tpm ]]; then
-  git clone --depth 1 https://github.com/tmux-plugins/tpm "$tpm"
+  tpm_ref=$(sed -nE "s|^set -g @plugin 'tmux-plugins/tpm#([^']+)'.*|\1|p" \
+    base/tmux/.config/tmux/plugins.tmux.conf)
+  : "${tpm_ref:?no tmux-plugins/tpm#<ref> line in plugins.tmux.conf}"
+  git clone --depth 1 --branch "$tpm_ref" https://github.com/tmux-plugins/tpm "$tpm"
 fi
 "$tpm/bin/install_plugins"

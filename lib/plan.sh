@@ -301,7 +301,9 @@ plan_plugins() {
   local dir=${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins
   local repos=() have=() want=() r
   mapfile -t repos < <(sed -nE "s/^[[:space:]]*set -g @plugin '([^']+)'.*/\1/p" "$tconf")
+  # TPM names the checkout after the repo alone, so drop a `#ref` pin before the basename.
   for r in "${repos[@]}"; do
+    r=${r%%#*}
     if [[ -d $dir/${r##*/} ]]; then have+=("${r##*/}"); else want+=("${r##*/}"); fi
   done
   [[ ${#have[@]} -gt 0 ]] && sms_have "${have[@]}"

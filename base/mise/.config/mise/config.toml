@@ -1,10 +1,15 @@
-# Global mise config, identical on every machine.
+# Global mise config, the same tool list on every machine.
 #
 # Rule: if `mise registry <tool>` (or a github:/npm:/cargo: backend) can install it, it lives
 # here and nowhere else. Packages mise cannot build (fish, stow, tmux, gnupg, GUI apps)
 # go in the Brewfile (macOS, WSL) or pkglist/ (Arch, Debian).
 #
 # Python is deliberately absent: uv manages interpreters.
+#
+# github: entries are pinned (mise writes the version without the release's `v`): that backend
+# fetches release assets straight from GitHub with no registry checksum, unlike aqua:/core.
+# To bump one, `gh release list -R owner/repo --limit 3`, edit the version, `mise install`.
+# Everything else floats at `latest`; `mise lock --global` would freeze those too (README "Pins").
 
 [tools]
 # runtimes
@@ -22,7 +27,7 @@ starship = "latest"
 #   mise uninstall --all herdr && mise install herdr
 "aqua:herdrdev/herdr" = "latest"
 worktrunk = "latest"
-"github:joshmedeski/sesh" = "latest"
+"github:joshmedeski/sesh" = "2.29.0"
 
 # cli
 lazygit = "latest"
@@ -40,9 +45,9 @@ bottom = "latest"
 fastfetch = "latest"
 shellcheck = "latest"
 shfmt = "latest"
-"github:YS-L/csvlens" = "latest"
+"github:YS-L/csvlens" = "0.15.1"
 # standalone review TUI (`tuicr -w`, `tuicr pr <n>`); not a pager — delta stays core.pager
-"github:agavra/tuicr" = "latest"
+"github:agavra/tuicr" = "0.25.0"
 
 # pinned: `npx -y ccstatusline@latest` re-resolves on every status line repaint (~430ms)
 "npm:ccstatusline" = "2.2.28"
