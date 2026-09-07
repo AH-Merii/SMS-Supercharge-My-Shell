@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Skip this package unless the Goodix 27c6:521d reader is actually attached.
+#
+# The `desktop` profile only means "Linux with niri", which is not the same as "has this
+# laptop's fingerprint reader". Building a Goodix-specific libfprint fork on a machine
+# without one would replace the distro libfprint for no reason at all.
+#
+# sysfs rather than `lsusb`: same information, no usbutils dependency.
+#
+# Exit 0 to build, non-zero to skip -- printing the reason on stdout, which `localpkgs`
+# shows. See lib/plan.sh (local_pkg_state) for the convention.
+set -euo pipefail
+
+vid=27c6 pid=521d
+
+for dev in /sys/bus/usb/devices/*; do
+  [[ -r $dev/idVendor && -r $dev/idProduct ]] || continue
+  [[ $(<"$dev/idVendor") == "$vid" ]] || continue
+  [[ $(<"$dev/idProduct") == "$pid" ]] || continue
+  exit 0
+done
+
+echo "no Goodix $vid:$pid fingerprint reader attached"
+exit 1

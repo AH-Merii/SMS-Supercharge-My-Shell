@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#MISE description="Build and install the vendored PKGBUILDs in packages/ (Arch desktop only)"
+#MISE raw=true
+#
+# packages/ holds PKGBUILDs this repo vendors rather than taking from the AUR, because
+# what they build ends up somewhere that an unpinned `master` has no business being --
+# see packages/*/PKGBUILD for the per-package reasoning.
+#
+# Deliberately not part of `setup`: these are hardware-specific and pinned, so they are
+# an explicit `mise run localpkgs`, not something a fresh-machine run does behind you.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
+
+# Two independent conditions, so two guards: the profile says whether this machine is
+# the kind these packages are for, pacman says whether they can be built at all. Neither
+# is an error -- running `mise run localpkgs` on a laptop or a server should behave the
+# same way, and just do nothing on the machines it does not apply to.
+if [[ $profile != desktop ]]; then
+  sms_note "profile is $profile; packages/ is desktop-only, nothing to build"
+  exit 0
+fi
+if ! command -v pacman >/dev/null 2>&1; then
+  sms_note 'no pacman; packages/ holds Arch PKGBUILDs, nothing to build'
+  exit 0
+fi
+
+sms_preview plan_local_packages 'Build and install these packages?' || exit 0
+
+# Only SMS_YES, not SMS_PLAN_CONFIRMED, exactly as `deps` treats paru: the plan lists
+# package names, it never showed you a PKGBUILD or the dependencies makepkg -s will pull
+# in, so that review should survive everything short of an explicit --yes.
+confirm=''
+[[ -n ${SMS_YES:-} ]] && confirm=--noconfirm
+
+# Collected up front rather than piped into the loop: makepkg prompts on stdin, which a
+# `while read ... done < <(...)` would have replaced with the process substitution.
+states=()
+mapfile -t states < <(local_pkg_state)
+
+for line in "${states[@]}"; do
+  IFS=$'\t' read -r state name info <<<"$line"
+  case $state in
+    skip) sms_note "skipping $name: $info" ;;
+    current) sms_note "$name is already installed and current" ;;
+    build)
+      sms_header "==> $name"
+      # -s: install missing build dependencies. -i: install the result.
+      # A subshell so a failure cannot leave the rest of the loop in the wrong directory.
+      # shellcheck disable=SC2086  # $confirm is one optional flag or nothing
+      (cd "$info" && makepkg -si $confirm)
+      ;;
+  esac
+done
