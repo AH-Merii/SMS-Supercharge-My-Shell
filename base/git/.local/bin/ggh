@@ -48,16 +48,24 @@ class Logger:
         _console.print(f"\n[bold cyan]\\[{n}/{total}][/] {msg}")
 
     def success(self, msg: str) -> None:
-        _console.print(f"[green]✓[/] {msg}")
+        _console.print(f"[bold green]✓[/] [green]{msg}[/]")
 
     def info(self, msg: str) -> None:
         _console.print(f"[blue]::[/] {msg}")
+
+    def skip(self, msg: str) -> None:
+        """Nothing to do: already in place, or the user chose to keep what exists."""
+        _console.print(f"[bold magenta]↷[/] [magenta]{msg}[/]")
+
+    def dry(self, msg: str) -> None:
+        """What a real run would do at this point."""
+        _console.print(f"[bold cyan]\\[DRY RUN][/] [cyan]{msg}[/]")
 
     def warn(self, msg: str) -> None:
         _console.print(f"[bold dark_orange]![/] [dark_orange]{msg}[/]")
 
     def error(self, msg: str) -> None:
-        _console.print(f"[red]✗[/] {msg}")
+        _console.print(f"[bold red]✗[/] [red]{msg}[/]")
 
     def debug(self, msg: str) -> None:
         if self.verbose:
@@ -118,7 +126,7 @@ def run(
         logger.debug(f"$ {' '.join(cmd)}")
 
     if logger and logger.dry_run and not _is_readonly_cmd(cmd):
-        logger.info(f"[DRY RUN] Would run: {' '.join(cmd)}")
+        logger.dry(f"Would run: {' '.join(cmd)}")
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
     return subprocess.run(
@@ -162,13 +170,13 @@ class StandardSSH:
                 Path(f"{self.key_path}.pub").unlink(missing_ok=True)
                 logger.info(f"Deleted existing key at {self.key_path}")
             else:
-                logger.info(f"Using existing key at {self.key_path}")
+                logger.skip(f"Using existing key at {self.key_path}")
                 return
 
         # Passphrase prompt
         use_passphrase = False
         if logger.dry_run:
-            logger.info("[DRY RUN] Would prompt for passphrase")
+            logger.dry("Would prompt for passphrase")
         else:
             pp_choice = _choose(
                 [
@@ -236,7 +244,7 @@ class StandardSSH:
         pub = Path(f"{self.key_path}.pub")
         if not pub.exists():
             if logger.dry_run:
-                logger.info(f"[DRY RUN] Public key would be at {pub}")
+                logger.dry(f"Public key would be at {pub}")
                 return ""
             logger.error(f"Public key not found at {pub}")
             raise typer.Exit(1)
@@ -378,7 +386,7 @@ class OnePassword:
                     logger.success(f'Deleted {count} existing key{suffix}')
                     # Fall through to creation
                 else:
-                    logger.info(f'Using existing key "{self.key_name}"')
+                    logger.skip(f'Using existing key "{self.key_name}"')
                     return
 
         self._create_op_key(logger)
@@ -410,7 +418,7 @@ class OnePassword:
 
     def get_public_key(self, logger: Logger) -> str:
         if logger.dry_run:
-            logger.info("[DRY RUN] Would read public key from 1Password")
+            logger.dry("Would read public key from 1Password")
             return "ssh-ed25519 AAAA_DRY_RUN_PLACEHOLDER"
         result = run(
             ["op", "read", f"op://{self.vault}/{self.key_name}/public key"],
@@ -515,13 +523,13 @@ def add_ssh_host(
     existing_block = _read_ssh_host_block(host)
     if existing_block is not None:
         if existing_block.strip() == proposed.strip():
-            logger.info(f"Host {host} already up to date in ~/.ssh/config — skipping")
+            logger.skip(f"Host {host} already up to date in ~/.ssh/config — skipping")
             return
         if logger.dry_run:
             logger.warn(f"Host {host} in ~/.ssh/config differs — would prompt to update")
             return
         if not _confirm_overwrite(f"SSH Host {host} (~/.ssh/config)", existing_block.strip(), proposed.strip()):
-            logger.info(f"Keeping existing Host {host} in ~/.ssh/config")
+            logger.skip(f"Keeping existing Host {host} in ~/.ssh/config")
             return
         _remove_ssh_host_block(host)
 
@@ -532,7 +540,7 @@ def add_ssh_host(
         ssh_config.touch(mode=0o600)
 
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would append Host {host} to ~/.ssh/config")
+        logger.dry(f"Would append Host {host} to ~/.ssh/config")
         return
 
     _ensure_trailing_newline(ssh_config)
@@ -551,11 +559,11 @@ def add_ssh_include(line: str, logger: Logger) -> None:
 
     text = ssh_config.read_text()
     if line in text:
-        logger.info(f"Include already present in ~/.ssh/config")
+        logger.skip(f"Include already present in ~/.ssh/config")
         return
 
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would prepend '{line}' to ~/.ssh/config")
+        logger.dry(f"Would prepend '{line}' to ~/.ssh/config")
         return
 
     new_text = line + "\n\n" + text.lstrip("\n")
@@ -604,7 +612,7 @@ def add_include_if(
         # Build what the existing block looks like for comparison
         existing_block = f'[includeIf "{matched_condition}"]\n    path = {existing_path}\n'
         if existing_block.strip() == proposed_block.strip():
-            logger.info(f"includeIf already up to date — skipping")
+            logger.skip(f"includeIf already up to date — skipping")
             return
         if logger.dry_run:
             logger.warn(f"includeIf block differs — would prompt to update")
@@ -614,14 +622,14 @@ def add_include_if(
             existing_block.strip(),
             proposed_block.strip(),
         ):
-            logger.info(f"Keeping existing includeIf block")
+            logger.skip(f"Keeping existing includeIf block")
             return
         _replace_include_if_block(main_cfg, matched_condition, proposed_block)
         logger.success(f"Updated includeIf in {main_cfg}")
         return
 
     if logger.dry_run:
-        logger.info(f'[DRY RUN] Would append includeIf "{condition}" to {main_cfg}')
+        logger.dry(f'Would append includeIf "{condition}" to {main_cfg}')
         return
 
     _ensure_trailing_newline(main_cfg)
@@ -648,17 +656,17 @@ def write_org_config(
     if org_cfg.exists():
         existing = org_cfg.read_text()
         if existing.strip() == expected.strip():
-            logger.info(f"{org_cfg} already up to date — skipping")
+            logger.skip(f"{org_cfg} already up to date — skipping")
             return
         if logger.dry_run:
             logger.warn(f"{org_cfg} exists with different content — would not overwrite")
             return
         if not _confirm_overwrite(f"Org config ({org_cfg.name})", existing.strip(), expected.strip()):
-            logger.info(f"Keeping existing {org_cfg}")
+            logger.skip(f"Keeping existing {org_cfg}")
             return
 
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would write org config to {org_cfg}")
+        logger.dry(f"Would write org config to {org_cfg}")
         return
 
     org_cfg.parent.mkdir(parents=True, exist_ok=True)
@@ -675,11 +683,11 @@ def ensure_local_include(main_cfg: Path, local_cfg: Path, logger: Logger) -> Non
     )
     existing = result.stdout.split("\n") if result.returncode == 0 else []
     if rel in existing or str(local_cfg) in existing:
-        logger.info(f"{main_cfg.name} already includes {rel} — skipping")
+        logger.skip(f"{main_cfg.name} already includes {rel} — skipping")
         return
 
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would add include.path = {rel} to {main_cfg}")
+        logger.dry(f"Would add include.path = {rel} to {main_cfg}")
         return
 
     main_cfg.parent.mkdir(parents=True, exist_ok=True)
@@ -709,14 +717,14 @@ def update_allowed_signers(
         for line in text.splitlines():
             if line.startswith(f"{email} "):
                 if line.strip() == entry:
-                    logger.info(f"allowed_signers already has correct key for {email} — skipping")
+                    logger.skip(f"allowed_signers already has correct key for {email} — skipping")
                     return
                 # Different key — prompt before update
                 if logger.dry_run:
-                    logger.info(f"[DRY RUN] Would update key for {email} in allowed_signers")
+                    logger.dry(f"Would update key for {email} in allowed_signers")
                     return
                 if not _confirm_overwrite(f"Signing key for {email}", line.strip(), entry):
-                    logger.info(f"Keeping existing key for {email} in allowed_signers")
+                    logger.skip(f"Keeping existing key for {email} in allowed_signers")
                     return
                 new_text = text.replace(line, entry)
                 signers_path.write_text(new_text)
@@ -725,7 +733,7 @@ def update_allowed_signers(
 
     # Email not present — append
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would add {email} to allowed_signers")
+        logger.dry(f"Would add {email} to allowed_signers")
         return
 
     _ensure_trailing_newline(signers_path)
@@ -743,17 +751,17 @@ def save_public_key(pub_key: str, path: Path, logger: Logger) -> None:
     if path.exists():
         existing = path.read_text().strip()
         if existing == pub_key:
-            logger.info(f"Public key already saved at {path} — skipping")
+            logger.skip(f"Public key already saved at {path} — skipping")
             return
         if logger.dry_run:
             logger.warn(f"Public key at {path} differs — would overwrite")
             return
         if not _confirm_overwrite(f"Public key ({path.name})", existing, pub_key):
-            logger.info(f"Keeping existing public key at {path}")
+            logger.skip(f"Keeping existing public key at {path}")
             return
 
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would save public key to {path}")
+        logger.dry(f"Would save public key to {path}")
         return
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -801,7 +809,7 @@ def update_agent_toml(item: str, vault: str, logger: Logger) -> None:
             if entry.get("item") == item:
                 existing_vault = entry.get("vault", "")
                 if existing_vault == vault:
-                    logger.info(f"agent.toml already has entry for {item} — skipping")
+                    logger.skip(f"agent.toml already has entry for {item} — skipping")
                     return
                 # Item matches but vault differs
                 if logger.dry_run:
@@ -812,14 +820,14 @@ def update_agent_toml(item: str, vault: str, logger: Logger) -> None:
                     f"vault = \"{existing_vault}\"",
                     f"vault = \"{vault}\"",
                 ):
-                    logger.info(f"Keeping existing agent.toml entry for {item}")
+                    logger.skip(f"Keeping existing agent.toml entry for {item}")
                     return
                 _update_agent_toml_entry(item, existing_vault, vault, toml_path)
                 logger.success(f"Updated vault for {item} in {toml_path}")
                 return
 
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would add [[ssh-keys]] entry to {toml_path}")
+        logger.dry(f"Would add [[ssh-keys]] entry to {toml_path}")
         return
 
     block = f'\n[[ssh-keys]]\nitem = "{item}"\nvault = "{vault}"\n'
@@ -858,11 +866,11 @@ def git_config_set(
             logger.warn(f"{key} is '{current}', would update to '{value}'")
             return
         elif not _confirm_overwrite(key, current, value):
-            logger.info(f"Keeping {key} = {current}")
+            logger.skip(f"Keeping {key} = {current}")
             return
 
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would set {key} = {value}")
+        logger.dry(f"Would set {key} = {value}")
         return
 
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
@@ -921,7 +929,7 @@ def check_github_auth(logger: Logger) -> None:
     if account and not missing:
         logger.success(f"Already logged in to GitHub as {account} with the required scopes")
         if logger.dry_run:
-            logger.info("[DRY RUN] Would offer to re-authenticate")
+            logger.dry("Would offer to re-authenticate")
             return
         choice = _choose(
             [
@@ -931,7 +939,7 @@ def check_github_auth(logger: Logger) -> None:
             keep=2,
         )
         if choice == 2:
-            logger.info(f"Using existing GitHub login ({account})")
+            logger.skip(f"Using existing GitHub login ({account})")
             return
     elif account:
         # Logged in but the token lacks a scope: refresh adds scopes without a full login.
@@ -1042,7 +1050,7 @@ def upload_ssh_key(pub_key_text: str, title: str, logger: Logger) -> None:
         for key_type in _KEY_TYPES:
             same = [k for k in existing if k.type == key_type and k.key == material]
             if same:
-                logger.info(f"Already on GitHub as '{same[0].title}' ({key_type}) — skipping")
+                logger.skip(f"Already on GitHub as '{same[0].title}' ({key_type}) — skipping")
                 continue
 
             clashes = [k for k in existing if k.type == key_type and k.title == title]
@@ -1055,7 +1063,7 @@ def upload_ssh_key(pub_key_text: str, title: str, logger: Logger) -> None:
                 else:
                     logger.warn("Replacing it locks out any other machine still using that key")
                 if logger.dry_run:
-                    logger.info("[DRY RUN] Would ask: Replace / Add alongside / Skip")
+                    logger.dry("Would ask: Replace / Add alongside / Skip")
                     continue
                 choice = _choose(
                     [
@@ -1066,7 +1074,7 @@ def upload_ssh_key(pub_key_text: str, title: str, logger: Logger) -> None:
                     keep=2,
                 )
                 if choice == 3:
-                    logger.info(f"Skipping {key_type} key upload")
+                    logger.skip(f"Skipping {key_type} key upload")
                     continue
                 if choice == 1:
                     for k in clashes:
@@ -1095,7 +1103,7 @@ def verify_setup(host: str, org: str | None, logger: Logger) -> bool:
     includeIf / url rewrite rules that real clones hit decide which identity and key sign it.
     """
     if logger.dry_run:
-        logger.info(f"[DRY RUN] Would run ssh -T git@{host} and sign a throwaway commit")
+        logger.dry(f"Would run ssh -T git@{host} and sign a throwaway commit")
         return True
 
     ok = True
@@ -1192,6 +1200,8 @@ def main(
     """GitHub SSH Setup CLI — configure SSH authentication for GitHub.
 
     Missing --name/--email/--org are prompted for when run from a terminal.
+
+    Output: ✓ done · ↷ already in place / kept · ! warning · ✗ error
     """
     _ctx.logger = Logger(verbose=verbose, dry_run=dry_run, keep_existing=keep_existing)
 
