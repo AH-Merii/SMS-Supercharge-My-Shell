@@ -23,9 +23,9 @@ import subprocess
 import sys
 import tempfile
 import tomllib
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Protocol
+from typing import Optional
 
 import typer
 from rich.console import Console
@@ -38,10 +38,9 @@ _console = Console(stderr=True)
 class Logger:
     """Structured logging to stderr with rich markup."""
 
-    def __init__(self, verbose: int = 0, dry_run: bool = False, keep_existing: bool = False) -> None:
+    def __init__(self, verbose: bool = False, dry_run: bool = False, keep_existing: bool = False) -> None:
         self.verbose = verbose
         self.dry_run = dry_run
-        self.interactive = False
         # --keep-existing: answer every keep/replace prompt with the non-destructive choice
         self.keep_existing = keep_existing
 
@@ -61,25 +60,14 @@ class Logger:
         _console.print(f"[red]✗[/] {msg}")
 
     def debug(self, msg: str) -> None:
-        if self.verbose >= 2:
+        if self.verbose:
             _console.print(f"[dim]… {msg}[/]")
 
 
 # ── Section 3: run() helper ─────────────────────────────────────────────────
 
-# Commands that mutate state — dry-run should skip these
-_MUTATING_COMMANDS = frozenset(
-    {
-        "ssh-keygen",
-        "ssh-add",
-        "gh",
-        "op",
-        "git",
-        "mkdir",
-        "chmod",
-        "touch",
-    }
-)
+# Programs that always mutate state; git, gh and op are decided per subcommand below
+_MUTATING_COMMANDS = frozenset({"ssh-keygen", "ssh-add"})
 
 
 def _is_readonly_cmd(cmd: list[str]) -> bool:
@@ -141,17 +129,8 @@ def run(
     )
 
 
-# ── Section 4: KeyBackend protocol + implementations ────────────────────────
-
-
-class KeyBackend(Protocol):
-    """Protocol for SSH key backend implementations."""
-
-    def check_deps(self, logger: Logger) -> None: ...
-    def generate_key(self, logger: Logger) -> None: ...
-    def get_public_key(self, logger: Logger) -> str: ...
-    def configure_signing(self, cfg_path: Path, pub_key: str, logger: Logger) -> None: ...
-    def ssh_host_extras(self) -> list[str]: ...
+# ── Section 4: Key backends ──────────────────────────────────────────────────
+# Both expose check_deps, generate_key, get_public_key, configure_signing, ssh_host_extras.
 
 
 @dataclass
@@ -282,7 +261,6 @@ class OnePassword:
     vault: str
     key_name: str
     pub_key_path: Path
-    host: str = "github.com"
 
     def _agent_socket(self) -> Path:
         env = os.environ.get("SSH_AUTH_SOCK")
@@ -496,15 +474,6 @@ def resolve_op_ssh_sign_path() -> str:
     return "/opt/1Password/op-ssh-sign"
 
 
-def ssh_host_exists(host: str) -> bool:
-    """Check if Host <host> exists in ~/.ssh/config."""
-    ssh_config = Path.home() / ".ssh/config"
-    if not ssh_config.exists():
-        return False
-    text = ssh_config.read_text()
-    return bool(re.search(rf"^Host\s+{re.escape(host)}\b", text, re.MULTILINE))
-
-
 def _read_ssh_host_block(host: str) -> str | None:
     """Extract the full Host block from ~/.ssh/config. Returns None if not found."""
     ssh_config = Path.home() / ".ssh/config"
@@ -596,35 +565,16 @@ def add_ssh_include(line: str, logger: Logger) -> None:
 
 
 def _find_include_if(main_cfg: Path, condition: str) -> tuple[str | None, str | None]:
-    """Find an includeIf block matching condition (or related host pattern).
-
-    Returns (matched_condition, path_value) or (None, None) if not found.
-    """
+    """Find the includeIf block for condition. Returns (condition, path) or (None, None)."""
     if not main_cfg.exists():
         return None, None
-    text = main_cfg.read_text()
-
-    # Check exact condition first
     m = re.search(
         rf'^\[includeIf\s+"{re.escape(condition)}"\]\s*\n\s*path\s*=\s*(.+)',
-        text,
+        main_cfg.read_text(),
         re.MULTILINE,
     )
     if m:
         return condition, m.group(1).strip()
-
-    # For host-scoped patterns, also check old org-scoped variants
-    host_m = re.search(r"git@([^:]+):\*\*", condition)
-    if host_m:
-        host = host_m.group(1)
-        m2 = re.search(
-            rf'^\[includeIf\s+"(hasconfig:remote\.\*\.url:git@{re.escape(host)}:[^"]+)"\]\s*\n\s*path\s*=\s*(.+)',
-            text,
-            re.MULTILINE,
-        )
-        if m2:
-            return m2.group(1), m2.group(2).strip()
-
     return None, None
 
 
@@ -1230,9 +1180,8 @@ _ctx = AppContext(
 @app.callback()
 def main(
     ctx: typer.Context,
-    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Increase verbosity (-v info, -vv debug)"),
+    verbose: bool = typer.Option(False, "-v", "--verbose", help="Show every command as it runs"),
     dry_run: bool = typer.Option(False, "-n", "--dry-run", help="Show what would be done without making changes"),
-    interactive: bool = typer.Option(False, "-i", "--interactive", help="Prompt for values interactively"),
     keep_existing: bool = typer.Option(
         False,
         "-k",
@@ -1240,9 +1189,11 @@ def main(
         help="Never replace anything that already exists (keys, logins, config values); pick the keep option at every prompt",
     ),
 ) -> None:
-    """GitHub SSH Setup CLI — configure SSH authentication for GitHub."""
+    """GitHub SSH Setup CLI — configure SSH authentication for GitHub.
+
+    Missing --name/--email/--org are prompted for when run from a terminal.
+    """
     _ctx.logger = Logger(verbose=verbose, dry_run=dry_run, keep_existing=keep_existing)
-    _ctx.logger.interactive = interactive
 
 
 # ── init command (standard SSH) ──────────────────────────────────────────────
@@ -1257,19 +1208,12 @@ def init(
 
     Examples:
         ggh init --name "Jane Doe" --email "jane@example.com"
-        ggh init -i
+        ggh init      # prompts for name and email
     """
     log = _ctx.logger
     total = 9
 
-    if log.interactive:
-        default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
-        default_email = git_config_get(_ctx.local_cfg, "user.email") or ""
-        name = _prompt("Git author name", name or default_name)
-        email = _prompt("Git author email", email or default_email)
-    else:
-        name = _require(name, "--name", log)
-        email = _require(email, "--email", log)
+    name, email = _identity(name, email, log)
 
     name_lower = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
     key_path = Path.home() / f".ssh/github_{name_lower}"
@@ -1325,23 +1269,13 @@ def add(
     Examples:
         ggh add --org Acme --name "Jane Doe" --email "jane@acme.com"
         ggh add --org Acme --name "Jane" --email "jane@acme.com" --host github-acme
-        ggh add -i
+        ggh add      # prompts for org, name and email
     """
     log = _ctx.logger
     total = 11
 
-    if log.interactive:
-        org = _prompt("Organization", org or "")
-        org_lower = org.lower()
-        host = _prompt("Host alias", host or f"github-{org_lower}")
-        default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
-        default_email = git_config_get(_ctx.local_cfg, "user.email") or ""
-        name = _prompt("Git author name", name or default_name)
-        email = _prompt("Git author email", email or default_email)
-    else:
-        org = _require(org, "--org", log)
-        name = _require(name, "--name", log)
-        email = _require(email, "--email", log)
+    org = _value(org, "--org", "Organization", log)
+    name, email = _identity(name, email, log)
 
     org_lower = org.lower()
     if host is None:
@@ -1409,23 +1343,14 @@ def op_init(
     Examples:
         ggh op init --name "Jane Doe" --email "jane@example.com"
         ggh op init --name "Jane" --email "jane@example.com" --vault Work
-        ggh op init -i
+        ggh op init      # prompts for name and email
     """
     log = _ctx.logger
     total = 13
 
-    if log.interactive:
-        default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
-        default_email = git_config_get(_ctx.local_cfg, "user.email") or ""
-        name = _prompt("Git author name", name or default_name)
-        email = _prompt("Git author email", email or default_email)
-        vault = _prompt("1Password vault", vault)
-        key_name = _prompt("1Password key name", key_name or f"GitHub SSH {name}")
-    else:
-        name = _require(name, "--name", log)
-        email = _require(email, "--email", log)
-        if key_name is None:
-            key_name = f"GitHub SSH {name}"
+    name, email = _identity(name, email, log)
+    if key_name is None:
+        key_name = f"GitHub SSH {name}"
 
     name_lower = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
     pub_key_path = Path.home() / f".ssh/github_{name_lower}"
@@ -1495,26 +1420,13 @@ def op_add(
     Examples:
         ggh op add --org Acme --name "Jane Doe" --email "jane@acme.com"
         ggh op add --org Acme --name "Jane" --email "jane@acme.com" --vault Work
-        ggh op add -i
+        ggh op add      # prompts for org, name and email
     """
     log = _ctx.logger
     total = 14
 
-    if log.interactive:
-        org = _prompt("Organization", org or "")
-        org_lower = org.lower()
-        host = _prompt("Host alias", host or f"github-{org_lower}")
-        vault = _prompt("1Password vault", vault)
-        key_name_default = key_name or f"GitHub {org}"
-        key_name = _prompt("1Password key name", key_name_default)
-        default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
-        default_email = git_config_get(_ctx.local_cfg, "user.email") or ""
-        name = _prompt("Git author name", name or default_name)
-        email = _prompt("Git author email", email or default_email)
-    else:
-        org = _require(org, "--org", log)
-        name = _require(name, "--name", log)
-        email = _require(email, "--email", log)
+    org = _value(org, "--org", "Organization", log)
+    name, email = _identity(name, email, log)
 
     org_lower = org.lower()
     if host is None:
@@ -1523,7 +1435,7 @@ def op_add(
         key_name = f"GitHub {org}"
 
     pub_key_path = Path.home() / f".ssh/github_{org_lower}"
-    backend = OnePassword(vault=vault, key_name=key_name, host=host, pub_key_path=pub_key_path)
+    backend = OnePassword(vault=vault, key_name=key_name, pub_key_path=pub_key_path)
     org_cfg = _ctx.git_config_dir / f"config-{org_lower}"
     org_cfg_rel = f"~/{_ctx.git_config_dir.relative_to(Path.home())}/config-{org_lower}"
 
@@ -1814,13 +1726,22 @@ def _choose(options: list[str], *, keep: int | None = None, title: str | None = 
         _console.print(f"  [red]Invalid choice — enter {' or '.join(valid)}[/]")
 
 
-def _require(value: str | None, flag: str, logger: Logger) -> str:
-    """Require a value, exit with helpful message if missing (non-interactive mode)."""
+def _value(value: str | None, flag: str, label: str, logger: Logger, default: str = "") -> str:
+    """Use the flag value; otherwise prompt on a terminal, or exit with a hint."""
     if value is not None:
         return value
+    if sys.stdin.isatty():
+        return _prompt(label, default)
     logger.error(f"Missing required option: {flag}")
-    logger.info(f"Provide {flag} <value>, or use -i for interactive mode")
+    logger.info(f"Provide {flag} <value>, or run from a terminal to be prompted")
     raise typer.Exit(1)
+
+
+def _identity(name: str | None, email: str | None, logger: Logger) -> tuple[str, str]:
+    """Resolve --name/--email, defaulting prompts to the identity already in config.local."""
+    name = _value(name, "--name", "Git author name", logger, git_config_get(_ctx.local_cfg, "user.name") or "")
+    email = _value(email, "--email", "Git author email", logger, git_config_get(_ctx.local_cfg, "user.email") or "")
+    return name, email
 
 
 def _prompt(label: str, default: str = "") -> str:
