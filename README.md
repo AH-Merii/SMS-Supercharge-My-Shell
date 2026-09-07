@@ -68,6 +68,18 @@ mise run deps                         # any single task previews and asks too
 NO_COLOR=1 mise run setup             # plain text
 ```
 
+Nothing remote runs unchecked either. `bootstrap.sh` pins the Homebrew installer to a commit
+of `Homebrew/install` (it has no tags) and the mise installer to a mise release, records
+each file's sha256 next to the ref at the top of the script, and refuses to run a download
+whose hash differs; mise's installer in turn carries the checksums of that release's
+binaries. On Debian, Ubuntu and Fedora, mise comes from its own signed apt (via extrepo) or
+COPR repo instead, with the pinned installer as the fallback. `mise-tasks/plugins` pins the
+bootstrapping copy of fisher to a release tag. To bump a pin: pick the new ref (`gh api
+repos/Homebrew/install/commits/main --jq .sha`, `gh release list -R jdx/mise`,
+`gh release list -R jorgebucaran/fisher`), download the file at that ref, hash it with
+`sha256sum` (`shasum -a 256` on macOS), and change ref and hash together — a stale hash
+fails loudly rather than running something else.
+
 Two things stay manual because they need you: `chsh -s "$(command -v fish)"` for the login
 shell, and `ggh op init` (or `ggh init`) for git identity and commit signing. fish prints a
 reminder until the latter is done.

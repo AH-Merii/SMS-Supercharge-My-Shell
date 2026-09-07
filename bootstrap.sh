@@ -16,6 +16,16 @@ set -eu
 REPO=https://github.com/AH-Merii/SMS-Supercharge-My-Shell.git
 DEST="$HOME/SMS-Supercharge-My-Shell"
 
+# Remote installers, pinned. Homebrew/install has no tags or releases, so it is pinned to a
+# commit. mise's installer embeds the checksums of its own release's binaries, so pinning
+# the script pins mise too (the route mise.jdx.dev/installing-mise.html recommends). To bump:
+# pick the new ref, download the file at that ref, hash it with `sha256sum` (macOS:
+# `shasum -a 256`), and change ref and hash together -- README, "Install".
+HOMEBREW_INSTALL_REF=7a133dcc74051ee4efc79467ed215dfedf45aea2 # main, 2026-09-04
+HOMEBREW_INSTALL_SHA256=12479a24be3f5307eecac7cde670fad7118640f031229e964f544b1367b52a41
+MISE_TAG=v2026.9.1
+MISE_INSTALL_SHA256=3731dfec59ffb0bc23df96ae19b4b51470db939c875c2fdf01cf6c25b1b1e039
+
 SMS_YES=${SMS_YES:-}
 for arg in "$@"; do
   case $arg in
@@ -70,6 +80,22 @@ sms_confirm() {
     '' | y | Y | yes | YES | Yes) return 0 ;;
     *) return 1 ;;
   esac
+}
+
+# Download $1 to $3, refusing to go on unless its sha256 is $2.
+fetch_verified() {
+  curl -fsSL -o "$3" "$1"
+  if command -v sha256sum >/dev/null 2>&1; then
+    got=$(sha256sum "$3")
+  else
+    got=$(shasum -a 256 "$3")
+  fi
+  got=${got%% *}
+  if [ "$got" != "$2" ]; then
+    printf '\n  %schecksum mismatch for %s%s\n    expected %s\n    got      %s\n' \
+      "$c_yellow" "$1" "$c_reset" "$2" "$got" >&2
+    exit 1
+  fi
 }
 
 # Everything the active package manager already has, one name per line.
@@ -160,6 +186,9 @@ if [ -n "$SMS_YES" ]; then
   export DEBIAN_FRONTEND
 fi
 
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
 case $mgr in
   pacman)
     # shellcheck disable=SC2086
@@ -174,7 +203,9 @@ case $mgr in
       sudo apt-get install $confirm_yes build-essential procps curl file git
     fi
     if ! command -v brew >/dev/null 2>&1; then
-      NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      fetch_verified "https://raw.githubusercontent.com/Homebrew/install/$HOMEBREW_INSTALL_REF/install.sh" \
+        "$HOMEBREW_INSTALL_SHA256" "$tmp/brew-install.sh"
+      NONINTERACTIVE=1 /bin/bash "$tmp/brew-install.sh"
     fi
     for b in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
       if [ -x "$b" ]; then
@@ -189,15 +220,37 @@ case $mgr in
     sudo apt-get update
     # shellcheck disable=SC2086
     sudo apt-get install $confirm_yes $pkgs
+    if ! command -v mise >/dev/null 2>&1; then
+      # mise from its signed apt repo, so apt keeps it current; extrepo carries the repo
+      # definition and key (mise.jdx.dev/installing-mise.html#apt: Debian 11+, Ubuntu
+      # 22.04+). Falls through to the pinned installer below where that is not available.
+      # shellcheck disable=SC2086
+      sudo apt-get install $confirm_yes extrepo &&
+        sudo extrepo enable mise &&
+        sudo apt-get update &&
+        sudo apt-get install $confirm_yes mise ||
+        printf '    %smise apt repo unavailable, using the pinned installer%s\n' "$c_yellow" "$c_reset"
+    fi
     ;;
   dnf)
     # shellcheck disable=SC2086
     sudo dnf install $confirm_yes $pkgs
+    if ! command -v mise >/dev/null 2>&1; then
+      # mise from its COPR (mise.jdx.dev/installing-mise.html#dnf), same reasoning as apt.
+      # shellcheck disable=SC2086
+      sudo dnf $confirm_yes copr enable jdxcode/mise &&
+        sudo dnf install $confirm_yes mise ||
+        printf '    %smise COPR unavailable, using the pinned installer%s\n' "$c_yellow" "$c_reset"
+    fi
     ;;
 esac
 
 if ! command -v mise >/dev/null 2>&1; then
-  curl -fsSL https://mise.run | sh
+  # Same script as https://mise.run, taken from the release so the pin is stable. It
+  # checks the binary it downloads against the checksums it carries for $MISE_TAG.
+  fetch_verified "https://github.com/jdx/mise/releases/download/$MISE_TAG/install.sh" \
+    "$MISE_INSTALL_SHA256" "$tmp/mise-install.sh"
+  MISE_INSTALL_HELP=0 sh "$tmp/mise-install.sh" # conf.d/05-mise.fish already activates it
   export PATH="$HOME/.local/bin:$PATH"
 fi
 
