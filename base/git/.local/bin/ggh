@@ -38,10 +38,12 @@ _console = Console(stderr=True)
 class Logger:
     """Structured logging to stderr with rich markup."""
 
-    def __init__(self, verbose: int = 0, dry_run: bool = False) -> None:
+    def __init__(self, verbose: int = 0, dry_run: bool = False, keep_existing: bool = False) -> None:
         self.verbose = verbose
         self.dry_run = dry_run
         self.interactive = False
+        # --keep-existing: answer every keep/replace prompt with the non-destructive choice
+        self.keep_existing = keep_existing
 
     def step(self, n: int, total: int, msg: str) -> None:
         _console.print(f"\n[bold cyan]\\[{n}/{total}][/] {msg}")
@@ -86,16 +88,19 @@ def _is_readonly_cmd(cmd: list[str]) -> bool:
         return True
 
     prog = Path(cmd[0]).name
+    args = cmd[1:]
 
     # git config --get is read-only; git config --set/--replace-all is not
-    if prog == "git" and len(cmd) >= 2 and cmd[1] == "config":
-        if "--get" in cmd or "--get-all" in cmd:
+    if prog == "git":
+        while len(args) >= 2 and args[0] == "-C":  # skip repo selector
+            args = args[2:]
+        if args and args[0] == "config" and ("--get" in args or "--get-all" in args):
             return True
         return False
 
-    # gh auth status is read-only; gh ssh-key add is not
-    if prog == "gh" and len(cmd) >= 2:
-        if cmd[1] == "auth" and len(cmd) >= 3 and cmd[2] == "status":
+    # gh auth status / gh ssh-key list are read-only; login, add, delete, api are not
+    if prog == "gh":
+        if args[:2] in (["auth", "status"], ["ssh-key", "list"]):
             return True
         return False
 
@@ -166,18 +171,14 @@ class StandardSSH:
     def generate_key(self, logger: Logger) -> None:
         if self.key_path.exists():
             logger.warn(f"Key already exists at {self.key_path}")
-
-            _console.print(f"\n  [bold]What would you like to do?[/]")
-            _console.print(f"  [cyan]1[/] Overwrite — delete existing key and regenerate")
-            _console.print(f"  [cyan]2[/] Use existing — keep the current key as-is")
-
-            while True:
-                choice = input("\n  Choose [1/2]: ").strip()
-                if choice in ("1", "2"):
-                    break
-                _console.print("  [red]Invalid choice — enter 1 or 2[/]")
-
-            if choice == "1":
+            choice = _choose(
+                [
+                    "Overwrite — delete existing key and regenerate",
+                    "Use existing — keep the current key as-is",
+                ],
+                keep=2,
+            )
+            if choice == 1:
                 self.key_path.unlink(missing_ok=True)
                 Path(f"{self.key_path}.pub").unlink(missing_ok=True)
                 logger.info(f"Deleted existing key at {self.key_path}")
@@ -190,17 +191,14 @@ class StandardSSH:
         if logger.dry_run:
             logger.info("[DRY RUN] Would prompt for passphrase")
         else:
-            _console.print(f"\n  [bold]Passphrase protection[/]")
-            _console.print(f"  [cyan]1[/] Set a passphrase (Recommended) — encrypts the key at rest")
-            _console.print(f"  [cyan]2[/] No passphrase — key stored unencrypted on disk")
-
-            while True:
-                pp_choice = input("\n  Choose [1/2]: ").strip()
-                if pp_choice in ("1", "2"):
-                    break
-                _console.print("  [red]Invalid choice — enter 1 or 2[/]")
-
-            use_passphrase = pp_choice == "1"
+            pp_choice = _choose(
+                [
+                    "Set a passphrase (Recommended) — encrypts the key at rest",
+                    "No passphrase — key stored unencrypted on disk",
+                ],
+                title="Passphrase protection",
+            )
+            use_passphrase = pp_choice == 1
             if not use_passphrase:
                 logger.warn("Key will be stored without passphrase protection")
 
@@ -377,18 +375,14 @@ class OnePassword:
                 count = len(existing)
                 suffix = "s" if count > 1 else ""
                 logger.warn(f'Found {count} existing key{suffix} named "{self.key_name}" in vault "{self.vault}"')
-
-                _console.print(f"\n  [bold]What would you like to do?[/]")
-                _console.print(f"  [cyan]1[/] Overwrite — delete existing key{suffix} and create a new one")
-                _console.print(f"  [cyan]2[/] Keep — use the existing key as-is")
-
-                while True:
-                    choice = input("\n  Choose [1/2]: ").strip()
-                    if choice in ("1", "2"):
-                        break
-                    _console.print("  [red]Invalid choice — enter 1 or 2[/]")
-
-                if choice == "1":
+                choice = _choose(
+                    [
+                        f"Overwrite — delete existing key{suffix} and create a new one",
+                        "Keep — use the existing key as-is",
+                    ],
+                    keep=2,
+                )
+                if choice == 1:
                     # Delete all matches by UUID to avoid ambiguity
                     for item in existing:
                         logger.info(f'Deleting key "{item["title"]}" ({item["id"]})...')
@@ -931,14 +925,81 @@ def git_config_set(
 # ── Section 6: Shared pipeline helpers ───────────────────────────────────────
 
 
-def check_github_auth(logger: Logger) -> None:
-    """Authenticate with GitHub via gh CLI (always runs login for scope refresh)."""
+# Scopes ggh needs: upload/delete authentication keys and signing keys.
+_REQUIRED_SCOPES = ("admin:public_key", "admin:ssh_signing_key")
+_KEY_TYPES = ("authentication", "signing")
+
+
+def _require_gh(logger: Logger) -> None:
     if not shutil.which("gh"):
         logger.error("GitHub CLI (gh) is not installed")
         logger.info("Install GitHub CLI for your operating system")
         raise typer.Exit(1)
 
-    logger.info("A browser window will open for authentication")
+
+def gh_auth_state(logger: Logger | None = None) -> tuple[str | None, set[str]]:
+    """Parse `gh auth status`: (active account, token scopes). Account is None when logged out."""
+    result = run(["gh", "auth", "status", "--hostname", "github.com"], check=False, logger=logger)
+    accounts: dict[str, dict] = {}
+    current = None
+    for line in (result.stdout or "").splitlines() + (result.stderr or "").splitlines():
+        m = re.search(r"Logged in to github\.com account (\S+)", line)
+        if m:
+            current = m.group(1)
+            accounts[current] = {"active": False, "scopes": set()}
+            continue
+        if current is None:
+            continue
+        if "Active account: true" in line:
+            accounts[current]["active"] = True
+        elif "Token scopes:" in line:
+            accounts[current]["scopes"] = set(re.findall(r"'([^']+)'", line))
+    if result.returncode != 0 or not accounts:
+        return None, set()
+    active = next((a for a, v in accounts.items() if v["active"]), next(iter(accounts)))
+    return active, accounts[active]["scopes"]
+
+
+def check_github_auth(logger: Logger) -> None:
+    """Make sure gh is logged in with the scopes ggh needs; reuse an existing login when it is."""
+    _require_gh(logger)
+
+    account, scopes = gh_auth_state(logger)
+    missing = [s for s in _REQUIRED_SCOPES if s not in scopes]
+    scope_list = ",".join(_REQUIRED_SCOPES)
+
+    if account and not missing:
+        logger.success(f"Already logged in to GitHub as {account} with the required scopes")
+        if logger.dry_run:
+            logger.info("[DRY RUN] Would offer to re-authenticate")
+            return
+        choice = _choose(
+            [
+                "Re-authenticate — open the browser and get a fresh token",
+                "Keep — use the existing login",
+            ],
+            keep=2,
+        )
+        if choice == 2:
+            logger.info(f"Using existing GitHub login ({account})")
+            return
+    elif account:
+        # Logged in but the token lacks a scope: refresh adds scopes without a full login.
+        logger.warn(f"Logged in as {account} but the token is missing: {', '.join(missing)}")
+        logger.info("A browser window will open to grant the missing scopes")
+        result = run(
+            ["gh", "auth", "refresh", "--hostname", "github.com", "--scopes", scope_list],
+            capture=False,
+            check=False,
+            logger=logger,
+        )
+        if result.returncode == 0:
+            logger.success("Token scopes updated")
+            return
+        logger.warn("Scope refresh failed — falling back to a full login")
+    else:
+        logger.info("Not logged in to github.com — a browser window will open for authentication")
+
     run(
         [
             "gh",
@@ -951,7 +1012,7 @@ def check_github_auth(logger: Logger) -> None:
             "--web",
             "--skip-ssh-key",
             "--scopes",
-            "admin:public_key,admin:ssh_signing_key",
+            scope_list,
         ],
         capture=False,
         check=False,
@@ -959,42 +1020,182 @@ def check_github_auth(logger: Logger) -> None:
     )
 
 
+@dataclass(frozen=True)
+class GitHubKey:
+    """One row of `gh ssh-key list`."""
+
+    title: str
+    key: str  # "<type> <base64>" — no comment, as GitHub stores it
+    added: str
+    id: str
+    type: str  # authentication | signing
+
+
+def key_material(pub_key: str) -> str:
+    """Strip the comment so keys compare on '<type> <base64>' only."""
+    return " ".join(pub_key.split()[:2])
+
+
+def gh_list_keys(logger: Logger | None = None) -> list[GitHubKey]:
+    """Authentication and signing keys on the GitHub account (empty when logged out or none)."""
+    result = run(["gh", "ssh-key", "list"], check=False, logger=logger)
+    if result.returncode != 0:
+        return []
+    keys = []
+    for line in result.stdout.splitlines():
+        cols = line.split("\t")
+        if len(cols) < 5:
+            continue
+        title, key, added, key_id, key_type = cols[:5]
+        keys.append(GitHubKey(title, key_material(key), added, key_id, key_type))
+    return keys
+
+
+def _gh_delete_key(key: GitHubKey, logger: Logger) -> None:
+    # `gh ssh-key delete` only knows user/keys; signing keys live under a separate endpoint.
+    if key.type == "signing":
+        cmd = ["gh", "api", "--method", "DELETE", f"user/ssh_signing_keys/{key.id}"]
+    else:
+        cmd = ["gh", "ssh-key", "delete", key.id, "--yes"]
+    result = run(cmd, check=False, logger=logger)
+    if result.returncode != 0:
+        logger.error(f"Failed to delete {key.type} key '{key.title}' (id {key.id})")
+        if result.stderr and result.stderr.strip():
+            logger.info(result.stderr.strip())
+        raise typer.Exit(1)
+    logger.success(f"Deleted {key.type} key '{key.title}' (id {key.id}) from GitHub")
+
+
+def key_title(base: str) -> str:
+    """GitHub key title. Standard keys are per machine, so the hostname keeps titles unique."""
+    return f"{base} ({platform.node()})"
+
+
 def upload_ssh_key(pub_key_text: str, title: str, logger: Logger) -> None:
-    """Upload SSH public key to GitHub as both authentication and signing key."""
+    """Reconcile the key with GitHub as both authentication and signing key.
+
+    Per type: same key already present → skip; a different key with the same title →
+    ask Replace / Add alongside / Skip; otherwise upload.
+    """
     if not pub_key_text:
         logger.warn("No public key to upload — skipping")
         return
 
-    if logger.dry_run:
-        logger.info(f"[DRY RUN] Would upload SSH key '{title}' to GitHub (authentication + signing)")
-        return
+    material = key_material(pub_key_text)
+    existing = gh_list_keys(logger)
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".pub", delete=False) as f:
         f.write(pub_key_text)
         tmp_path = f.name
 
     try:
-        for key_type in ("authentication", "signing"):
+        for key_type in _KEY_TYPES:
+            same = [k for k in existing if k.type == key_type and k.key == material]
+            if same:
+                logger.info(f"Already on GitHub as '{same[0].title}' ({key_type}) — skipping")
+                continue
+
+            clashes = [k for k in existing if k.type == key_type and k.title == title]
+            if clashes:
+                logger.warn(f"GitHub already has a different {key_type} key titled '{title}'")
+                for k in clashes:
+                    logger.info(f"  id {k.id}, added {k.added}, …{k.key[-16:]}")
+                if key_type == "signing":
+                    logger.warn("Replacing it makes every commit it signed show as Unverified on GitHub")
+                else:
+                    logger.warn("Replacing it locks out any other machine still using that key")
+                if logger.dry_run:
+                    logger.info("[DRY RUN] Would ask: Replace / Add alongside / Skip")
+                    continue
+                choice = _choose(
+                    [
+                        "Replace — delete the existing key from GitHub, then upload this one",
+                        "Add alongside — keep the existing key and upload this one too",
+                        "Skip — leave GitHub unchanged (this key will not work until uploaded)",
+                    ],
+                    keep=2,
+                )
+                if choice == 3:
+                    logger.info(f"Skipping {key_type} key upload")
+                    continue
+                if choice == 1:
+                    for k in clashes:
+                        _gh_delete_key(k, logger)
+
             result = run(
-                [
-                    "gh",
-                    "ssh-key",
-                    "add",
-                    tmp_path,
-                    "--title",
-                    title,
-                    "--type",
-                    key_type,
-                ],
+                ["gh", "ssh-key", "add", tmp_path, "--title", title, "--type", key_type],
                 check=False,
                 logger=logger,
             )
             if result.returncode == 0:
                 logger.success(f"SSH key uploaded to GitHub as '{title}' ({key_type})")
             else:
-                logger.warn(f"Key ({key_type}) may already be uploaded — check [link=https://github.com/settings/keys]github.com/settings/keys[/link]")
+                logger.error(f"Upload of {key_type} key failed")
+                if result.stderr and result.stderr.strip():
+                    logger.info(result.stderr.strip())
+                logger.info("Check [link=https://github.com/settings/keys]github.com/settings/keys[/link]")
     finally:
         Path(tmp_path).unlink(missing_ok=True)
+
+
+def verify_setup(host: str, org: str | None, logger: Logger) -> bool:
+    """End-to-end check: SSH auth against GitHub, then sign and verify a throwaway commit.
+
+    The commit is created in a temp repo with a remote pointing at `org`, so the same
+    includeIf / url rewrite rules that real clones hit decide which identity and key sign it.
+    """
+    if logger.dry_run:
+        logger.info(f"[DRY RUN] Would run ssh -T git@{host} and sign a throwaway commit")
+        return True
+
+    ok = True
+
+    result = run(["ssh", "-T", f"git@{host}"], check=False, logger=logger)
+    out = (result.stdout or "") + (result.stderr or "")
+    m = re.search(r"Hi (\S+)! You've successfully authenticated", out)
+    if m:
+        logger.success(f"SSH to {host} authenticated as {m.group(1)}")
+    else:
+        ok = False
+        logger.error(f"SSH to {host} did not authenticate")
+        if out.strip():
+            logger.info(out.strip().splitlines()[-1])
+
+    with tempfile.TemporaryDirectory(prefix="ggh-verify-") as tmp:
+        git = ["git", "-C", tmp]
+        run([*git, "init", "-q"], logger=logger)
+        if org:
+            # Trigger the org includeIf exactly like a real clone would
+            run([*git, "remote", "add", "origin", f"git@github.com:{org}/ggh-verify.git"], logger=logger)
+
+        ident = run([*git, "config", "--get", "user.email"], check=False).stdout.strip()
+        signing_key = run([*git, "config", "--get", "user.signingkey"], check=False).stdout.strip()
+        logger.info(f"Signing as {ident or '[unset]'} with {signing_key or '[no key]'}")
+
+        tree = run([*git, "write-tree"], check=False, logger=logger).stdout.strip()
+        commit = run(
+            [*git, "commit-tree", tree, "-S", "-m", "ggh verify"],
+            check=False,
+            logger=logger,
+        )
+        if commit.returncode != 0:
+            ok = False
+            logger.error("Signing a test commit failed")
+            if commit.stderr and commit.stderr.strip():
+                logger.info(commit.stderr.strip().splitlines()[-1])
+            return ok
+
+        sha = commit.stdout.strip()
+        verify = run([*git, "verify-commit", sha], check=False, logger=logger)
+        if verify.returncode == 0:
+            logger.success(f"Signed and verified a test commit ({sha[:12]}) against allowed_signers")
+        else:
+            ok = False
+            logger.error("Signature verification failed — is the key in allowed_signers?")
+            if verify.stderr and verify.stderr.strip():
+                logger.info(verify.stderr.strip().splitlines()[-1])
+
+    return ok
 
 
 # ── Section 7: Typer app and commands ────────────────────────────────────────
@@ -1032,9 +1233,15 @@ def main(
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Increase verbosity (-v info, -vv debug)"),
     dry_run: bool = typer.Option(False, "-n", "--dry-run", help="Show what would be done without making changes"),
     interactive: bool = typer.Option(False, "-i", "--interactive", help="Prompt for values interactively"),
+    keep_existing: bool = typer.Option(
+        False,
+        "-k",
+        "--keep-existing",
+        help="Never replace anything that already exists (keys, logins, config values); pick the keep option at every prompt",
+    ),
 ) -> None:
     """GitHub SSH Setup CLI — configure SSH authentication for GitHub."""
-    _ctx.logger = Logger(verbose=verbose, dry_run=dry_run)
+    _ctx.logger = Logger(verbose=verbose, dry_run=dry_run, keep_existing=keep_existing)
     _ctx.logger.interactive = interactive
 
 
@@ -1053,7 +1260,7 @@ def init(
         ggh init -i
     """
     log = _ctx.logger
-    total = 8
+    total = 9
 
     if log.interactive:
         default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
@@ -1079,7 +1286,7 @@ def init(
 
     log.step(4, total, "Uploading SSH key to GitHub")
     pub_key = backend.get_public_key(log)
-    upload_ssh_key(pub_key, name, log)
+    upload_ssh_key(pub_key, key_title(name), log)
 
     log.step(5, total, "Configuring git identity")
     git_config_set(_ctx.local_cfg, "user.name", name, log)
@@ -1096,6 +1303,9 @@ def init(
 
     log.step(8, total, "Including config.local from the main git config")
     ensure_local_include(_ctx.main_cfg, _ctx.local_cfg, log)
+
+    log.step(9, total, "Verifying SSH access and commit signing")
+    verify_setup("github.com", None, log)
 
     _print_init_summary(name, email)
 
@@ -1118,7 +1328,7 @@ def add(
         ggh add -i
     """
     log = _ctx.logger
-    total = 10
+    total = 11
 
     if log.interactive:
         org = _prompt("Organization", org or "")
@@ -1153,7 +1363,7 @@ def add(
 
     log.step(4, total, "Uploading SSH key to GitHub")
     pub_key = backend.get_public_key(log)
-    upload_ssh_key(pub_key, f"GitHub {org}", log)
+    upload_ssh_key(pub_key, key_title(f"GitHub {org}"), log)
 
     log.step(5, total, "Configuring SSH host")
     add_ssh_host(host, "github.com", "git", backend.ssh_host_extras(), log)
@@ -1178,6 +1388,9 @@ def add(
     log.step(10, total, "Including config.local from the main git config")
     ensure_local_include(_ctx.main_cfg, _ctx.local_cfg, log)
 
+    log.step(11, total, "Verifying SSH access and commit signing")
+    verify_setup(host, org, log)
+
     _print_add_summary(org, host)
 
 
@@ -1199,7 +1412,7 @@ def op_init(
         ggh op init -i
     """
     log = _ctx.logger
-    total = 12
+    total = 13
 
     if log.interactive:
         default_name = git_config_get(_ctx.local_cfg, "user.name") or ""
@@ -1259,6 +1472,9 @@ def op_init(
     log.step(12, total, "Including config.local from the main git config")
     ensure_local_include(_ctx.main_cfg, _ctx.local_cfg, log)
 
+    log.step(13, total, "Verifying SSH access and commit signing")
+    verify_setup("github.com", None, log)
+
     _print_init_summary(name, email)
 
 
@@ -1282,7 +1498,7 @@ def op_add(
         ggh op add -i
     """
     log = _ctx.logger
-    total = 13
+    total = 14
 
     if log.interactive:
         org = _prompt("Organization", org or "")
@@ -1356,7 +1572,31 @@ def op_add(
     log.step(13, total, "Including config.local from the main git config")
     ensure_local_include(_ctx.main_cfg, _ctx.local_cfg, log)
 
+    log.step(14, total, "Verifying SSH access and commit signing")
+    verify_setup(host, org, log)
+
     _print_add_summary(org, host)
+
+
+# ── verify command ───────────────────────────────────────────────────────────
+
+
+@app.command()
+def verify(
+    org: Optional[str] = typer.Option(None, "--org", help="Check an org identity (uses its host alias and includeIf)"),
+    host: Optional[str] = typer.Option(None, "--host", help="SSH host to test (default: github.com, or github-<org>)"),
+) -> None:
+    """Test SSH access to GitHub and sign + verify a throwaway commit.
+
+    Examples:
+        ggh verify
+        ggh verify --org Acme
+    """
+    log = _ctx.logger
+    if host is None:
+        host = f"github-{org.lower()}" if org else "github.com"
+    if not verify_setup(host, org, log):
+        raise typer.Exit(1)
 
 
 # ── status command ───────────────────────────────────────────────────────────
@@ -1396,13 +1636,44 @@ def status() -> None:
     ssh_dir = Path.home() / ".ssh"
     console.print("\n[bold cyan]SSH Keys[/]")
     found_keys = False
+    local_keys: dict[str, str] = {}  # key material → local file name
     for key_file in sorted(ssh_dir.glob("github_*")):
+        try:
+            text = key_file.read_text()
+        except OSError:
+            text = ""
+        if text.startswith("ssh-"):
+            local_keys[key_material(text)] = key_file.name
         if key_file.suffix == ".pub":
             continue
         console.print(f"  {key_file.name}: {key_file}")
         found_keys = True
     if not found_keys:
         console.print("  [dim]No standard GitHub SSH keys found[/]")
+
+    # Keys on the GitHub account, matched against the local files above
+    console.print("\n[bold cyan]GitHub Keys[/]")
+    account, _ = gh_auth_state(log) if shutil.which("gh") else (None, set())
+    if not account:
+        console.print("  [dim]gh is not logged in — run ggh init or ggh op init[/]")
+    else:
+        console.print(f"  account: {account}")
+        gh_keys = gh_list_keys(log)
+        by_material: dict[str, list[GitHubKey]] = {}
+        for k in gh_keys:
+            by_material.setdefault(k.key, []).append(k)
+        for material, entries in by_material.items():
+            titles = sorted({k.title for k in entries})
+            types = ", ".join(sorted({k.type for k in entries}))
+            local = local_keys.get(material)
+            mark = "[green]✓[/]" if local else "[dim]·[/]"
+            where = f"local: {local}" if local else "not on this machine"
+            console.print(f"  {mark} {' / '.join(titles)} — {types} ({where})")
+        if not gh_keys:
+            console.print("  [dim]No SSH keys on the account[/]")
+        for material, name in local_keys.items():
+            if material not in by_material:
+                console.print(f"  [dark_orange]![/] {name} is not uploaded to GitHub")
 
     # 1Password agent
     console.print("\n[bold cyan]1Password Agent[/]")
@@ -1515,16 +1786,32 @@ def _confirm_overwrite(label: str, current: str, proposed: str) -> bool:
     else:
         _console.print(f"  Current: [dim]{_trunc(current)}[/]")
         _console.print(f"  New:     {_trunc(proposed)}")
-    _console.print(f"\n  [cyan]1[/] Update — use the new value")
-    _console.print(f"  [cyan]2[/] Keep — leave as-is")
 
+    return _choose(["Update — use the new value", "Keep — leave as-is"], keep=2, title=None) == 1
+
+
+def _choose(options: list[str], *, keep: int | None = None, title: str | None = "What would you like to do?") -> int:
+    """Numbered menu on stderr; returns the 1-based choice.
+
+    `keep` names the non-destructive option, which --keep-existing selects without asking.
+    """
+    if title:
+        _console.print(f"\n  [bold]{title}[/]")
+    else:
+        _console.print()
+    for i, text in enumerate(options, 1):
+        _console.print(f"  [cyan]{i}[/] {text}")
+
+    if keep is not None and _ctx.logger.keep_existing:
+        _console.print(f"\n  [dim]--keep-existing → {keep}[/]")
+        return keep
+
+    valid = [str(i) for i in range(1, len(options) + 1)]
     while True:
-        choice = input("\n  Choose [1/2]: ").strip()
-        if choice in ("1", "2"):
-            break
-        _console.print("  [red]Invalid choice — enter 1 or 2[/]")
-
-    return choice == "1"
+        choice = input(f"\n  Choose [{'/'.join(valid)}]: ").strip()
+        if choice in valid:
+            return int(choice)
+        _console.print(f"  [red]Invalid choice — enter {' or '.join(valid)}[/]")
 
 
 def _require(value: str | None, flag: str, logger: Logger) -> str:
@@ -1553,8 +1840,8 @@ def _print_init_summary(name: str, email: str) -> None:
     _console.print("\n[bold green]── Setup complete ──────────────────────────────────────[/]\n")
     _console.print(f"  name:  {name}")
     _console.print(f"  email: {email}")
-    _console.print("\n[blue]::[/] Test the connection:")
-    _console.print("[dim]  ssh -T git@github.com[/]\n")
+    _console.print("\n[blue]::[/] Re-run the checks any time:")
+    _console.print("[dim]  ggh verify[/]\n")
 
 
 def _print_add_summary(org: str, host: str) -> None:
@@ -1566,11 +1853,8 @@ def _print_add_summary(org: str, host: str) -> None:
     _console.print("[cyan]  https://github.com/settings/keys[/]")
     _console.print(f"\n[blue]::[/] Clone a repo (URL rewrite routes to the right key automatically):")
     _console.print(f"[dim]  git clone git@github.com:{org}/<repo>.git[/]")
-    _console.print(f"\n[blue]::[/] Test the connection:")
-    _console.print(f"[dim]  ssh -T git@{host}[/]")
-    _console.print(f"\n[blue]::[/] Test commit signing:")
-    _console.print(f"[dim]  cd <repo> && echo \"test\" | git commit-tree HEAD^{{tree}} -S[/]")
-    _console.print(f"  [dim]Success → prints a 40-char commit SHA (e.g. a1b2c3d4e5f6...)[/]\n")
+    _console.print(f"\n[blue]::[/] Re-run the checks any time:")
+    _console.print(f"[dim]  ggh verify --org {org}[/]\n")
 
 
 if __name__ == "__main__":

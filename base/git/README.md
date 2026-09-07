@@ -79,6 +79,35 @@ This writes, all outside the repo:
 
 Run `ggh status` to see what is configured. Repeat `ggh add` for each org.
 
+### Re-running ggh
+
+Every step is idempotent, so `ggh` can be re-run on a machine that is already set up, or on a second machine against the same GitHub account. Whenever something already exists it says so and asks before touching it:
+
+| Step                     | Already exists                                   | Choices                                      |
+| ------------------------ | ------------------------------------------------ | -------------------------------------------- |
+| SSH key on disk          | key file present                                 | Overwrite / Use existing                     |
+| SSH key in 1Password     | item with the same name in the vault             | Overwrite / Keep                             |
+| GitHub login             | `gh` logged in with the scopes ggh needs         | Re-authenticate / Keep (missing scopes are added with `gh auth refresh`, no prompt) |
+| SSH key on GitHub        | same key already uploaded                        | skipped silently                             |
+|                          | different key under the same title               | Replace / Add alongside / Skip               |
+| git config values        | value differs                                    | Update / Keep (shows a diff)                 |
+
+Replacing a GitHub key is account-wide: any other machine still using it loses access, and a replaced *signing* key makes every commit it signed show as Unverified on GitHub. That is why the GitHub prompt has an "Add alongside" choice, and why standard-SSH key titles carry the hostname (`Jane Doe (laptop)`), so two machines never clash on the title in the first place. 1Password keys share one item and one title across machines, so on a second machine the upload step finds the same key and skips.
+
+Two global flags control the prompts:
+
+- `-k` / `--keep-existing` answers every prompt with the non-destructive choice (Keep, Use existing, Add alongside). Useful for unattended runs.
+- `-n` / `--dry-run` prints what would happen, including which prompts would appear, and writes nothing.
+
+The last step of every command is a live check: `ssh -T` against GitHub, then a throwaway commit signed in a temp repo and verified against `allowed_signers`. For org commands the temp repo gets a remote under that org, so the same `includeIf` rules decide which identity signs. Run it on its own any time:
+
+```bash
+ggh verify              # primary identity
+ggh verify --org MyOrg  # org identity via its host alias
+```
+
+`ggh status` also lists the keys on the GitHub account and marks which ones exist on this machine.
+
 ### Commit signing
 
 The config uses SSH commit signing. `ggh` sets up signing automatically — it supports both standard SSH keys and 1Password-backed keys.
@@ -186,7 +215,7 @@ Scripts in `~/.local/bin/` that extend git:
 
 | Script          | Description                                                                   |
 | --------------- | ----------------------------------------------------------------------------- |
-| `ggh`         | GitHub SSH setup CLI — manages keys, signing, org configs, allowed_signers    |
+| `ggh`           | GitHub SSH setup CLI — keys, signing, org configs, `status` and `verify`      |
 | `op-ssh-sign`   | Cross-platform 1Password signing wrapper (detects macOS vs Linux)             |
 | `git-whichside` | Shows ours vs theirs during conflicts (rebase, merge, cherry-pick, stash pop) |
 
@@ -330,7 +359,7 @@ Standard SSH keys use `IdentityFile` pointing at the private key. 1Password keys
 | `IdentityFile`   | Points at public key file — selects which key the agent uses   |
 | `IdentitiesOnly` | Prevents agent from offering other keys                        |
 
-`ggh op init` saves the public key to `~/.ssh/github_<name>` (no `.pub` extension, `0o600` permissions) and configures the SSH host block. `ggh op add` reuses this key — it only adds per-org identity (name/email) via `includeIf`, with no additional key or SSH host setup.
+`ggh op init` saves the public key to `~/.ssh/github_<name>` (no `.pub` extension, `0o600` permissions) and configures the SSH host block. `ggh op add` does the same for a separate org key (`~/.ssh/github_<org>`, item `GitHub <org>` by default) behind the `github-<org>` host alias, and adds the per-org identity via `includeIf`.
 
 #### 1Password Agent Config (`agent.toml`)
 
