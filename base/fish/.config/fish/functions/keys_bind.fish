@@ -4,6 +4,8 @@ function keys_bind --description "Bind a key in default and insert modes and reg
     # One call both binds and describes, so a shortcut cannot be renamed, moved or removed
     # without its text following. Anything bound some other way still appears in `keys`,
     # marked "no description", which is how a binding that skipped this gets noticed.
+    # DETAIL lines may use `text` for a key or command and end in a colon for a heading;
+    # _keys_style renders that markup in the preview.
     if test (count $argv) -lt 3
         echo 'usage: keys_bind KEY COMMAND LABEL [DETAIL...]' >&2
         return 2
