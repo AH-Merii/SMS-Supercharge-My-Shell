@@ -159,6 +159,16 @@ plugins from `fish_plugins`, and these replacements:
 | `ls`    | [eza](https://github.com/eza-community/eza)    |
 | `diff`  | [delta](https://github.com/dandavison/delta)   |
 
+`keys` (or `Ctrl+?`) opens a searchable list of the shell's custom key bindings with a
+description of each in the preview. The list is read live from `bind --user`, so it cannot go
+stale; the descriptions come from `keys_bind KEY COMMAND LABEL [DETAIL...]`, which binds and
+describes in one call so a shortcut cannot move without its text. Anything bound some other
+way still shows, marked "no description" and sorted to the top, so it gets noticed. Files
+whose bindings are editing behaviour rather than shortcuts (autopair, vi-mode paste) are
+excluded by name in `_keys_rows`. fzf.fish's own defaults are disabled in `conf.d/20-fzf.fish`
+and re-bound there through `keys_bind` so they are described too, as are `Ctrl+T` and `Alt+C`
+from fzf's own shell integration (`fzf --fish`), which is loaded there without its key binds.
+
 `$OS_KIND` (`linux`, `macos`, `wsl`) is set once in `conf.d/00-os.fish`; Homebrew, the
 1Password SSH agent socket and the clipboard command branch on it. `conf.d/01-env.fish` moves
 gpg to `~/.local/share/gnupg` and creates it, since gpg only auto-creates `~/.gnupg`.
