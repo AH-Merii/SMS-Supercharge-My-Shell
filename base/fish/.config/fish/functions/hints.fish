@@ -15,7 +15,8 @@
 #   7 payload
 #   8 help     a command word whose --help the preview runs, or empty (see _hints_help)
 #   9 body     preview text under the heading, lines joined with \x1e (see keys_bind for
-#              why not newlines)
+#              why not newlines); a line starting with \x1f is a command line, which the
+#              preview colours (see _hints_preview)
 function hints --description "Searchable cheatsheet of the shell's key bindings, abbreviations, aliases and functions"
     set -f groups keys abbrs aliases functions
     argparse h/help -- $argv; or return 2
@@ -68,8 +69,8 @@ function hints --description "Searchable cheatsheet of the shell's key bindings,
     # its newlines are escaped for the printf %b in the preview command. --ansi makes fzf
     # strip colour codes from the whole line, hidden fields included, so the preview's ESC
     # bytes travel as the literal text \033 (after the backslash doubling, so they are not
-    # doubled themselves) and printf %b turns them back; tabs would split the row, so they
-    # travel as \t for the same reason.
+    # doubled themselves) and printf %b turns them back; tabs would split the row, and the
+    # command-line marker is a control byte too, so they travel as \t and \037 likewise.
     set -f cyan (set_color --bold cyan)
     set -f dim (set_color brblack)
     set -f normal (set_color normal)
@@ -80,7 +81,8 @@ function hints --description "Searchable cheatsheet of the shell's key bindings,
         set -l label_color $normal
         test $f[6] -eq 0; and set label_color (set_color --bold yellow)
         set -l preview (string join \x1e -- $cyan$f[2]$normal $dim$f[5]$normal '' $f[10] |
-            string replace -a \\ \\\\ | string replace -a \e '\\033' | string replace -a \t '\\t' | string replace -a \x1e '\\n')
+            string replace -a \\ \\\\ | string replace -a \e '\\033' | string replace -a \t '\\t' |
+            string replace -a \x1f '\\037' | string replace -a \x1e '\\n')
         # A tab renders one column wide (--tabstop=1 below), so each field after the first
         # starts with a space to make the usual two-space gap.
         set -a lines (printf '%s%s%s\t %s%s%s\t %s%s%s\t%s\t%s\t%s\t%s\t%s' \
@@ -118,9 +120,9 @@ enter inserts the name (runs a key binding) · alt-enter inserts and runs · ^d 
 
     # The preview and the reloads run in a config-less fish (see _hints_preview), which
     # autoloads nothing, so the preview function is sourced by path first. The row's text
-    # is printed by the preview command itself rather than passed to that function: when a
-    # --help fails, fish's trace lands in the preview, and it would quote the whole text as
-    # the function's argument.
+    # is piped into that function rather than passed as an argument: when a --help fails,
+    # fish's trace lands in the preview, and it would quote the whole text as the
+    # function's argument.
     #
     # fzf keeps the input order while the query is empty, so the groups and ranks show as
     # sorted; once something is typed the best match wins, which --no-sort would prevent,
@@ -142,7 +144,7 @@ enter inserts the name (runs a key binding) · alt-enter inserts and runs · ^d 
             --bind 'ctrl-d:preview-page-down,ctrl-u:preview-page-up' \
             --expect alt-enter \
             --preview-window 'right:55%:wrap' \
-            --preview "printf '%b\n' {4}; source '$preview_fn'; _hints_preview {5}"
+            --preview "source '$preview_fn'; printf '%b\n' {4} | _hints_preview {5}"
     )
     set -f rc $status
     rm -f $file

@@ -19,7 +19,10 @@ function _hints_rows_abbrs --description "hints rows for every abbreviation"
 
         set -l label $expansion
         test -n "$label"; or set label (string match -r -- '--function \S+' $flags)
+        # The expansion is a command line, so the preview colours it as one (the \x1f); a
+        # --function abbreviation has no expansion to show, only the flag naming the function.
         set -l body $bold$label$normal
+        test -n "$expansion"; and set body \x1f$expansion
         test -n "$flags"; and set -a body $dim$flags$normal
         set -l target (string split -m1 ' ' -- $expansion)[1]
 
