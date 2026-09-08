@@ -40,3 +40,68 @@ set -gx fzf_history_opts \
     --bind "ctrl-/:toggle-preview,ctrl-y:execute-silent(echo -n {2..} | $_clip_cmd)+abort" \
     --color header:italic \
     --header 'Press CTRL-Y to copy command into clipboard'
+
+# Key bindings. The plugin installed its defaults when 03-fisher-path.fish sourced its
+# conf.d; disable them (an empty value per option) and bind here through keys_bind so the
+# keys and their descriptions live in one place. The shortcuts are the plugin's own.
+# Every picker is --multi: Tab marks several, Enter takes them all.
+if status is-interactive && functions -q fzf_configure_bindings
+    fzf_configure_bindings --directory= --git_log= --git_status= --history= --processes= --variables=
+
+    keys_bind ctrl-r _fzf_search_history 'Search shell history' \
+        'Fuzzy-search your command history. `Enter` puts the chosen command on the' \
+        'command line without running it. `Tab` selects several.' \
+        '' \
+        'Inside the picker:' \
+        '  `ctrl-/`  toggle the preview' \
+        '  `ctrl-y`  copy the command to the clipboard and close'
+
+    keys_bind ctrl-alt-f _fzf_search_directory 'Find a file or directory' \
+        'Fuzzy-find files and directories below the current one, hidden files' \
+        'included and .git excluded, and insert the chosen paths at the cursor.' \
+        '`Tab` selects several. Files preview with bat, directories as an eza tree.' \
+        '' \
+        'Inside the picker:' \
+        '  `ctrl-/`           cycle the preview: bottom, hidden, right' \
+        '  `ctrl-d` `ctrl-u`  page the preview down / up'
+
+    keys_bind ctrl-alt-l _fzf_search_git_log 'Search git log' \
+        'Fuzzy-search the git log, previewing each commit as a diff, and insert' \
+        'the chosen hash at the cursor. `Tab` selects several.'
+
+    keys_bind ctrl-alt-s _fzf_search_git_status 'Search changed files' \
+        'Fuzzy-search the changed files in the working tree, previewing the diff,' \
+        'and insert the chosen paths at the cursor. `Tab` selects several.'
+
+    keys_bind ctrl-alt-p _fzf_search_processes 'Search running processes' \
+        'Fuzzy-search running processes and insert the chosen PID at the cursor,' \
+        'ready for kill or anything else that takes a pid. `Tab` selects several.'
+
+    # The plugin's own command string: variables are captured before the picker runs.
+    keys_bind ctrl-v $_fzf_search_vars_command 'Search shell variables' \
+        'Fuzzy-search shell variables, previewing their current values, and' \
+        'insert the chosen name at the cursor. `Tab` selects several.'
+end
+
+# fzf's own shell integration, for the two widgets fzf.fish has no equivalent of: ctrl-t
+# (files, like ctrl-alt-f but rooted at the token under the cursor) and alt-c (cd). Only
+# its key-bindings section is sourced; the completion section would also rebind shift-tab.
+# Empty FZF_*_COMMAND values stop it binding any keys itself (it would take ctrl-r too);
+# the widgets fall back to fzf's built-in walker either way, so nothing else changes.
+if status is-interactive && type -q fzf
+    set -g FZF_CTRL_R_COMMAND ''
+    set -g FZF_CTRL_T_COMMAND ''
+    set -g FZF_ALT_C_COMMAND ''
+    fzf --fish | sed -n '/^### key-bindings.fish ###$/,/^### end: key-bindings.fish ###$/p' | source
+
+    keys_bind ctrl-t fzf-file-widget 'Insert a file or directory path' \
+        'Walk files and directories below the current one, hidden included, and' \
+        'insert the chosen paths at the cursor. `Tab` selects several. If the token' \
+        'under the cursor is a directory the walk starts there; otherwise it becomes' \
+        'the initial query. `ctrl-alt-f` does the same job with previews.'
+
+    keys_bind alt-c fzf-cd-widget 'Change directory' \
+        'Walk directories below the current one, hidden included, and cd into the' \
+        'chosen one. If the token under the cursor is a directory the walk starts' \
+        'there; otherwise it becomes the initial query.'
+end
