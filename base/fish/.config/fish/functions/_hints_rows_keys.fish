@@ -14,6 +14,10 @@ function _hints_rows_keys --description "hints rows for every custom key binding
     # To hide a file's bindings:   add the file's basename to skip_sources below.
     set -l skip_sources autopair.fish 90-vi-mode.fish
 
+    set -l bold (set_color --bold)
+    set -l warn (set_color --bold yellow)
+    set -l normal (set_color normal)
+
     set -l group ''
     set -l seen
     for line in (bind --user --color=never 2>/dev/null)
@@ -36,18 +40,34 @@ function _hints_rows_keys --description "hints rows for every custom key binding
         set -l cmd (string trim --chars="'\"" -- $parts[3])
 
         # A registered key is grouped by the file that called keys_bind; an unregistered one
-        # by the file `bind --user` attributes it to.
-        set -l text (_keys_describe $key)
+        # by the file `bind --user` attributes it to. The preview body is the label, then the
+        # detail lines, which carry light markup so the conf.d files stay readable: `text` in
+        # backticks is a key or command and renders cyan, like the key column; a line ending
+        # in a colon is a section heading and renders dim (see _keys_style).
         set -l label 'no description'
         set -l source $group
         set -l rank 0
-        if test -n "$text"
+        set -l body
+        if set -l text (_keys_describe $key)
             set label $text[2]
             set source $text[1]
             set rank 1
+            set body $bold$label$normal '' (_keys_style $text[3..])
+        else
+            # Single quotes: fish leaves \` alone inside double quotes, so the backslashes would show.
+            set body $warn$label$normal '' (_keys_style \
+                '`'$key'` is bound to `'$cmd'`, but not through `keys_bind`, so there is' \
+                'nothing to say about it. Bind it with `keys_bind KEY COMMAND LABEL [DETAIL...]`' \
+                'to give it one, or add its source file to skip_sources in `_hints_rows_keys` to hide it.')
+
+            # The function's own --description is a decent starting point for writing one.
+            set -l own (functions --details --verbose -- $cmd 2>/dev/null)[5]
+            if test -n "$own" -a "$own" != n/a
+                set -a body '' (_keys_style 'It describes itself as:') $own
+            end
         end
 
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-            $key $label key "key binding · "(_keys_group $source) $rank run $cmd '' (_keys_preview $key $cmd | string join \x1e)
+            $key $label key "key binding · "(_keys_group $source) $rank run $cmd '' (string join \x1e -- $body)
     end
 end

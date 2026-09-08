@@ -164,9 +164,10 @@ aliases and functions, all at once or one group per hotkey inside the picker; `h
 and `keys` open on one group. Enter puts the highlighted name on the command line (a key
 binding runs instead) and Alt+Enter runs it. The preview shows what an entry does and, where
 that is safe to fetch on every cursor move, the `--help` of what it runs: always for external
-commands and builtins, for a function only when its source handles the flag. Nothing is
-documented by hand except the key bindings: abbreviations carry their expansion, aliases their
-body and functions their description, and the functions group is whatever this config defines,
+commands and builtins, for a function only when its source handles the flag, coloured by bat's
+command-help syntax. Nothing is documented by hand except the key bindings: abbreviations carry
+their expansion and aliases their body, coloured so the command words stand out from their
+arguments, and functions their description; the functions group is whatever this config defines,
 autoloaded or inline in `conf.d`, minus `_` helpers and `fish_*` hooks. Bindings are read live
 from `bind --user`, so the list cannot go stale; their descriptions come from
 `keys_bind KEY COMMAND LABEL [DETAIL...]`, which binds and describes in one call so a shortcut
