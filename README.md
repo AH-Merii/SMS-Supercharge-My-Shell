@@ -8,7 +8,7 @@ Dotfiles for fish, neovim, tmux, git and a niri desktop. Configs are linked into
 
 ```
 base/        stow packages every machine gets: fish git nvim tmux starship lazygit ghostty
-             herdr claude ccstatusline mise
+             herdr claude ccstatusline mise sesh
 desktop/     Linux desktop only: niri noctalia (v5, ~/.local/state/noctalia/settings.toml)
 macos/       macOS only: karabiner
 plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)

@@ -1,0 +1,9 @@
+# sesh, the tmux session manager behind ctrl-alt-t in fish and prefix+C-k in tmux.
+#
+# `sesh preview` shows a running session by capturing its pane, colour included, and a
+# directory by running this command with {} as the path: the fish `ll` alias, spelled
+# out because sesh runs it through `$SHELL -c` without the interactive config. sesh
+# captures the output through a pipe rather than a terminal, so eza has to be told to
+# colour; left on auto it prints plain, and without this setting sesh falls back to `ls`.
+[default_session]
+preview_command = "eza --icons=always --color=always --group-directories-first -l --git {}"

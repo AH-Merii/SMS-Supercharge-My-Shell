@@ -4,9 +4,10 @@
 # fd options for file search
 set -gx fzf_fd_opts --hidden --follow --exclude .git
 
-# Preview commands (bat for files, eza tree for directories)
+# Preview commands (bat for files, eza tree for directories). Both run inside fzf's
+# preview, where stdout is a pipe, so colour has to be asked for; on auto both print plain.
 set -gx fzf_preview_file_cmd 'bat -n --color=always --style=numbers'
-set -gx fzf_preview_dir_cmd 'eza --icons=always --tree --level=2'
+set -gx fzf_preview_dir_cmd 'eza --icons=always --color=always --tree --level=2'
 
 # Use delta for git diff highlighting if available
 if type -q delta
