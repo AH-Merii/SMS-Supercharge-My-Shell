@@ -32,14 +32,16 @@ function _hints_preview --description "Preview command for hints: print the row'
 
     test -n "$argv[1]"; or return 0
 
-    # A tool colours its help only when stdout is a terminal, and here it is fzf's pipe, so
-    # ask for the colour outright: CLICOLOR_FORCE and FORCE_COLOR are the two conventions
-    # for that, and the preview window renders what comes back. Exported for this function
-    # only, so the --help command is the one thing that sees them. bat and delta stay
-    # plain, since their help only gets colour on the way through their own pager.
-    set -lx CLICOLOR_FORCE 1
-    set -lx FORCE_COLOR 1
+    # The help is coloured by bat's Command Help syntax, the way bat colours its own help on
+    # a terminal: headings, options and placeholders each get a colour, and every tool gets
+    # the same treatment. Left to themselves, tools colour their help only for a terminal,
+    # which fzf's pipe is not, and even there most manage bold and underline at best (eza,
+    # tuicr, delta). bat must see plain text, since escape sequences in its input break
+    # the highlighting (its --strip-ansi defaults to never), so the tool is not asked for
+    # colour. The preview window does the wrapping. Without bat the help shows plain.
+    set -l colour cat
+    command -q bat; and set colour bat --language cmd-help --color=always --style=plain --paging=never --wrap=never
     set -g fish_function_path $__fish_config_dir/functions $__fish_data_dir/functions
     printf '\n%s%s --help:%s\n' (set_color brblack) $argv[1] (set_color normal)
-    $argv[1] --help </dev/null 2>&1 | head -n 400
+    $argv[1] --help </dev/null 2>&1 | head -n 400 | $colour
 end
