@@ -19,7 +19,7 @@ function _keys_preview --description "Render the cheatsheet preview text for a k
     _keys_style \
         '`'$argv[1]'` is bound to `'$argv[2]'`, but not through `keys_bind`, so there is' \
         'nothing to say about it. Bind it with `keys_bind KEY COMMAND LABEL [DETAIL...]`' \
-        'to give it one, or add its source file to skip_sources in `_keys_rows` to hide it.'
+        'to give it one, or add its source file to skip_sources in `_hints_rows_keys` to hide it.'
 
     # The function's own --description is a decent starting point for writing one.
     set -l own (functions --details --verbose $argv[2] 2>/dev/null)[5]

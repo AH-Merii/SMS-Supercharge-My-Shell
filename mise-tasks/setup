@@ -62,5 +62,5 @@ if [[ $(basename "${SHELL:-}") != fish ]]; then
   sms_note 'on macOS add $(command -v fish) to /etc/shells first'
 fi
 sms_note 'git identity and signing: run ggh (fish will remind you until it is set)'
-sms_note 'shell shortcuts: press ctrl+? in fish, or run keys, to list them'
+sms_note 'shell cheatsheet: press ctrl+? in fish, or run hints, for keys, abbrs, aliases and functions'
 echo
