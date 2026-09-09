@@ -8,8 +8,9 @@ function _hints_rows_aliases --description "hints rows for every alias"
         or continue
         set -l target (string split -m1 ' ' -- $body)[1]
 
-        # The \x1f marks the body as a command line for the preview to colour.
+        # The body is highlighted here, where the theme is, as the command line would be.
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-            $name $body alias alias 1 insert $name (_hints_help $target; or echo) \x1f$body
+            $name $body alias alias 1 insert $name (_hints_help $target; or echo) \
+            (string join \x1e -- (printf '%s\n' $body | fish_indent --ansi))
     end
 end

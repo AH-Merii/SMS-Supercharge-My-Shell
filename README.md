@@ -166,8 +166,8 @@ binding runs instead) and Alt+Enter runs it. The preview shows what an entry doe
 that is safe to fetch on every cursor move, the `--help` of what it runs: always for external
 commands and builtins, for a function only when its source handles the flag, coloured by bat's
 command-help syntax. Nothing is documented by hand except the key bindings: abbreviations carry
-their expansion and aliases their body, coloured so the command words stand out from their
-arguments, and functions their description; the functions group is whatever this config defines,
+their expansion and aliases their body, highlighted as the command line would show them, and
+functions their description; the functions group is whatever this config defines,
 autoloaded or inline in `conf.d`, minus `_` helpers and `fish_*` hooks. Bindings are read live
 from `bind --user`, so the list cannot go stale; their descriptions come from
 `keys_bind KEY COMMAND LABEL [DETAIL...]`, which binds and describes in one call so a shortcut
@@ -178,6 +178,10 @@ fzf.fish's own defaults are disabled in `conf.d/20-fzf.fish` and re-bound there 
 `keys_bind` so they are described too, as are `Ctrl+T` and `Alt+C` from fzf's own shell
 integration (`fzf --fish`), which is loaded there without its key binds. Each group is a
 `_hints_rows_GROUP` function emitting the same row format, so a new group is one more of those.
+
+The colours are One Dark, declared as fish's colour variables in `conf.d/07-theme.fish` for
+every fish, interactive or not, so the previews fzf runs in a `fish -c` are highlighted like
+the prompt; hints and the history picker's header take their colours from the same variables.
 
 `$OS_KIND` (`linux`, `macos`, `wsl`) is set once in `conf.d/00-os.fish`; Homebrew, the
 1Password SSH agent socket and the clipboard command branch on it. `conf.d/01-env.fish` moves

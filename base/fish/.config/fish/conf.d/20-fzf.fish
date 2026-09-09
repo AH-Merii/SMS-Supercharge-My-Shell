@@ -34,13 +34,17 @@ switch $OS_KIND
         end
 end
 
-# History search options with copy-to-clipboard support
+# History search options. The plugin's own preview strips the timestamp and highlights the
+# command with fish_indent, which colours from the theme (conf.d/07-theme.fish) in the
+# non-interactive fish fzf runs it in; the list rows stay plain, so the preview is where
+# a long command is read, and it starts open. ctrl-y copies the command alone: the row is
+# "MM-DD HH:MM:SS │ command", so the same strip the plugin uses comes off first, and the
+# `string collect` keeps a multi-line command whole. The header colours keys as the
+# cheatsheet does, through _keys_style (fzf renders colour in the header without --ansi).
 set -gx fzf_history_opts \
-    --preview 'echo {}' \
-    --preview-window up:3:hidden:wrap \
-    --bind "ctrl-/:toggle-preview,ctrl-y:execute-silent(echo -n {2..} | $_clip_cmd)+abort" \
-    --color header:italic \
-    --header 'Press CTRL-Y to copy command into clipboard'
+    --preview-window up:3:wrap \
+    --bind "ctrl-/:toggle-preview,ctrl-y:execute-silent(printf %s (string replace -r '^.*? │ ' '' -- {} | string collect) | $_clip_cmd)+abort" \
+    --header (_keys_style '`enter` insert · `tab` multiselect · `ctrl-/` preview · `ctrl-y` copy')
 
 # Key bindings. The plugin installed its defaults when 03-fisher-path.fish sourced its
 # conf.d; disable them (an empty value per option) and bind here through keys_bind so the
@@ -51,7 +55,9 @@ if status is-interactive && functions -q fzf_configure_bindings
 
     keys_bind ctrl-r _fzf_search_history 'Search shell history' \
         'Fuzzy-search your command history. `Enter` puts the chosen command on the' \
-        'command line without running it. `Tab` selects several.' \
+        'command line without running it. `Tab` selects and deselects; with a selection,' \
+        'Enter inserts the selected commands. The preview shows the highlighted command' \
+        'in full.' \
         '' \
         'Inside the picker:' \
         '  `ctrl-/`  toggle the preview' \
