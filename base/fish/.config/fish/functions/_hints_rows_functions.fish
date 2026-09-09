@@ -6,8 +6,8 @@ function _hints_rows_functions --description "hints rows for the functions this 
     # convention, and fish_* is fish's namespace for hooks like fish_user_key_bindings,
     # which nobody calls by hand.
     set -l bold (set_color --bold)
-    set -l dim (set_color brblack)
-    set -l warn (set_color --bold yellow)
+    set -l dim (set_color $fish_color_autosuggestion)
+    set -l warn (set_color $fish_color_error)
     set -l normal (set_color normal)
 
     for name in (functions --names)

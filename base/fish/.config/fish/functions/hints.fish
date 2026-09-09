@@ -15,8 +15,7 @@
 #   7 payload
 #   8 help     a command word whose --help the preview runs, or empty (see _hints_help)
 #   9 body     preview text under the heading, lines joined with \x1e (see keys_bind for
-#              why not newlines); a line starting with \x1f is a command line, which the
-#              preview colours (see _hints_preview)
+#              why not newlines); colour codes allowed, the preview shows them as they are
 function hints --description "Searchable cheatsheet of the shell's key bindings, abbreviations, aliases and functions"
     set -f groups keys abbrs aliases functions
     argparse h/help -- $argv; or return 2
@@ -69,20 +68,24 @@ function hints --description "Searchable cheatsheet of the shell's key bindings,
     # its newlines are escaped for the printf %b in the preview command. --ansi makes fzf
     # strip colour codes from the whole line, hidden fields included, so the preview's ESC
     # bytes travel as the literal text \033 (after the backslash doubling, so they are not
-    # doubled themselves) and printf %b turns them back; tabs would split the row, and the
-    # command-line marker is a control byte too, so they travel as \t and \037 likewise.
-    set -f cyan (set_color --bold cyan)
-    set -f dim (set_color brblack)
+    # doubled themselves) and printf %b turns them back; tabs would split the row, so they
+    # travel as \t likewise. The colours are the theme's, by role: the name is what is typed,
+    # like a command word; the heading is text to skim past, like an autosuggestion. The
+    # "--help:" heading is built here too, since the preview's fish has no theme.
+    set -f cyan (set_color $fish_color_command)
+    set -f dim (set_color $fish_color_autosuggestion)
     set -f normal (set_color normal)
     set -f lines
     for row in $rows
         set -l f (string split \t -- $row)
         # f: the group, then the nine row columns, so each sits one to the right
         set -l label_color $normal
-        test $f[6] -eq 0; and set label_color (set_color --bold yellow)
-        set -l preview (string join \x1e -- $cyan$f[2]$normal $dim$f[5]$normal '' $f[10] |
+        test $f[6] -eq 0; and set label_color (set_color $fish_color_error)
+        set -l help_heading
+        test -n "$f[9]"; and set help_heading '' "$dim$f[9] --help:$normal"
+        set -l preview (string join \x1e -- $cyan$f[2]$normal $dim$f[5]$normal '' $f[10] $help_heading |
             string replace -a \\ \\\\ | string replace -a \e '\\033' | string replace -a \t '\\t' |
-            string replace -a \x1f '\\037' | string replace -a \x1e '\\n')
+            string replace -a \x1e '\\n')
         # A tab renders one column wide (--tabstop=1 below), so each field after the first
         # starts with a space to make the usual two-space gap.
         set -a lines (printf '%s%s%s\t %s%s%s\t %s%s%s\t%s\t%s\t%s\t%s\t%s' \

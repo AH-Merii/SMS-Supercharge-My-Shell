@@ -15,7 +15,7 @@ function _hints_rows_keys --description "hints rows for every custom key binding
     set -l skip_sources autopair.fish 90-vi-mode.fish
 
     set -l bold (set_color --bold)
-    set -l warn (set_color --bold yellow)
+    set -l warn (set_color $fish_color_error)
     set -l normal (set_color normal)
 
     set -l group ''
