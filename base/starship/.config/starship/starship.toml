@@ -149,7 +149,7 @@ ahead = "[⇡${count}](green) "
 behind = "[⇣${count}](yellow) "
 diverged = "[󰹶](purple) [⇡${ahead_count}](green) [⇣${behind_count}](yellow) "
 untracked = "[󰕚 ${count}](bright-black) "
-stashed = "[ ${count}](fg:208) "                                             # orange
+stashed = "[ ${count}](fg:16) "                                             # orange
 modified = "[ ${count}](yellow) "
 staged = "[ ${count}](green) "
 renamed = "[ ${count}](purple) "
@@ -163,7 +163,7 @@ deleted_style = "red"
 
 [git_state]
 format = '\([$state( $progress_current/$progress_total)]($style)\) '
-rebase = "[󰜘 rebase](fg:208)"                                        # orange
+rebase = "[󰜘 rebase](fg:16)"                                        # orange
 merge = "[ merge](purple)"
 revert = "[󰕌 revert](red)"
 cherry_pick = "[ cherry-pick](purple)"

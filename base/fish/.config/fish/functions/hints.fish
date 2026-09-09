@@ -132,7 +132,7 @@ enter inserts the name (runs a key binding) · alt-enter inserts and runs · ^d 
     # and a match nearer the start of the line, that is in the name, beats one in the label.
     set -f preview_fn (functions --details -- _hints_preview)
     set -f picked (
-        string match -er -- '\t(?:'(string join '|' $start)')$' $lines | $fzf_cmd \
+        string match -er -- '\t(?:'(string join '|' $start)')$' $lines | $fzf_cmd $_fzf_colors \
             --ansi --tabstop 1 --tiebreak begin,length \
             --delimiter \t --with-nth 1..3 --nth 1,3 \
             --with-shell 'fish --no-config -c' \

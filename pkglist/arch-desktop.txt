@@ -16,6 +16,7 @@ wl-clipboard
 cliphist
 ghostty
 ttf-firacode-nerd
+ttf-cascadia-code-nerd
 ttf-meslo-nerd
 noto-fonts
 noto-fonts-emoji

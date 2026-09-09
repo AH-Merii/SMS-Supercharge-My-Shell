@@ -49,9 +49,18 @@
   navigate = true
   line-numbers = true
   hyperlinks = true
-  syntax-theme = OneHalfDark
+  # Colours are the terminal's palette (ghostty/themes/OneDark): the syntax theme maps each
+  # token role to a slot (bat's themes/ansi-onedark.tmTheme), and the line backgrounds are
+  # the diff tints in slots 17-21, so a diff matches the shell around it and changes with it.
+  syntax-theme = ansi-onedark
+  minus-style = syntax 17
+  minus-emph-style = syntax 19
+  plus-style = syntax 18
+  plus-emph-style = syntax 20
+  line-numbers-minus-style = red
+  line-numbers-plus-style = green
+  line-numbers-zero-style = brightblack
   tabs = 4
-  true-color = always
   file-modified-label = modified:
   wrap-max-lines = unlimited
 

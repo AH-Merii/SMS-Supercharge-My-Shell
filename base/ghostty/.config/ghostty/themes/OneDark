@@ -1,0 +1,43 @@
+# One Dark, as the terminal's palette. The shell tools (fish, fzf, bat, delta, starship,
+# tmux) name their colours by slot rather than by hex, so this file is where the scheme
+# lives and the only place it changes. The sixteen base slots follow the usual roles; the
+# bright slots are lighter tints of the base hues, since Atom's own One Dark made them
+# identical and tools that print "bright" for emphasis would otherwise show no emphasis.
+# Slot 0 is a surface grey a step above the background, the selection and current-line
+# colour, not a black: nothing on a dark theme prints black text. Slots 16 and up carry the
+# tones One Dark needs beyond sixteen, for the tools that can address them (fish cannot).
+
+background = #282c34
+foreground = #abb2bf
+cursor-color = #abb2bf
+cursor-text = #282c34
+selection-background = #3e4452
+selection-foreground = #abb2bf
+
+# base hues
+palette = 0=#3e4452
+palette = 1=#e06c75
+palette = 2=#98c379
+palette = 3=#e5c07b
+palette = 4=#61afef
+palette = 5=#c678dd
+palette = 6=#56b6c2
+palette = 7=#abb2bf
+
+# bright: the comment grey, then lighter tints of the hues above
+palette = 8=#5c6370
+palette = 9=#e68991
+palette = 10=#adcf94
+palette = 11=#ebd09c
+palette = 12=#73b8f1
+palette = 13=#d193e4
+palette = 14=#78c5ce
+palette = 15=#d7dae0
+
+# beyond sixteen: orange, then the diff line backgrounds
+palette = 16=#d19a66
+palette = 17=#382b2c
+palette = 18=#31392b
+palette = 19=#5a3237
+palette = 20=#3d5230
+palette = 21=#1c3448
