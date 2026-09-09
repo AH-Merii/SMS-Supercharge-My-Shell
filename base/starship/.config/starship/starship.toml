@@ -246,7 +246,7 @@ detect_files = []
 
 [cpp]
 symbol = "\ue61d "
-style = "bold #659AD2"
+style = "bold blue"
 detect_extensions = ["cpp", "cc", "cxx", "hpp", "hh", "hxx"]
 detect_files = []
 
@@ -261,7 +261,7 @@ force_display = false
 
 [azure]
 symbol = " "
-style = "#0078D4"
+style = "blue"
 format = "[$symbol($subscription)]($style) "
 disabled = false
 
@@ -281,7 +281,7 @@ detect_files = ["Containerfile", "Dockerfile", "docker-compose.yml", "docker-com
 command = 'name=$(podman machine list --format "{{if eq .Running true}}{{.Name}}{{end}}" | tr -d "\n*" | sed "s/podman-machine-//"); [ "$name" != "default" ] && echo "$name"'
 when = 'podman machine list --format "{{.Running}}" 2>/dev/null | grep -q true'
 symbol = " "
-style = "#AF5FC1"
+style = "purple"
 format = "[$symbol]($style)[podman( $output)]($style) "
 
 [kubernetes]

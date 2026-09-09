@@ -7,7 +7,7 @@
      roles follow atom/one-dark-syntax. Rebuild with `bat cache --build` after editing. -->
 <plist version="1.0">
 <dict>
-  <key>name</key><string>ansi-onedark</string>
+  <key>name</key><string>ansi-roles</string>
   <key>settings</key>
   <array>
     <dict><key>settings</key><dict>
