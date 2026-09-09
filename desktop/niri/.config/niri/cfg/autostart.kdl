@@ -2,3 +2,8 @@
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 
     spawn-at-startup "noctalia"
+
+// Focuses an external monitor whenever one is plugged in, so new windows land
+// there rather than on the laptop panel. See `niri-display` for why it watches
+// WorkspacesChanged instead of an output event.
+spawn-at-startup "niri-display" "watch"

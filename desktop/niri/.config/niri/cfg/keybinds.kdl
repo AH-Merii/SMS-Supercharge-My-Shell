@@ -176,6 +176,12 @@ binds {
     Mod+W                               hotkey-overlay-title="Toggle Tabbed Column" { toggle-column-tabbed-display; }
     Mod+CTRL+ALT+Shift+W                { toggle-column-tabbed-display; }
 
+    // ─── Displays ───
+    // Cycles both -> external only -> laptop only -> both, and toasts the new
+    // state. Never disables the last live output, so it is safe when undocked.
+    Mod+Shift+D                         hotkey-overlay-title="Cycle Displays" { spawn "niri-display" "cycle"; }
+    Mod+CTRL+ALT+Shift+D                { spawn "niri-display" "cycle"; }
+
     // ─── Screenshots ───
     CTRL+Shift+1                        hotkey-overlay-title="Screenshot Area" { screenshot; }
     CTRL+Shift+2                        hotkey-overlay-title="Screenshot Screen" { screenshot-screen; }
