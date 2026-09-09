@@ -19,9 +19,10 @@ function _hints_preview --description "Preview command for hints: print the row'
     # which fzf's pipe is not, and even there most manage bold and underline at best (eza,
     # tuicr, delta). bat must see plain text, since escape sequences in its input break
     # the highlighting (its --strip-ansi defaults to never), so the tool is not asked for
-    # colour. The preview window does the wrapping. Without bat the help shows plain.
+    # colour, and --strip-ansi drops the codes of a tool that colours regardless. The
+    # preview window does the wrapping. Without bat the help shows plain.
     set -l colour cat
-    command -q bat; and set colour bat --language cmd-help --color=always --style=plain --paging=never --wrap=never
+    command -q bat; and set colour bat --language cmd-help --color=always --style=plain --paging=never --wrap=never --strip-ansi=always
     set -g fish_function_path $__fish_config_dir/functions $__fish_data_dir/functions
     $argv[1] --help </dev/null 2>&1 | head -n 400 | $colour
 end

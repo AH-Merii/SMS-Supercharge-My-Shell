@@ -19,7 +19,9 @@ function _hints_help --description "Print WORD if the hints preview may run \`WO
         or string match -q -- 'embedded:functions/*' $file
         or return 1
         functions -- $word | string match -rv '^\s*#' | string match -qr -- '--help|\bh/help\b'; or return 1
-    else if not builtin -q $word; and not command -q $word
+    # The -- keeps a word that is itself a flag, like the --help abbreviation, from being
+    # read as one: `builtin -q --help` prints builtin's own help.
+    else if not builtin -q -- $word; and not command -q -- $word
         return 1
     end
     echo $word
