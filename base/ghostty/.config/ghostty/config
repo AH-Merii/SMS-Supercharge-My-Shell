@@ -1,7 +1,7 @@
 # Use main branch builds instead of stable releases
 auto-update-channel = tip
 
-theme = Atom One Dark
+theme = OneDark
 font-size = 16
 mouse-hide-while-typing = true
 #window-decoration = none
@@ -18,6 +18,10 @@ mouse-hide-while-typing = true
 #font-feature = liga
 #font-feature = calt
 font-family = "FiraCode Nerd Font"
+# Fira Code has no italic face, so italics (comments, autosuggestions) borrow
+# Cascadia's cursive. Nerd Font glyphs in italic runs fall back to Fira Code.
+font-family-italic = "CaskaydiaCove Nerd Font"
+font-family-bold-italic = "CaskaydiaCove Nerd Font"
 clipboard-trim-trailing-spaces = true
 link-url = true
 cursor-style-blink = true

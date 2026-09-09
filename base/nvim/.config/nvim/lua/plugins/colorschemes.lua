@@ -310,7 +310,7 @@ return {
       require("onedark").setup({
         -- Default theme style. Choose between 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
         style = "deep",
-        term_colors = true, -- Change terminal color as per the selected theme style
+        term_colors = false, -- :terminal keeps the terminal's own palette (ghostty/themes/OneDark)
         transparent = true,
 
         -- toggle theme style ---

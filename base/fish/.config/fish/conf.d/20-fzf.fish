@@ -14,6 +14,16 @@ if type -q delta
     set -gx fzf_diff_highlighter delta --paging=never --width=20
 end
 
+# Colours for every fzf, by palette slot so they follow the terminal's theme
+# (ghostty/themes/OneDark); fzf's own defaults are fixed 256-colour indexes that match
+# nothing. Through FZF_DEFAULT_OPTS so zoxide's `zi` and the tmux session popup get them
+# too; the plugin then skips its own layout defaults, so those come first, verbatim.
+# Matches are yellow, a colour the highlighted rows rarely use; the current line sits on
+# the surface grey. Options a picker passes itself win over these.
+set -gx FZF_DEFAULT_OPTS "--cycle --layout=reverse --border --height=90% --preview-window=wrap --marker='*'" \
+    "--bind 'page-up:preview-up,page-down:preview-down,ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-/:change-preview-window(down|hidden|)'" \
+    "--color=16,hl:yellow,hl+:yellow:bold,bg+:black,pointer:blue,marker:green,prompt:blue,spinner:magenta,info:bright-black,header:bright-black,border:bright-black,separator:bright-black,scrollbar:bright-black,label:white,gutter:-1"
+
 # Directory search options
 set -gx fzf_directory_opts \
     --bind 'page-up:preview-up,page-down:preview-down,ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-/:change-preview-window(down|hidden|)'

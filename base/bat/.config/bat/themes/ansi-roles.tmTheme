@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- One Dark by role, painted with the terminal palette. bat reads #SS000000 (alpha 00)
+     as "palette slot SS" and #00000001 as the terminal default, so every colour here is
+     a slot: 1 red, 2 green, 3 yellow, 4 blue, 5 magenta, 6 cyan, 7 white, 8 the comment
+     grey, 16 orange, and 0 the surface grey for the highlighted line. The scopes and their
+     roles follow atom/one-dark-syntax. Rebuild with `bat cache --build` after editing. -->
+<plist version="1.0">
+<dict>
+  <key>name</key><string>ansi-roles</string>
+  <key>settings</key>
+  <array>
+    <dict><key>settings</key><dict>
+      <key>foreground</key><string>#00000001</string>
+      <key>background</key><string>#00000001</string>
+      <key>caret</key><string>#00000001</string>
+      <key>lineHighlight</key><string>#00000000</string>
+      <key>gutter</key><string>#00000001</string>
+      <key>gutterForeground</key><string>#08000000</string>
+      <key>selection</key><string>#00000000</string>
+    </dict></dict>
+    <dict>
+      <key>scope</key><string>comment, punctuation.definition.comment</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#08000000</string>
+        <key>fontStyle</key><string>italic</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>meta.mapping.key string, meta.mapping.key punctuation.definition.string</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#01000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>string, punctuation.definition.string</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#02000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>string.regexp, constant.character.escape, constant.other.color, constant.other.symbol</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#06000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>constant, constant.numeric, constant.language, constant.variable, keyword.other.unit</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#10000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>keyword, keyword.control, storage, storage.type, storage.modifier</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#05000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>keyword.operator</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#00000001</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>keyword.operator.logical.python, source.c keyword.operator, source.cpp keyword.operator, source.cs keyword.operator</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#05000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>variable, variable.other, meta.definition.variable.name, variable.interpolation</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#01000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>variable.parameter</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#07000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>source.python variable.parameter</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#10000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>entity.name.function, variable.function, support.function.any-method, keyword.other.special-method, meta.require</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#04000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>support.function, support.type</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#06000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>entity.name.type, entity.name.class, entity.name.type.class, support.class, entity.other.inherited-class</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#03000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>entity.name.tag</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#01000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>entity.other.attribute-name</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#10000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>entity.other.attribute-name.id, punctuation.definition.heading, punctuation.definition.identity</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#04000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>entity.name.section, entity.name.table, meta.tag.table punctuation.definition.table.begin, meta.tag.table punctuation.definition.table.end</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#04000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>meta.selector</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#05000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>meta.link</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#10000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>invalid.illegal</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#01000000</string>
+        <key>fontStyle</key><string>underline</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.heading, markup.heading entity.name.section</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#01000000</string>
+        <key>fontStyle</key><string>bold</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.heading punctuation.definition.heading</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#04000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.bold, punctuation.definition.bold</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#10000000</string>
+        <key>fontStyle</key><string>bold</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.italic, punctuation.definition.italic</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#05000000</string>
+        <key>fontStyle</key><string>italic</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.raw, markup.inserted</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#02000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.deleted</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#01000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.changed</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#05000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.quote</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#10000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.underline.link, markup.link</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#06000000</string>
+        <key>fontStyle</key><string>underline</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.list punctuation.definition.list_item</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#01000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>markup.heading.cmd-help, markup.heading.inline-usage.cmd-help, string.section-heading.cmd-help, string.section-heading.inline-usage.cmd-help, constant.section-heading.cmd-help, constant.section-heading.inline-usage.cmd-help</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#03000000</string>
+        <key>fontStyle</key><string>bold</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>meta.diff.header, meta.diff.range</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#05000000</string>
+      </dict>
+    </dict>
+    <dict>
+      <key>scope</key><string>meta.diff.header.from-file, meta.diff.header.to-file</string>
+      <key>settings</key><dict>
+        <key>foreground</key><string>#04000000</string>
+      </dict>
+    </dict>
+  </array>
+</dict>
+</plist>

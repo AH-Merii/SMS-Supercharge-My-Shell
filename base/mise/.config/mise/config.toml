@@ -30,7 +30,9 @@ gh = "latest"
 fzf = "latest"
 ripgrep = "latest"
 fd = "latest"
-bat = "latest"
+# bat loads custom themes (base/bat) from a cache it refuses to use after a minor upgrade;
+# rebuild it with the new bat. `cd /`: bat hides its cache subcommand when the cwd has a "cache".
+bat = { version = "latest", postinstall = "cd / && bat cache --build" }
 eza = "latest"
 delta = "latest"
 zoxide = "latest"
