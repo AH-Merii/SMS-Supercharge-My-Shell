@@ -17,6 +17,8 @@ _SMS_PLAN=1
 
 # shellcheck source=lib/ui.sh
 source "${MISE_PROJECT_ROOT:?}/lib/ui.sh"
+# shellcheck source=lib/winterm.sh
+source "$MISE_PROJECT_ROOT/lib/winterm.sh"
 
 # Package names from a pkglist, minus comments and blanks.
 pkgs() { grep -hv '^#' "$@" | grep -v '^$'; }
@@ -345,4 +347,32 @@ plan_greeter() {
     sms_note 'will sync Noctalia wallpaper, palette and outputs to the greeter (asks for your password)'
   fi
   return 0
+}
+
+# --- Windows Terminal (WSL) ---------------------------------------------------------
+
+# What `winterm` would write. Rendered from the ghostty theme here as well, so the plan
+# and the task cannot disagree about "unchanged".
+plan_winterm() {
+  winterm_is_wsl || return 0
+  sms_section 'Windows Terminal' "$(basename "$winterm_theme") scheme, $winterm_font, bold stays bold"
+
+  local path rendered
+  if ! path=$(winterm_settings); then
+    sms_warn 'settings.json not found: is Windows Terminal installed? SMS_WINTERM_SETTINGS=<path> points at it'
+    return 0
+  fi
+  if ! command -v jq >/dev/null 2>&1; then
+    sms_note "will update $path (jq arrives with tools; winterm runs after it)"
+    return 0
+  fi
+  if ! rendered=$(winterm_render "$path" 2>/dev/null); then
+    sms_warn "cannot parse $path; winterm will say why"
+    return 0
+  fi
+  if winterm_same "$path" "$rendered"; then
+    sms_note "unchanged $path"
+  else
+    sms_want "$path"
+  fi
 }

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#MISE description="Windows Terminal, from WSL: the ghostty theme as its colour scheme, Cascadia Code NF, bold that stays bold"
+#MISE raw=true
+#
+# Idempotent: the file is rewritten only when the rendered settings differ from what is
+# there, and the previous copy is kept beside it. Windows Terminal reloads settings.json
+# the moment it changes, so the open window shows the result. What is written and why is
+# in lib/winterm.sh.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
+
+if ! winterm_is_wsl; then
+  sms_note "Windows Terminal is configured from WSL only (profile: $profile)"
+  exit 0
+fi
+
+sms_preview plan_winterm 'Configure Windows Terminal?' || exit 0
+
+if ! command -v jq >/dev/null 2>&1; then
+  # shellcheck disable=SC2016  # literal text for the user to copy
+  sms_err 'jq not installed -- run `mise run tools` first'
+  exit 1
+fi
+if ! path=$(winterm_settings); then
+  sms_err 'settings.json not found: is Windows Terminal installed? SMS_WINTERM_SETTINGS=<path> points at it'
+  exit 1
+fi
+# A settings.json with // comments (early releases wrote them) is not JSON; jq says so.
+if ! rendered=$(winterm_render "$path" 2>&1); then
+  sms_err "could not update $path: $rendered"
+  exit 1
+fi
+
+if winterm_same "$path" "$rendered"; then
+  sms_note "unchanged $path"
+  exit 0
+fi
+cp "$path" "$path.bak"
+printf '%s\n' "$rendered" >"$path"
+sms_note "wrote $path (previous copy: settings.json.bak)"
+sms_note "$winterm_font ships with Windows Terminal; an older one needs it from https://github.com/microsoft/cascadia-code/releases"
