@@ -3,10 +3,20 @@
 // You will have to remove "/-" and edit it before it takes effect.
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Outputs
 
-output "DP-1" {
-    mode "3840x2160@119.999"
+// Matched by make/model/serial rather than connector: the two USB-C ports
+// enumerate as DP-1 and DP-2 respectively, so a connector-keyed block only
+// applies to whichever port you happened to plug into.
+output "ASUSTek COMPUTER INC PG32UCDM S8LMQS095465" {
+    mode "3840x2160@119.999" // 120 is the ceiling over USB-C DP alt-mode
     scale 1.25
     position x=0 y=0
+    focus-at-startup // primary display when the session starts docked
+}
+
+output "eDP-1" {
+    mode "1920x1080@144.003"
+    scale 1
+    position x=3072 y=0 // right of the PG32UCDM's 3072px logical width
 }
 
 /- output "DP-1" {
