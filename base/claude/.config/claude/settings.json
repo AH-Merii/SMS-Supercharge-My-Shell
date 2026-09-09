@@ -1,5 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "cleanupPeriodDays": 365,
   "env": {
     "DISABLE_TELEMETRY": "1",
     "DISABLE_ERROR_REPORTING": "1",
@@ -9,15 +10,11 @@
     "MAX_MCP_OUTPUT_TOKENS": "25000",
     "TASK_MAX_OUTPUT_LENGTH": "20000"
   },
-  "feedbackSurveyRate": 0,
-  "cleanupPeriodDays": 365,
-  "autoUpdatesChannel": "stable",
   "attribution": {
     "commit": "",
     "pr": ""
   },
   "permissions": {
-    "defaultMode": "auto",
     "allow": [
       "Read",
       "Edit",
@@ -56,8 +53,27 @@
       "Bash(tail *.env*)",
       "Bash(less *.env*)",
       "Bash(more *.env*)"
-    ]
+    ],
+    "defaultMode": "auto"
   },
+  "model": "opus[1m]",
+  "statusLine": {
+    "type": "command",
+    "command": "~/.local/share/mise/shims/ccstatusline",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "terminal-icons@local-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "local-plugins": {
+      "source": {
+        "source": "directory",
+        "path": "~/SMS-Supercharge-My-Shell/plugins"
+      }
+    }
+  },
+  "feedbackSurveyRate": 0,
   "spinnerVerbs": {
     "mode": "replace",
     "verbs": [
@@ -108,24 +124,17 @@
       "Pulling a shot"
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "~/.local/share/mise/shims/ccstatusline",
-    "padding": 0
-  },
-  "editorMode": "vim",
-  "theme": "dark",
-  "tui": "fullscreen",
-  "agentPushNotifEnabled": true,
-  "extraKnownMarketplaces": {
-    "local-plugins": {
-      "source": {
-        "source": "directory",
-        "path": "~/SMS-Supercharge-My-Shell/plugins"
-      }
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "medium"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "xhigh"
     }
   },
-  "enabledPlugins": {
-    "terminal-icons@local-plugins": true
-  }
+  "autoUpdatesChannel": "stable",
+  "tui": "fullscreen",
+  "theme": "dark",
+  "editorMode": "vim",
+  "agentPushNotifEnabled": true
 }
