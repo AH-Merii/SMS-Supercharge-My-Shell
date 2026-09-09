@@ -2,8 +2,9 @@
 # token role to a slot the way One Dark assigns them (keywords magenta, functions blue,
 # strings green, numbers orange, comments grey), see themes/ansi-roles.tmTheme. delta
 # reads the same theme for diffs, and the fzf and hints previews get it through here.
-# bat loads custom themes from its cache: run `bat cache --build` once after stow, and
-# again after a bat upgrade (bat says when the cache is stale).
+# bat loads custom themes from its cache, which `mise run link` builds and mise rebuilds
+# on every bat install (base/mise). Without that, a bat minor upgrade makes every bat
+# call exit with a cache error until `bat cache --build` runs.
 --theme="ansi-roles"
 
 # Comments are italic in the theme, as they are on the command line; bat drops italics

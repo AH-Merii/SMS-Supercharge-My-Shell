@@ -34,10 +34,13 @@ palette = 13=#d193e4
 palette = 14=#78c5ce
 palette = 15=#d7dae0
 
-# beyond sixteen: orange, then the diff line backgrounds
+# beyond sixteen: orange, the diff line backgrounds (removed, added, and the changed
+# words within each), then the background itself, for dark text on a coloured segment
+# where slot 0's grey would be too soft. Only ghostty defines these: another terminal
+# shows xterm's black and blues here.
 palette = 16=#d19a66
 palette = 17=#382b2c
 palette = 18=#31392b
 palette = 19=#5a3237
 palette = 20=#3d5230
-palette = 21=#1c3448
+palette = 21=#282c34

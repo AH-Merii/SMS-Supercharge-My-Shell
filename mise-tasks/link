@@ -50,6 +50,11 @@ for layer in "${layers[@]}"; do
   stow $flags -d "$layer" -R "${lpkgs[@]}"
 done
 
+# bat only sees the custom theme (base/bat) through its cache; mise also rebuilds it on upgrade
+if [[ -z $flags ]] && command -v bat >/dev/null 2>&1; then
+  bat cache --build >/dev/null
+fi
+
 if [[ -z $flags && " ${layers[*]} " == *" desktop "* ]]; then
   # niri includes noctalia.kdl, which Noctalia generates on first run
   mkdir -p "$target/.config/niri"

@@ -14,21 +14,19 @@ if type -q delta
     set -gx fzf_diff_highlighter delta --paging=never --width=20
 end
 
-# Colours for every picker, by palette slot so they follow the terminal's theme
+# Colours for every fzf, by palette slot so they follow the terminal's theme
 # (ghostty/themes/OneDark); fzf's own defaults are fixed 256-colour indexes that match
-# nothing. Given to each picker rather than through FZF_DEFAULT_OPTS: the plugin takes
-# that variable as a replacement for its layout defaults (cycle, reverse, border, height),
-# and it would also reach hints and sesh, which lay themselves out. Matches are yellow,
-# a colour the highlighted rows rarely use; the current line sits on the surface grey.
-set -g _fzf_colors --color=16,hl:yellow,hl+:yellow:bold,bg+:black,pointer:blue,marker:green,prompt:blue,spinner:magenta,info:bright-black,header:bright-black,border:bright-black,separator:bright-black,scrollbar:bright-black,label:white,gutter:-1
+# nothing. Through FZF_DEFAULT_OPTS so zoxide's `zi` and the tmux session popup get them
+# too; the plugin then skips its own layout defaults, so those come first, verbatim.
+# Matches are yellow, a colour the highlighted rows rarely use; the current line sits on
+# the surface grey. Options a picker passes itself win over these.
+set -gx FZF_DEFAULT_OPTS "--cycle --layout=reverse --border --height=90% --preview-window=wrap --marker='*'" \
+    "--bind 'page-up:preview-up,page-down:preview-down,ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-/:change-preview-window(down|hidden|)'" \
+    "--color=16,hl:yellow,hl+:yellow:bold,bg+:black,pointer:blue,marker:green,prompt:blue,spinner:magenta,info:bright-black,header:bright-black,border:bright-black,separator:bright-black,scrollbar:bright-black,label:white,gutter:-1"
 
 # Directory search options
-set -gx fzf_directory_opts $_fzf_colors \
+set -gx fzf_directory_opts \
     --bind 'page-up:preview-up,page-down:preview-down,ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-/:change-preview-window(down|hidden|)'
-set -gx fzf_git_log_opts $_fzf_colors
-set -gx fzf_git_status_opts $_fzf_colors
-set -gx fzf_processes_opts $_fzf_colors
-set -gx fzf_variables_opts $_fzf_colors
 
 # Clipboard command for the history copy feature (stored as list: cmd + args)
 switch $OS_KIND
@@ -53,7 +51,7 @@ end
 # "MM-DD HH:MM:SS │ command", so the same strip the plugin uses comes off first, and the
 # `string collect` keeps a multi-line command whole. The header colours keys as the
 # cheatsheet does, through _keys_style (fzf renders colour in the header without --ansi).
-set -gx fzf_history_opts $_fzf_colors \
+set -gx fzf_history_opts \
     --preview-window up:3:wrap \
     --bind "ctrl-/:toggle-preview,ctrl-y:execute-silent(printf %s (string replace -r '^.*? │ ' '' -- {} | string collect) | $_clip_cmd)+abort" \
     --header (_keys_style '`enter` insert · `tab` multiselect · `ctrl-/` preview · `ctrl-y` copy')
@@ -111,8 +109,6 @@ if status is-interactive && type -q fzf
     set -g FZF_CTRL_R_COMMAND ''
     set -g FZF_CTRL_T_COMMAND ''
     set -g FZF_ALT_C_COMMAND ''
-    set -gx FZF_CTRL_T_OPTS $_fzf_colors
-    set -gx FZF_ALT_C_OPTS $_fzf_colors
     fzf --fish | sed -n '/^### key-bindings.fish ###$/,/^### end: key-bindings.fish ###$/p' | source
 
     keys_bind ctrl-t fzf-file-widget 'Insert a file or directory path' \

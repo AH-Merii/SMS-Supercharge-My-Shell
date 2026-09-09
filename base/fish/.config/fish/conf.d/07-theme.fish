@@ -39,3 +39,9 @@ set -g fish_pager_color_description yellow --italics
 set -g fish_pager_color_prefix blue --bold --underline
 set -g fish_pager_color_progress black --background=blue --bold
 set -g fish_pager_color_selected_background --background=black
+
+# File colours for fd and eza, by slot too. Without this fd falls back to a built-in
+# 256-colour theme that prints README and broken links in slot 16, orange here, on a
+# khaki background; eza reads the same variable, so its bold executables and links are
+# kept. GNU ls is aliased to eza and needs nothing.
+set -gx LS_COLORS 'di=1;34:ln=1;36:so=35:pi=33:ex=1;32:bd=1;33:cd=1;33:su=37;41:sg=30;43:tw=30;42:ow=34;42:or=31:mi=31'

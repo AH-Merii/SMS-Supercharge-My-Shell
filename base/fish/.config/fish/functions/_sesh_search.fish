@@ -7,7 +7,7 @@ function _sesh_search --description "Search and connect to tmux sessions via ses
     end
 
     set -f result (
-        sesh list --icons | $fzf_cmd $_fzf_colors \
+        sesh list --icons | $fzf_cmd \
             --no-sort --ansi \
             --border-label " sesh " \
             --prompt "⚡  " \
