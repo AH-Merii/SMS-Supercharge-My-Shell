@@ -104,6 +104,26 @@ combined one `setup` prints cannot disagree.
 Homebrew is not installed on Arch: `brew shellenv` would put its own python, perl and git in
 front of pacman's.
 
+## Pins
+
+Sources that would otherwise float at HEAD are pinned to the latest tag at the time of
+writing, so a fresh machine gets what this one has. Find the current latest with
+`gh release list -R owner/repo --limit 3` or `gh api repos/owner/repo/tags`.
+
+| Where                             | Syntax                                               | Bump                                                                                                                                                                                                 |
+| --------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fish/fish_plugins`               | `owner/repo@ref` (tag, branch or commit, lowercase)  | edit the ref, `fisher update`                                                                                                                                                                        |
+| `tmux/plugins.tmux.conf`          | `owner/repo#ref` (tag or branch; TPM `git clone -b`) | edit the ref, `rm -rf ~/.config/tmux/plugins/<name>`, then `mise run plugins` or prefix + I. Prefix + U is a `git pull` and will not move a tag checkout. Same for the catppuccin `--branch` clone. |
+| `mise/config.toml` `github:` keys | `"github:owner/repo" = "1.2.3"` (no `v`)             | edit the version, `mise install`                                                                                                                                                                     |
+
+fish-you-should-use and clownfish have no tags and are pinned to a commit. tmux-cpu,
+tmux-primary-ip and tmux-floax have no tags either, and TPM cannot pin a commit, so they
+track their default branch. Only the `github:` mise entries are pinned: that backend
+downloads release assets with no registry checksum, while the `aqua:` and core entries get
+theirs from a registry. Freezing those too is `mise lock --global`, which writes `mise.lock`
+next to the stowed config (into the repo) and moves upgrades to `mise lock --global --bump`;
+not adopted yet.
+
 ## Stow
 
 `.stowrc` sets the target to `~`, defaults the package dir to `base/`, and turns off folding
