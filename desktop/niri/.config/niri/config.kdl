@@ -7,4 +7,5 @@ include "./cfg/layout.kdl"
 include "./cfg/rules.kdl"
 include "./cfg/misc.kdl"
 
-include "noctalia.kdl"
+// Noctalia writes this on first run (colours, wallpaper); absent until then.
+include optional=true "noctalia.kdl"

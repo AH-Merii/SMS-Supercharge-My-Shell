@@ -1,6 +1,5 @@
 // ────────────── Output Configuration ──────────────
 // You can run `niri msg outputs` to get the correct name for your displays.
-// You will have to remove "/-" and edit it before it takes effect.
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Outputs
 
 // Matched by make/model/serial rather than connector: the two USB-C ports
@@ -17,9 +16,4 @@ output "eDP-1" {
     mode "1920x1080@144.003"
     scale 1
     position x=3072 y=0 // right of the PG32UCDM's 3072px logical width
-}
-
-/- output "DP-1" {
-    mode "2560x1440@359.979" // Set resolution and refresh rate
-    scale 1 // No scaling (use 2 for HiDPI)
 }

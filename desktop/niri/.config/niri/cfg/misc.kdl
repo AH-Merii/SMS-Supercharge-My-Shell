@@ -3,11 +3,9 @@
 
     environment {
         ELECTRON_OZONE_PLATFORM_HINT "auto"
-        QT_QPA_PLATFORM "wayland"
+        QT_QPA_PLATFORM "wayland;xcb"
         QT_QPA_PLATFORMTHEME "gtk3"
         QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
-        XDG_CURRENT_DESKTOP "niri"
-        XDG_SESSION_TYPE "wayland"
     }
 
     cursor {
@@ -15,8 +13,10 @@
         xcursor-size 48
     }
 
+    // Weakens focus-stealing protection: any client can activate a window without a
+    // valid xdg-activation token. Kept because Noctalia relies on it for notification
+    // actions and window activation; drop it if Noctalia ever passes proper tokens.
     debug {
-        // Allows notification actions and window activation from Noctalia.
         honor-xdg-activation-with-invalid-serial
     }
 

@@ -129,8 +129,8 @@ the old file into the repo.
   settings UI writes to; that file is a symlink into `desktop/noctalia`, so GUI changes show
   up in `git status` and you commit the ones you mean to keep (`noctalia config validate`
   checks it). Monitor names, wallpaper paths and battery device paths in it are
-  machine-specific. niri includes `noctalia.kdl`, which Noctalia generates from the theme
-  templates; `mise run link` creates an empty placeholder for the first login.
+  machine-specific. niri optionally includes `noctalia.kdl`, which Noctalia generates from the
+  theme templates on first login (niri only logs a warning while it is absent).
   The login screen is [greetd](https://sr.ht/~kennylevinsen/greetd/) running
   [noctalia-greeter](https://github.com/noctalia-dev/noctalia-greeter) (Wayland, no Xorg)
   instead of the installer's sddm. `mise run greeter` installs the files from `system/`,
