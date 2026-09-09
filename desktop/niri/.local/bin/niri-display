@@ -1,0 +1,143 @@
+#!/bin/sh
+# niri-display — manage which screens are live.
+#
+#   niri-display cycle   both -> external only -> laptop only -> both
+#   niri-display watch   daemon: focus the external monitor when one appears
+#
+# niri's IPC has no output hotplug event (the stream only carries Workspaces/
+# Windows/Casts/Config/Keyboard/Overview changes), so `watch` keys off
+# WorkspacesChanged: niri reassigns workspaces whenever an output is added or
+# removed, so that event always fires on hotplug.
+#
+# Lid close is niri's own behaviour and is deliberately not handled here.
+
+set -eu
+
+INTERNAL_RE='^(eDP|LVDS|DSI)'
+
+notify() {
+    notify-send -a niri-display -t 2500 "Displays" "$1" 2>/dev/null || true
+}
+
+snapshot() {
+    niri msg -j outputs
+}
+
+# Outputs niri has mapped to a logical output. A disabled output reports
+# logical=null; one that vanished is absent from the map entirely.
+live_externals() {
+    printf '%s' "$1" | jq -r --arg re "$INTERNAL_RE" '
+        to_entries[] | select((.key | test($re)) | not)
+                     | select(.value.logical != null) | .key' | sort
+}
+
+all_externals() {
+    printf '%s' "$1" | jq -r --arg re "$INTERNAL_RE" '
+        to_entries[] | select((.key | test($re)) | not) | .key' | sort
+}
+
+internal_name() {
+    printf '%s' "$1" | jq -r --arg re "$INTERNAL_RE" '
+        to_entries[] | select(.key | test($re)) | .key' | head -1
+}
+
+is_on() {
+    printf '%s' "$1" | jq -e --arg n "$2" '.[$n].logical != null' >/dev/null 2>&1
+}
+
+# Human-readable label: the model for externals, which is what you actually
+# recognise ("PG32UCDM"); internal panels report junk like "0x1521".
+label() {
+    printf '%s' "$1" | jq -r --arg n "$2" '(.[$n].model // $n) | if . == "" then $n else . end'
+}
+
+cycle() {
+    json=$(snapshot)
+    internal=$(internal_name "$json")
+    externals=$(all_externals "$json")
+
+    if [ -z "$externals" ]; then
+        [ -n "$internal" ] && niri msg output "$internal" on >/dev/null 2>&1
+        notify "Laptop display only — no external monitor connected"
+        return 0
+    fi
+
+    int_on=false
+    [ -n "$internal" ] && is_on "$json" "$internal" && int_on=true
+    ext_on=false
+    for e in $externals; do
+        is_on "$json" "$e" && ext_on=true
+    done
+
+    names=""
+    for e in $externals; do
+        names="${names:+$names, }$(label "$json" "$e")"
+    done
+
+    if $int_on && $ext_on; then
+        # both -> external only
+        niri msg output "$internal" off >/dev/null 2>&1
+        notify "$names only — laptop display off"
+    elif $ext_on; then
+        # external only -> laptop only. Enable the laptop panel BEFORE
+        # disabling the externals so there is never zero live output.
+        niri msg output "$internal" on >/dev/null 2>&1
+        for e in $externals; do
+            niri msg output "$e" off >/dev/null 2>&1
+        done
+        notify "Laptop display only — $names off"
+    else
+        # laptop only (or an unexpected state) -> both
+        [ -n "$internal" ] && niri msg output "$internal" on >/dev/null 2>&1
+        for e in $externals; do
+            niri msg output "$e" on >/dev/null 2>&1
+        done
+        notify "Both displays — laptop + $names"
+    fi
+}
+
+# Focus each newly-appeared external monitor so new windows open there.
+react() {
+    json=$(snapshot)
+    cur=$(live_externals "$json")
+    [ "$cur" = "$PREV" ] && return 0
+
+    for name in $cur; do
+        case " $PREV " in
+            *" $name "*) ;;
+            *)
+                niri msg action focus-monitor "$name" >/dev/null 2>&1 || true
+                notify "$(label "$json" "$name") connected — now the primary display"
+                ;;
+        esac
+    done
+    PREV="$cur"
+}
+
+watch() {
+    PREV=""
+    react
+
+    niri msg -j event-stream | while IFS= read -r line; do
+        case "$line" in
+            *'"WorkspacesChanged"'*) ;;
+            *) continue ;;
+        esac
+        # Cheap pre-filter: only hit the outputs API when the set of outputs
+        # named by the event actually changed. WorkspacesChanged also fires on
+        # every ordinary workspace switch, which we do not care about.
+        seen=$(printf '%s' "$line" | jq -r '.WorkspacesChanged.workspaces[].output' 2>/dev/null | sort -u | tr '\n' ' ')
+        [ "$seen" = "${SEEN:-}" ] && continue
+        SEEN="$seen"
+        react
+    done
+}
+
+case "${1:-}" in
+    cycle) cycle ;;
+    watch) watch ;;
+    *)
+        printf 'usage: %s {cycle|watch}\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac
