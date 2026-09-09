@@ -17,8 +17,9 @@ system/      root-owned files, mirroring /: greetd config, its PAM stack, the gr
 pkglist/     pacman / AUR / apt package lists
 Brewfile     Homebrew packages for macOS and WSL
 mise.toml    tasks (see below); mise-tasks/ holds the scripts
-lib/         ui.sh (colours, Y/n prompt) and plan.sh (what a task would do), sourced by
-             the tasks; bootstrap.sh inlines its own copy since it runs before the clone
+lib/         ui.sh (colours, Y/n prompt), plan.sh (what a task would do) and winterm.sh (Windows
+             Terminal, from WSL), sourced by the tasks; bootstrap.sh inlines its own copy
+             since it runs before the clone
 bootstrap.sh     the one command: OS packages, clone, then `mise run setup`
 .stowrc      --target=$HOME --no-folding --dir=base
 ```
@@ -76,7 +77,7 @@ reminder until the latter is done.
 
 | Task      | What it does                                                        |
 | --------- | ------------------------------------------------------------------- |
-| `setup`   | `deps`, `link`, `tools`, `plugins`, `greeter` in order              |
+| `setup`   | `deps`, `link`, `tools`, `plugins`, `greeter`, `winterm` in order   |
 | `deps`    | OS packages: pacman/paru on Arch, apt on Debian, `brew bundle` on macOS/WSL |
 | `link`    | Stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run) |
 | `unlink`  | Remove those symlinks                                               |
@@ -84,6 +85,7 @@ reminder until the latter is done.
 | `tools`   | `mise install` everything in the global mise config                 |
 | `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
 | `greeter` | Arch desktop: greetd + noctalia-greeter as the login screen, synced to the Noctalia theme; a no-op elsewhere |
+| `winterm` | WSL: Windows Terminal gets the ghostty theme as its colour scheme, the bundled Cascadia Code NF and bold that stays bold, written into its settings.json through `/mnt/c`; a no-op elsewhere |
 | `profile` | Print the detected profile                                          |
 
 Run with `mise run <task>`; `mise tasks` lists them. Every task except `check` and
@@ -144,7 +146,11 @@ the old file into the repo.
 - **macOS.** Homebrew installs the casks in the `Brewfile` (ghostty, karabiner-elements,
   1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`.
 - **WSL2.** apt covers the base packages, Homebrew supplies mise and a current fish. The
-  clipboard goes through `clip.exe` in fish and tmux automatically.
+  clipboard goes through `clip.exe` in fish and tmux automatically. The terminal is Windows
+  Terminal, since ghostty has no Windows build: `winterm` writes the One Dark scheme, the
+  Cascadia Code NF font it ships with and `intenseTextStyle: bold` into its settings.json,
+  and fish sends the palette slots beyond sixteen with OSC 4 when it starts (see Colours).
+  `SMS_WINTERM_SETTINGS=<path>` points `winterm` at a settings.json it did not find.
 - **Servers.** `base` profile only; nothing desktop-related is linked or installed.
 
 ## Shell
@@ -182,7 +188,9 @@ these roles:
 bat's `ansi-roles.tmTheme` maps token roles to those slots and delta reads the same theme, so
 `cat`, previews and diffs share the prompt's colours. bat only sees it through its cache,
 which `mise run link` builds and mise rebuilds whenever it installs bat. Slots 16–21 exist only
-in the ghostty theme: another terminal shows xterm's black and blues there.
+in the ghostty theme, so in any other xterm-family terminal (Windows Terminal, the far end of
+ssh) fish sets them from that file with OSC 4 when it starts (`conf.d/08-palette.fish`); without
+that they would be xterm's black and blues.
 
 ### hints
 
