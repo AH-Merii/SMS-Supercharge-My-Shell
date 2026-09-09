@@ -149,39 +149,58 @@ the old file into the repo.
 
 ## Shell
 
-fish with [starship](https://starship.rs), [fisher](https://github.com/jorgebucaran/fisher)
-plugins from `fish_plugins`, and these replacements:
+fish, with [starship](https://starship.rs) for the prompt and [fisher](https://github.com/jorgebucaran/fisher)
+plugins from `fish_plugins`. Some commands are replaced outright:
 
-| Command | Replacement                                    |
-| ------- | ---------------------------------------------- |
-| `cat`   | [bat](https://github.com/sharkdp/bat)          |
+| Command | Replacement                                      |
+| ------- | ------------------------------------------------ |
+| `cat`   | [bat](https://github.com/sharkdp/bat)            |
 | `grep`  | [ripgrep](https://github.com/BurntSushi/ripgrep) |
-| `ls`    | [eza](https://github.com/eza-community/eza)    |
-| `diff`  | [delta](https://github.com/dandavison/delta)   |
+| `ls`    | [eza](https://github.com/eza-community/eza)      |
+| `diff`  | [delta](https://github.com/dandavison/delta)     |
 
-`hints` (or `Ctrl+?`) opens a searchable cheatsheet of the shell's key bindings, abbreviations,
-aliases and functions, all at once or one group per hotkey inside the picker; `hints GROUP`
-and `keys` open on one group. Enter puts the highlighted name on the command line (a key
-binding runs instead) and Alt+Enter runs it. The preview shows what an entry does and, where
-that is safe to fetch on every cursor move, the `--help` of what it runs: always for external
-commands and builtins, for a function only when its source handles the flag, coloured by bat's
-command-help syntax. Nothing is documented by hand except the key bindings: abbreviations carry
-their expansion and aliases their body, highlighted as the command line would show them, and
-functions their description; the functions group is whatever this config defines,
-autoloaded or inline in `conf.d`, minus `_` helpers and `fish_*` hooks. Bindings are read live
-from `bind --user`, so the list cannot go stale; their descriptions come from
-`keys_bind KEY COMMAND LABEL [DETAIL...]`, which binds and describes in one call so a shortcut
-cannot move without its text. Anything bound some other way still shows, marked "no
-description" and sorted first, so it gets noticed. Files whose bindings are editing behaviour
-rather than shortcuts (autopair, vi-mode paste) are excluded by name in `_hints_rows_keys`.
-fzf.fish's own defaults are disabled in `conf.d/20-fzf.fish` and re-bound there through
-`keys_bind` so they are described too, as are `Ctrl+T` and `Alt+C` from fzf's own shell
-integration (`fzf --fish`), which is loaded there without its key binds. Each group is a
+`--help` anywhere on a command line pipes that tool's help through bat, so it is coloured.
+
+### Colours
+
+One scheme, One Dark, defined once: `ghostty/themes/OneDark` is the terminal's palette, and
+every shell tool names its colours by palette slot rather than by hex. fish
+(`conf.d/07-theme.fish`), fzf, starship, tmux, bat and delta all resolve through the
+terminal, and eza, ripgrep, fd and git already did. Changing the scheme means changing that
+one file (and neovim's colorscheme, which keeps its own truecolor palette). The slots carry
+these roles:
+
+| Slot   | Role                                                          |
+| ------ | ------------------------------------------------------------- |
+| 0      | surface grey, a step above the background: selection, current line |
+| 8      | comment grey: comments, autosuggestions, fzf chrome           |
+| 9–15   | lighter tints of 1–7, so "bright" still reads as emphasis     |
+| 16     | orange: numbers and constants, starship's stash and rebase marks |
+| 17–20  | diff backgrounds: removed, added, and the changed words in each |
+| 21     | the background, for dark text on a coloured tmux tab          |
+
+bat's `ansi-roles.tmTheme` maps token roles to those slots and delta reads the same theme, so
+`cat`, previews and diffs share the prompt's colours. bat only sees it through its cache,
+which `mise run link` builds and mise rebuilds whenever it installs bat. Slots 16–21 exist only
+in the ghostty theme: another terminal shows xterm's black and blues there.
+
+### hints
+
+`hints` (or `Ctrl+?`) opens a searchable cheatsheet of key bindings, abbreviations, aliases
+and functions, all at once or one group per hotkey inside the picker; `hints GROUP` and
+`keys` open on one group. Enter puts the highlighted name on the command line (a key binding
+runs instead), Alt+Enter runs it.
+
+Nothing is written by hand except the key bindings. Abbreviations show their expansion,
+aliases their body, functions their description, and the preview adds the `--help` of what an
+entry runs when that is safe to fetch on every cursor move. Bindings are read live from
+`bind --user`, so the list cannot go stale; `keys_bind KEY COMMAND LABEL [DETAIL...]` binds
+and describes in one call, and anything bound another way still shows, marked "no
+description" and sorted first. fzf.fish's defaults are disabled in `conf.d/20-fzf.fish` and
+re-bound there through `keys_bind`, as are fzf's own `Ctrl+T` and `Alt+C`. Each group is a
 `_hints_rows_GROUP` function emitting the same row format, so a new group is one more of those.
 
-The colours are One Dark, declared as fish's colour variables in `conf.d/07-theme.fish` for
-every fish, interactive or not, so the previews fzf runs in a `fish -c` are highlighted like
-the prompt; hints and the history picker's header take their colours from the same variables.
+### Environment
 
 `$OS_KIND` (`linux`, `macos`, `wsl`) is set once in `conf.d/00-os.fish`; Homebrew, the
 1Password SSH agent socket and the clipboard command branch on it. `conf.d/01-env.fish` moves
