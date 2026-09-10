@@ -7,3 +7,4 @@
 - [PR description guidelines](pr-description-guidelines.md) — the body carries only what neither the diff nor an inline comment can say; the cause shifts by PR type.
 - [PR review comment guidelines](pr-review-comment-guidelines.md) — comment only where the code lacks the why; eight prefixes; a rotating review line; zero-width marker on agent reviews.
 - [Test fish in a private scratch tmux](test-fish-in-private-scratch-tmux.md) — `fish --private` in `tmux -L scratch`, or test commands pollute the real history.
+- [When to version a memory](when-to-version-memories.md) — portable facts go in the repo and index.md; anything true of one machine only stays local.
