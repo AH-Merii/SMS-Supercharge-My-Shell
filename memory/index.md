@@ -1,0 +1,9 @@
+- [Change only what was asked](change-only-what-was-asked.md) — no bundled while-I-am-here tweaks; they confound the test and change behaviour you did not ask for.
+- [Claude settings.json is live-symlinked](claude-config-not-stowed.md) — it is stowed and rewrites itself, so it shows dirty with no human edit; exclude it when staging.
+- [Dotfiles layers and mise](dotfiles-layers-and-mise.md) — base/desktop/macos stow layers, mise for tools, no brew on Arch, fish only.
+- [GitHub issue guidelines](github-issue-guidelines.md) — one problem per issue, pinned to a commit and version, expected vs actual, ruled-out list, linked neighbours.
+- [mise tasks in the SMS repo](mise-tasks-in-sms-repo.md) — mise is the only entry point; what each task does, the plan-then-confirm convention, and keep this table current as tasks change.
+- [Never write git config.local](git-identity-never-write-config-local.md) — identity and signing key are the user's; hand back the ggh command, approve the 1Password prompt.
+- [PR description guidelines](pr-description-guidelines.md) — the body carries only what neither the diff nor an inline comment can say; the cause shifts by PR type.
+- [PR review comment guidelines](pr-review-comment-guidelines.md) — comment only where the code lacks the why; eight prefixes; a rotating review line; zero-width marker on agent reviews.
+- [Test fish in a private scratch tmux](test-fish-in-private-scratch-tmux.md) — `fish --private` in `tmux -L scratch`, or test commands pollute the real history.

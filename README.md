@@ -12,6 +12,8 @@ base/        stow packages every machine gets: fish git nvim tmux starship lazyg
 desktop/     Linux desktop only: niri noctalia (v5, ~/.local/state/noctalia/settings.toml)
 macos/       macOS only: karabiner
 plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)
+memory/      Claude Code memories that hold on any machine; linked by `mise run memory`,
+             not stowed, since the target path is derived from the checkout's location
 system/      root-owned files, mirroring /: greetd config, its PAM stack, the greeter's
              greeter.toml. Installed by `mise run greeter`, not stowed
 pkglist/     pacman / AUR / apt package lists
@@ -25,6 +27,7 @@ bootstrap.sh     the one command: OS packages, clone, then `mise run setup`
 
 Each package mirrors `~`: `base/fish/.config/fish/...` links to `~/.config/fish/...`.
 Package READMEs: [claude](base/claude/README.md), [ccstatusline](base/ccstatusline/README.md),
+[memory](memory/README.md),
 [git](base/git/README.md), [nvim](base/nvim/README.md), [karabiner](macos/karabiner/README.md).
 
 ## Profiles
@@ -76,7 +79,7 @@ reminder until the latter is done.
 
 | Task      | What it does                                                        |
 | --------- | ------------------------------------------------------------------- |
-| `setup`   | `deps`, `link`, `tools`, `plugins`, `greeter` in order              |
+| `setup`   | `deps`, `link`, `tools`, `plugins`, `greeter`, `memory` in order    |
 | `deps`    | OS packages: pacman/paru on Arch, apt on Debian, `brew bundle` on macOS/WSL |
 | `link`    | Stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run) |
 | `unlink`  | Remove those symlinks                                               |
@@ -84,6 +87,7 @@ reminder until the latter is done.
 | `tools`   | `mise install` everything in the global mise config                 |
 | `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
 | `greeter` | Arch desktop: greetd + noctalia-greeter as the login screen, synced to the Noctalia theme; a no-op elsewhere |
+| `memory`  | Link the portable Claude Code memories into this checkout's project directory, and add any missing `MEMORY.md` lines |
 | `profile` | Print the detected profile                                          |
 
 Run with `mise run <task>`; `mise tasks` lists them. Every task except `check` and

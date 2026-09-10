@@ -346,3 +346,47 @@ plan_greeter() {
   fi
   return 0
 }
+
+# --- Claude Code memories -----------------------------------------------------------
+
+# Where Claude Code keeps this checkout's memories: the absolute path with every "/",
+# "." and "_" turned into "-" (so /home/a_merii/x -> -home-a-merii-x). Only known at run
+# time, which is why memory is a task and not a stow package.
+memory_dir() {
+  local slug=${MISE_PROJECT_ROOT//[\/._]/-}
+  printf '%s/claude/projects/%s/memory' "${XDG_CONFIG_HOME:-$HOME/.config}" "$slug"
+}
+
+# What `memory` would link. Reads the repo side only, so it is honest before the
+# project directory exists.
+plan_memory() {
+  local dir count
+  dir=$(memory_dir)
+  count=$(find "$MISE_PROJECT_ROOT/memory" -maxdepth 1 -name '*.md' \
+    ! -name README.md ! -name index.md | wc -l)
+  sms_section 'Claude memories' "$(_n "$count" 'portable memory') -> ${dir/#$HOME/\~}"
+
+  local f base
+  for f in "$MISE_PROJECT_ROOT"/memory/*.md; do
+    base=${f##*/}
+    [[ $base == README.md || $base == index.md ]] && continue
+    if [[ $(readlink "$dir/$base" 2>/dev/null) == "$f" ]]; then
+      sms_note "linked $base"
+    else
+      sms_want "$dir/$base"
+    fi
+  done
+
+  local index=$dir/MEMORY.md missing=0 target line
+  while IFS= read -r line; do
+    [[ -n $line ]] || continue
+    target=${line##*\(}
+    target=${target%%\)*}
+    grep -qF "($target)" "$index" 2>/dev/null || missing=$((missing + 1))
+  done <"$MISE_PROJECT_ROOT/memory/index.md"
+  if [[ $missing -gt 0 ]]; then
+    sms_want "$(_n "$missing" 'index line') in MEMORY.md"
+  else
+    sms_note 'MEMORY.md already indexes them'
+  fi
+}
