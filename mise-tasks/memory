@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+#MISE description="Link the portable Claude Code memories into this checkout's project directory"
+#MISE raw=true
+#
+# Claude Code derives the project directory from the checkout's absolute path, so the
+# target is only known at run time and this cannot be a stow package. Idempotent: the
+# links are rewritten every run, and index lines are appended only when missing.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=mise-tasks/profile
+source mise-tasks/profile
+# shellcheck source=lib/plan.sh
+source lib/plan.sh
+
+sms_preview plan_memory 'Link these memories?' || exit 0
+
+dir=$(memory_dir)
+mkdir -p "$dir"
+
+for f in memory/*.md; do
+  base=${f##*/}
+  [[ $base == README.md || $base == index.md ]] && continue
+  ln -sfn "$MISE_PROJECT_ROOT/$f" "$dir/$base"
+done
+
+# MEMORY.md indexes local memories too, so it is never overwritten: only lines that are
+# missing get appended, keyed by the file each one points at.
+index=$dir/MEMORY.md
+touch "$index"
+while IFS= read -r line; do
+  [[ -n $line ]] || continue
+  target=${line##*\(}
+  target=${target%%\)*}
+  grep -qF "($target)" "$index" || printf '%s\n' "$line" >>"$index"
+done <memory/index.md
+
+sms_note "memories linked into $dir"
