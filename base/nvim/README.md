@@ -1,6 +1,6 @@
  Overview
 
-This is a personal Neovim configuration focused on LSP-driven development with lazy loading and modular architecture. The config supports Go, Rust, Python, Lua, TypeScript, PHP, C/C++, and more.
+This is a personal Neovim configuration focused on LSP-driven development with lazy loading and modular architecture. The config supports Go, Rust, Python, Lua, TypeScript, PHP, Zig, Typst, and more.
 
 ## Architecture
 
@@ -8,7 +8,7 @@ This is a personal Neovim configuration focused on LSP-driven development with l
 
 The loading sequence is strictly ordered in `init.lua`:
 
-1. `core.lsp` - Configure diagnostic appearance before any LSP loads
+1. `core.lsp` - Configure diagnostic appearance and enable non-Mason LSP servers
 2. `config.options` - Set Vim options & define `mapleader`
 3. `config.keymaps` - Register global keymaps
 4. `config.autocmds` - Setup autocommands and event hooks
@@ -25,7 +25,7 @@ nvim/
 ├── lua/
 │   ├── core/                 # Core framework initialization
 │   │   ├── lazy.lua         # Plugin manager bootstrap
-│   │   └── lsp.lua          # Diagnostic configuration
+│   │   └── lsp.lua          # Diagnostics + vim.lsp.enable for non-Mason servers
 │   ├── config/              # Editor configuration
 │   │   ├── options.lua      # Vim options
 │   │   ├── keymaps.lua      # Global keymaps
@@ -33,47 +33,49 @@ nvim/
 │   │   ├── helpers.lua      # LSP debugging commands
 │   │   └── utils.lua        # Custom utilities
 │   └── plugins/             # Plugin specifications (~18 files)
-├── after/
-│   ├── ftplugin/            # Filetype-specific configs
-│   └── lsp/                 # LSP server-specific configs
-└── servers.lua              # List of LSP servers
+└── after/
+    ├── ftplugin/            # Filetype-specific configs
+    └── lsp/                 # LSP server-specific configs (after/lsp/<name>.lua)
 ```
 
 ### Module Dependencies
 
 - `config.keymaps` depends on `config.options` (needs `mapleader`)
 - `config.helpers` depends on LSP clients being loaded (deferred via `VeryLazy`)
-- All LSP configs in `after/lsp/` depend on `blink.cmp` for completion capabilities
+- `blink.cmp` merges its completion capabilities into `vim.lsp.config("*")` on load, so every server gets them without per-server code
 - Plugin files are independent but may integrate with each other
 
 ## LSP Configuration
 
-### Two-Tier System
+### How Servers Are Enabled
 
-**Tier 1: Automatic Setup** (`lua/plugins/mason.lua`)
-- Mason-LSPConfig handles installation and basic configuration
+Servers only start if something calls `vim.lsp.enable()` (see `:h lsp-config`). Two places do:
+
+**Mason-installed servers** (`lua/plugins/mason.lua`)
+- Mason-LSPConfig installs `ensure_installed` servers and auto-enables every installed Mason package that has an LSP config (including tools installed as linters/formatters, e.g. `ruff`, `biome`, `tflint`, `taplo`)
 - Mason-Tool-Installer manages formatters, linters, and debuggers
-- Servers auto-launch when filetypes are detected
 
-**Tier 2: Custom Configuration** (`after/lsp/[server].lua`)
-- Each LSP server can have a custom config file that returns server-specific options
-- These files are late-loaded after Neovim understands filetypes
-- Example servers with custom configs: `gopls.lua`, `rust-analyzer.lua`, `ts-ls.lua`, `pyrefly.lua`, `intelephense.lua`, `zls.lua`
+**Toolchain-installed servers** (`lua/core/lsp.lua`)
+- `gopls`, `rust_analyzer`, `zls`, `intelephense`, `yamlls` are expected on `$PATH` (installed by the Go/Rust/Zig toolchains, npm, composer) and enabled explicitly on `User LazyDone`, once nvim-lspconfig's defaults are on the runtimepath
+- If the binary is missing the server silently does not start (the LSP log records it; `:LspInfo` prints the log path)
+
+**Per-server overrides** (`after/lsp/<name>.lua`)
+- Merged over nvim-lspconfig's `lsp/<name>.lua` defaults and `vim.lsp.config("*")`
+- The file name must be the LSP config name, e.g. `rust_analyzer.lua`, `ts_ls.lua` (not the binary name)
+- Current overrides: `gopls`, `rust_analyzer`, `ts_ls`, `pyrefly`, `lua_ls`, `intelephense`, `zls`, `yamlls`, `tinymist`
 
 ### Adding a New LSP Server
 
-1. Add server name to `ensure_installed` in `lua/plugins/mason.lua`
-2. Optionally create `after/lsp/[server].lua` for custom settings
+1. Mason-installed: add the server name to `ensure_installed_lsps` in `lua/plugins/mason.lua`. Toolchain-installed: add it to the `vim.lsp.enable` list in `lua/core/lsp.lua`
+2. Optionally create `after/lsp/<name>.lua` for custom settings
 3. Add formatters to `lua/plugins/conform.lua` under `formatters_by_ft`
-4. Add linters to `lua/plugins/nvim-lint.lua` under `linters_by_ft`
+4. Add linters to `lua/plugins/nvim-lint.lua` under `linters_by_ft` (skip tools that already run as an LSP server, or diagnostics show up twice)
 
 ### LSP Server Config Pattern
 
-All custom LSP configs in `after/lsp/` must follow this structure:
+`after/lsp/<name>.lua` returns a `vim.lsp.Config` table; only the keys that differ from nvim-lspconfig's defaults are needed:
 
 ```lua
-local blink = require("blink.cmp")
-
 return {
     cmd = { "server-name" },
     filetypes = { "filetype1", "filetype2" },
@@ -81,19 +83,16 @@ return {
     settings = {
         -- Server-specific settings
     },
-    capabilities = vim.tbl_deep_extend(
-        "force",
-        {},
-        vim.lsp.protocol.make_client_capabilities(),
-        blink.get_lsp_capabilities(),  -- Critical for completion
-        { -- Optional additional capabilities
-            fileOperations = { didRename = true, willRename = true }
-        }
-    ),
+    -- Optional; deep-merged over Neovim's default client capabilities and blink.cmp's
+    capabilities = {
+        workspace = {
+            fileOperations = { didRename = true, willRename = true },
+        },
+    },
 }
 ```
 
-**Critical**: Always merge `blink.get_lsp_capabilities()` to enable completion.
+Do not `require("blink.cmp")` here: `blink.cmp` already registers its capabilities for all servers via `vim.lsp.config("*")`.
 
 ## Plugin Management
 
@@ -142,6 +141,8 @@ The `lua/config/helpers.lua` file provides LSP debugging commands:
 - `:LspDiagnostics` - Diagnostic summary
 - `:Status` - Full tooling status (LSP, formatters, linters, treesitter)
 
+Neovim 0.12 provides `:lsp enable|disable|restart|stop` and `:checkhealth vim.lsp` natively (nvim-lspconfig skips its `:Lsp*` commands when `:lsp` exists).
+
 The `lua/config/utils.lua` file provides utilities:
 
 - `toggle_go_test()` - Toggle between Go test/implementation files
@@ -178,15 +179,7 @@ autocmd("FileType", {
 
 ### Blink + LSP Integration
 
-Every LSP server config must merge blink completion capabilities:
-
-```lua
-local blink = require("blink.cmp")
-capabilities = vim.tbl_deep_extend("force", {},
-    vim.lsp.protocol.make_client_capabilities(),
-    blink.get_lsp_capabilities()  -- Required
-)
-```
+`blink.cmp`'s `plugin/blink-cmp.lua` runs on load and merges `get_lsp_capabilities()` into `vim.lsp.config("*")`, which every server config inherits (`:h lsp-config-merge`). Server files should not merge capabilities themselves; only add extra capabilities (e.g. `workspace.fileOperations`) when a server needs them.
 
 ### Conditional Plugin Setup
 
@@ -274,12 +267,10 @@ After modifying configuration:
 **Install missing tools**: `:Mason` (press `U` to update all)
 **Check LSP logs**: `:LspInfo` shows log path
 **Reload config**: Restart Neovim (changes to `init.lua` and core modules require restart)
-**Format file**: Handled automatically on save via Conform
-**Lint file**: Handled automatically on events via nvim-lint
+**Format file**: The `BufWritePre` autocmd in `lua/plugins/snacks.lua` calls Conform's `format_buffer()`; toggle with `<leader>Tf`
+**Lint file**: Handled automatically on open/save/InsertLeave via nvim-lint
 
 ## Notes
 
-- The `servers.lua` file is a reference list of LSP servers, not actively used by the config
-- The `nvim-notes.lua` file is a plugin spec for note-taking (vault at `~/notes`)
 - Diagnostic signs use Nerd Font icons (requires font support)
 - Leader key is set in `lua/config/options.lua` (typically `<space>`)
