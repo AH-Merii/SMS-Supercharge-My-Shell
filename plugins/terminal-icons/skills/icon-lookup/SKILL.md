@@ -2,6 +2,10 @@
 name: icon-lookup
 description: >-
   Workaround for Claude Code filtering BMP PUA Unicode (U+E000-U+F8FF). Supplementary PUA Nerd Font icons like 󰊤 󱃾 󰁹 (U+F0000+, e.g. nf-md-github, nf-md-kubernetes, nf-md-battery) can be written directly. BMP PUA icons (Powerline, Font Awesome, Devicons) require placeholder syntax like {{ U+E0A0 }} or {{ nf-fa-star }} (without spaces), which hooks auto-convert. Invoke when reading or writing Starship configs, tmux themes, shell prompts, or statuslines.
+argument-hint: "<search query or character>"
+allowed-tools:
+  - "Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/*)"
+  - "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/*)"
 ---
 
 # BMP PUA Unicode Workaround
