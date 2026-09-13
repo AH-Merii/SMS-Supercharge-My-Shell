@@ -16,7 +16,7 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({ import = "plugins" }, {
   install = {
     missing = true,
-    colorscheme = { "catppuccin" },
+    colorscheme = { "onedark" },
   },
   checker = {
     enabled = true,
