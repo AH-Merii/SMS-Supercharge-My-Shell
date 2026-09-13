@@ -21,8 +21,17 @@ source "${MISE_PROJECT_ROOT:?}/lib/ui.sh"
 # Package names from a pkglist, minus comments and blanks.
 pkgs() { grep -hv '^#' "$@" | grep -v '^$'; }
 
-# Stow package names in a layer.
-layer_pkgs() { ls -1 "$1"; }
+# Stow package names in a layer: its directories only, so a stray README or .DS_Store
+# in base/ is not handed to stow as a package. A glob rather than `find -printf`, which
+# macOS find lacks. Dotfiles are skipped, as `ls` skipped them.
+layer_pkgs() {
+  local d
+  for d in "$1"/*/; do
+    [[ -d $d ]] || continue
+    d=${d%/}
+    printf '%s\n' "${d##*/}"
+  done
+}
 
 _n() { [[ $1 == 1 ]] && printf '1 %s' "$2" || printf '%d %ss' "$1" "$2"; }
 
@@ -167,10 +176,13 @@ plan_os_packages() {
 # Everything `stow -R` would object to, as "backup <relpath>" and "warn <message>"
 # lines. One dry run, callers filter. Pure: no side effects.
 #
-# The four backup patterns are stow's four "something is already there" messages
+# The five backup patterns are stow's five "something is already there" messages
 # (Stow.pm, 2.4.1). The "stowed to a different package" one carries a `path => dest`
 # payload, hence the ` =>.*` strip -- without it the layout-change case that this
-# repo's link header promises to handle would capture junk.
+# repo's link header promises to handle would capture junk. The "directory over
+# existing non-directory" one only fires under --adopt (without it a file in the way
+# of a directory gets the "neither a link nor a directory" message); it is listed so
+# the set tracks Stow.pm rather than today's .stowrc.
 stow_issues() {
   local layer=$1
   shift
@@ -181,10 +193,20 @@ stow_issues() {
     -e 's/^ *\* existing target is stowed to a different package: (.+) =>.*$/backup \1/p' \
     -e 's/^ *\* cannot stow [^ ]+ over existing target (.+) since neither a link nor a directory.*$/backup \1/p' \
     -e 's/^ *\* cannot stow non-directory .+ over existing directory target (.+)$/backup \1/p' \
+    -e 's/^ *\* cannot stow directory .+ over existing non-directory target (.+)$/backup \1/p' \
     -e 's/^ *\* (source is an absolute symlink .+)$/warn \1/p'
 }
 
 stow_conflicts() { stow_issues "$@" | sed -n 's/^backup //p'; }
+
+# Where `link` moves a conflicting path: <path>.bak, or <path>.bak.<timestamp> when a
+# .bak is already there, so a re-run never overwrites the first backup. The preview
+# prints this too, so the two cannot disagree on the name.
+backup_path() {
+  local bak=$1.bak
+  if [[ -e $bak || -L $bak ]]; then bak="$bak.$(date +%Y%m%d%H%M%S)"; fi
+  printf '%s\n' "$bak"
+}
 
 plan_links() {
   sms_section stow "$(_n ${#layers[@]} layer)"
@@ -209,13 +231,15 @@ plan_links() {
 
   # Capped: on a machine with a lot of pre-existing config this list runs to hundreds of
   # lines and buries the rest of the plan.
-  local shown=0 c
+  local shown=0 c bak
   for c in "${conflicts[@]}"; do
     [[ $shown -ge $_SMS_BACKUP_MAX ]] && break
+    bak=$(backup_path "$HOME/$c")
+    bak=${bak#"$HOME/"}
     if [[ $shown == 0 ]]; then
-      printf '    %s%-18s%s %s -> %s.bak\n' "$c_yellow" 'will back up' "$c_reset" "$c" "$c"
+      printf '    %s%-18s%s %s -> %s\n' "$c_yellow" 'will back up' "$c_reset" "$c" "$bak"
     else
-      printf '    %-18s %s -> %s.bak\n' '' "$c" "$c"
+      printf '    %-18s %s -> %s\n' '' "$c" "$bak"
     fi
     shown=$((shown + 1))
   done
