@@ -169,6 +169,9 @@ case $mgr in
     if [ "$os" = Darwin ]; then
       xcode-select -p >/dev/null 2>&1 || xcode-select --install
     elif command -v apt-get >/dev/null 2>&1; then
+      # Homebrew's own Linux prerequisites (its installer needs a git), not this repo's
+      # package sources: on WSL fish, git and stow come from brew, and `mise run deps`
+      # leaves them to the Brewfile rather than apt (pkglist/debian.txt).
       sudo apt-get update
       # shellcheck disable=SC2086
       sudo apt-get install $confirm_yes build-essential procps curl file git

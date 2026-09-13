@@ -21,6 +21,29 @@ source "${MISE_PROJECT_ROOT:?}/lib/ui.sh"
 # Package names from a pkglist, minus comments and blanks.
 pkgs() { grep -hv '^#' "$@" | grep -v '^$'; }
 
+# Formulae the Brewfile installs on every OS: the top-level `brew "x"` lines. Indented
+# ones sit inside `if OS.mac?` and never reach WSL, so they are left out. Read with sed
+# rather than `brew bundle list`: the plan runs before brew exists on a fresh machine.
+brew_formulae() { sed -nE 's/^brew "([^"]+)".*/\1/p' "$MISE_PROJECT_ROOT/Brewfile"; }
+
+# What pkglist/debian.txt and the Brewfile both name (fish, git, stow, tmux, ...).
+apt_brew_overlap() {
+  pkgs "$MISE_PROJECT_ROOT/pkglist/debian.txt" | grep -xF -f <(brew_formulae) || true
+}
+
+# The apt list for this machine. debian.txt is the full list for Debian/Ubuntu servers;
+# on WSL (use_brew, from mise-tasks/profile) the Brewfile is the source for everything it
+# names, so those come out here rather than being installed from both and leaving PATH
+# order to pick a fish. deps and _plan_apt both go through this, so the preview and the
+# action cannot disagree (#71).
+apt_pkgs() {
+  if use_brew; then
+    pkgs "$MISE_PROJECT_ROOT/pkglist/debian.txt" | grep -vxF -f <(brew_formulae) || true
+  else
+    pkgs "$MISE_PROJECT_ROOT/pkglist/debian.txt"
+  fi
+}
+
 # Stow package names in a layer.
 layer_pkgs() { ls -1 "$1"; }
 
@@ -106,9 +129,10 @@ _plan_aur() {
 }
 
 _plan_apt() {
-  local wanted=() installed
-  mapfile -t wanted < <(pkgs "$MISE_PROJECT_ROOT/pkglist/debian.txt")
-  [[ ${#wanted[@]} -gt 0 ]] || return 0
+  local wanted=() installed brewed=()
+  mapfile -t wanted < <(apt_pkgs)
+  use_brew && mapfile -t brewed < <(apt_brew_overlap)
+  [[ ${#wanted[@]} -gt 0 || ${#brewed[@]} -gt 0 ]] || return 0
 
   # db:Status-Status, not a bare -W: the latter reports removed-but-not-purged packages
   # as installed. ${Package}, not ${binary:Package}: that appends :i386-style suffixes
@@ -118,6 +142,9 @@ _plan_apt() {
   _split_by_installed "$installed" "${wanted[@]}"
   sms_section apt "$(_n ${#wanted[@]} package)"
   _show_split
+  # Say where the rest of debian.txt went, so the short list does not read as a bug.
+  [[ ${#brewed[@]} -gt 0 ]] && sms_note "left to Homebrew (Brewfile): ${brewed[*]}"
+  return 0
 }
 
 _plan_brew() {
@@ -157,8 +184,18 @@ plan_os_packages() {
       sms_note 'dpkg-query unavailable; cannot tell what is already installed'
     fi
   fi
-  # Separate `if`, mirroring deps: brew bundle runs whenever brew is on PATH.
-  command -v brew >/dev/null 2>&1 && _plan_brew
+  # Separate `if`, mirroring deps: brew bundle runs on macOS and WSL (use_brew) when
+  # brew is on PATH. A linuxbrew on Arch is deliberately ignored, so no section for it.
+  if use_brew; then
+    if command -v brew >/dev/null 2>&1; then
+      _plan_brew
+    else
+      # Same shape as the paru case: bootstrap.sh installs brew here, but if it is
+      # missing deps skips the Brewfile in silence, so say so up front.
+      sms_section Homebrew 'brew not installed'
+      sms_warn 'brew not installed - the Brewfile will be SKIPPED'
+    fi
+  fi
   return 0
 }
 
