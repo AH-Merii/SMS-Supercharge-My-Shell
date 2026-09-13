@@ -86,10 +86,12 @@ need to fold into the same script or be abandoned.
 
 ### 3. Claude Code notification hooks
 
-`claude/.config/claude/hooks/notify-lib.sh` is tmux-specific in two places: `get_pane_label()`
-calls `tmux display-message -t "$TMUX_PANE" -p '#S:#I (#W)'`, and `send_osc()` wraps OSC 777 in
-a **tmux DCS envelope** (`\033Ptmux;\033\033]777;notify;...`). Both are inert under herdr. This
-is the counterpart of `allow-passthrough on` / `monitor-bell on` in `settings.tmux.conf`.
+The hook library that used to live at `claude/.config/claude/hooks/notify-lib.sh` (removed in
+c18d042 when the claude package collapsed to a single `settings.json`) was tmux-specific in two
+places: `get_pane_label()` called `tmux display-message -t "$TMUX_PANE" -p '#S:#I (#W)'`, and
+`send_osc()` wrapped OSC 777 in a **tmux DCS envelope** (`\033Ptmux;\033\033]777;notify;...`).
+Both would be inert under herdr. What remains on the tmux side is `monitor-bell on` /
+`bell-action any` in `settings.tmux.conf`, which relay a BEL from a pane to the outer terminal.
 
 Replacing them is arguably an **upgrade**: herdr has native `[ui.toast]` (delivery
 `herdr` / `terminal` / `system` / `off`, positioning, delay) and `[ui.sound]` with per-agent
@@ -125,8 +127,10 @@ only genuine deviations produces a much smaller, cleaner file.
 
 ## Packaging notes
 
-`herdr` (0.8.2 at time of writing, Apache-2.0) is installed by mise, as a plain entry in the
-global config at `base/mise/.config/mise/config.toml`, the same way as `sesh`.
+`herdr` (0.8.2 at time of writing, Apache-2.0) is installed by mise from the global config at
+`base/mise/.config/mise/config.toml`, pinned to the `aqua:herdrdev/herdr` backend (upstream moved
+orgs, so the registry name is not trusted). `sesh` in the same file uses the `github:` backend
+(`github:joshmedeski/sesh`), so the two entries are not interchangeable.
 
 The `herdr` package **must** use `--no-folding` (the root `.stowrc` applies it to every
 package). herdr writes
