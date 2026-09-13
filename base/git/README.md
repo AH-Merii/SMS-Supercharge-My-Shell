@@ -31,7 +31,7 @@ The [settings reference](#settings-reference) at the bottom documents every opti
 | `who`       | `shortlog -sne`               | List contributors                            |
 | `changes`   | `log -p --follow`             | Full diff history of a file                  |
 | `filelog`   | `log --oneline --follow`      | Compact commit history of a file             |
-| `untrack`   | `rm --cache --`               | Stop tracking file, keep on disk             |
+| `untrack`   | `rm --cached --`              | Stop tracking file, keep on disk             |
 | `aliases`   | list all aliases              | Show all aliases                             |
 
 ## Post-Clone Setup
@@ -42,7 +42,7 @@ Nothing machine-specific is tracked. The stowed `config` ends with an include of
 | File                            | Tracked | Holds                                                        |
 | ------------------------------- | ------- | ------------------------------------------------------------ |
 | `~/.config/git/config`          | yes     | aliases, pager, signing policy — everything shared           |
-| `~/.config/git/config.local`    | no      | `[user]`, `[gpg "ssh"]`, `[url]` rewrites, org `includeIf`s  |
+| `~/.config/git/config.local`    | no      | `[user]`, `[gpg "ssh"]`, `[url]` rewrites, org `includeIf`s, any `safe.directory` entries |
 | `~/.config/git/config-<org>`    | no      | per-org `[user]` override, pulled in by an `includeIf`       |
 | `~/.config/git/allowed_signers` | no      | public keys for local signature verification                 |
 
@@ -273,10 +273,11 @@ Settings in `config` grouped by impact.
 
 ### Fetch & Cleanup
 
-| Setting           | Value  | Description                         |
-| ----------------- | ------ | ----------------------------------- |
-| `fetch.prune`     | `true` | Auto-remove deleted remote branches |
-| `fetch.pruneTags` | `true` | Also prune deleted tags             |
+| Setting       | Value  | Description                         |
+| ------------- | ------ | ----------------------------------- |
+| `fetch.prune` | `true` | Auto-remove deleted remote branches |
+
+`fetch.pruneTags` is deliberately left unset. Combined with `fetch.prune` it deletes every local tag the remote does not have — including tags you created and have not pushed yet — on every `git fetch` and `git pull`, and with `fetch.all` a tag that exists on only one remote is deleted and re-fetched on alternate fetches. Run `git fetch --prune --prune-tags <remote>` when you actually want a 1:1 tag mirror of one remote.
 
 ### Merge & Conflict
 
@@ -308,7 +309,7 @@ The config uses [delta](https://github.com/dandavison/delta) as the pager.
 
 #### Responsive Side-by-Side
 
-Side-by-side is defined as a named feature (`[delta "side-by-side"]`) and toggled via `core.pager`. The pager command checks terminal width at invocation — side-by-side activates when the terminal is >= 160 columns wide.
+Side-by-side is defined as a named feature (`[delta "side-by-side"]`) and toggled via `core.pager`. The pager command checks terminal width at invocation — side-by-side activates when the terminal is >= 160 columns wide. When `tput` cannot determine the width (no `TERM`, e.g. from a cron job or an editor integration) the check falls back to 0 columns and plain delta is used, without printing an error.
 
 #### Interactive Diff
 
@@ -333,11 +334,26 @@ This means `git clone git@github.com:Acme/repo.git` works directly — git rewri
 
 ### Misc
 
-| Setting                        | Value                                          | Description              |
-| ------------------------------ | ---------------------------------------------- | ------------------------ |
-| `core.editor`                  | `nvim`                                         | Default editor           |
-| `safe.directory`               | `*`                                            | Trust all directories    |
-| `versionsort.prereleaseSuffix` | `-pre`, `.pre`, `-beta`, `.beta`, `-rc`, `.rc` | Pre-release tag ordering |
+| Setting              | Value                                          | Description              |
+| -------------------- | ---------------------------------------------- | ------------------------ |
+| `core.editor`        | `nvim`                                         | Default editor           |
+| `versionsort.suffix` | `-pre`, `.pre`, `-beta`, `.beta`, `-rc`, `.rc` | Pre-release tag ordering |
+
+`safe.directory` is deliberately not set. `safe.directory = *` switches off git's repository-ownership check, so a repo owned by another user (a mounted drive, `/opt`, a checkout created under `sudo`) could set `core.fsmonitor`, `core.pager`, `core.sshCommand` or `diff.external` to commands that run on `git status` or `git log` — that is CVE-2022-24765, and `core.fsmonitor = true` above makes it the easy path. If a machine has a legitimately shared repo, add an explicit entry to the untracked `config.local`, which is included from the global config and so counts as protected configuration:
+
+```bash
+git config --file ~/.config/git/config.local --add safe.directory /path/to/repo
+```
+
+### Credentials, LFS & Includes
+
+| Setting                                       | Value                        | Description                                                                                       |
+| --------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| `credential "https://github.com".helper`      | `!gh auth git-credential`    | HTTPS auth for github.com via `gh`; an empty `helper =` first clears any system-wide helper       |
+| `credential "https://gist.github.com".helper` | `!gh auth git-credential`    | Same for gists                                                                                    |
+| `filter "lfs".clean` / `smudge` / `process`   | `git-lfs ...`                | Git LFS filter driver                                                                             |
+| `filter "lfs".required`                       | `true`                       | Fail the checkout instead of silently writing pointer files when `git-lfs` is missing             |
+| `include.path`                                | `~/.config/git/config.local` | Machine-specific identity, signing key and org routing written by `ggh`; skipped while it is absent |
 
 ### Commit Signing (SSH)
 
@@ -348,7 +364,7 @@ This means `git clone git@github.com:Acme/repo.git` works directly — git rewri
 | `gpg.ssh.program`            | (platform-specific)             | Direct path to op-ssh-sign binary (1Password only) |
 | `gpg.ssh.allowedSignersFile` | `~/.config/git/allowed_signers` | Local signature verification                       |
 
-Signing is configured by `ggh init` or `ggh op init`, which write these keys to the untracked `config.local`. The `user.signingkey` points to a public key file on disk (e.g., `~/.ssh/github_jane`). Git reads the key from the file, so re-exporting the `.pub` file after key rotation is enough — no config change needed.
+Signing is configured by `ggh init` or `ggh op init`, which write these keys to the untracked `config.local`. The `user.signingkey` points to a public key file on disk (e.g., `~/.ssh/github_jane-doe` for `--name "Jane Doe"` — `ggh` lowercases the name and replaces runs of non-alphanumerics with `-`). Git reads the key from that file at signing time, so `config.local` does not change when a key is rotated. Rotation is not just re-exporting the file, though: the matching line in `~/.config/git/allowed_signers` must be replaced too (or local `git log --show-signature` reports the new commits as unverified), and the new public key has to be uploaded to GitHub as a signing key. Re-running `ggh init` / `ggh op init` does all three.
 
 #### 1Password SSH Key Routing
 
@@ -359,7 +375,7 @@ Standard SSH keys use `IdentityFile` pointing at the private key. 1Password keys
 | `IdentityFile`   | Points at public key file — selects which key the agent uses   |
 | `IdentitiesOnly` | Prevents agent from offering other keys                        |
 
-`ggh op init` saves the public key to `~/.ssh/github_<name>` (no `.pub` extension, `0o600` permissions) and configures the SSH host block. `ggh op add` does the same for a separate org key (`~/.ssh/github_<org>`, item `GitHub <org>` by default) behind the `github-<org>` host alias, and adds the per-org identity via `includeIf`.
+`ggh op init` saves the public key to `~/.ssh/github_<name>` (`<name>` is the `--name` value lowercased with non-alphanumeric runs replaced by `-`, so `Jane Doe` gives `github_jane-doe`; no `.pub` extension, `0o600` permissions) and configures the SSH host block. `ggh op add` does the same for a separate org key (`~/.ssh/github_<org>`, same lowercasing, item `GitHub <org>` by default) behind the `github-<org>` host alias, and adds the per-org identity via `includeIf`.
 
 #### 1Password Agent Config (`agent.toml`)
 
@@ -380,6 +396,7 @@ An earlier layout kept `[user]` inside the tracked `config` and relied on a clea
 ### Requirements
 
 - [delta](https://github.com/dandavison/delta) - Diff viewer with syntax highlighting
+- [git-lfs](https://git-lfs.com/) - Installed by mise (`base/mise/.config/mise/config.toml`). `config` declares the LFS filter with `required = true`, so cloning or checking out an LFS repo fails loudly instead of silently leaving pointer files if `git-lfs` is missing
 - `ggh` - GitHub SSH setup CLI (included in `~/.local/bin`)
 - [1Password](https://1password.com/) desktop app with SSH agent enabled (for 1Password signing mode)
 - `git-whichside` - Conflict helper showing ours vs theirs (included in `~/.local/bin`)

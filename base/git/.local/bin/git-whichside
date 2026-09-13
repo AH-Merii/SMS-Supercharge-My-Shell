@@ -4,15 +4,16 @@
 
 set -e
 
-# Colors
-bold='\033[1m'
-red='\033[31m'
-green='\033[32m'
-yellow='\033[33m'
-blue='\033[34m'
-cyan='\033[36m'
-dim='\033[2m'
-reset='\033[0m'
+# Colors. Built with printf so the variables hold real escape bytes: bash's
+# echo (which /bin/sh is on Arch) does not expand '\033' from a variable.
+bold=$(printf '\033[1m')
+red=$(printf '\033[31m')
+green=$(printf '\033[32m')
+yellow=$(printf '\033[33m')
+blue=$(printf '\033[34m')
+cyan=$(printf '\033[36m')
+dim=$(printf '\033[2m')
+reset=$(printf '\033[0m')
 
 git_dir=$(git rev-parse --git-dir 2>/dev/null) || {
     echo "${red}error:${reset} not a git repository" >&2
