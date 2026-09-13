@@ -59,12 +59,6 @@ start = [ "control-center", "group:g3" ]
 [battery]
 warning_threshold = 15
 
-    [battery.device."/org/freedesktop/UPower/devices/bluetooth_generic_dev_78_C1_1D_46_93_B4"]
-    warning_threshold = 15
-
-    [battery.device."/org/freedesktop/UPower/devices/headset_dev_78_C1_1D_46_93_B4"]
-    warning_threshold = 15
-
 [brightness]
 enable_ddcutil = true
 
@@ -218,14 +212,12 @@ password_style = "random"
 polkit_agent = true
 settings_show_advanced = true
 telemetry_enabled = true
-ui_scale = 1.1500000096857548
 
     [shell.greeter_sync]
     auto_sync = true
 
     [shell.launcher]
     app_grid = true
-    session_search = true
 
     [shell.panel]
     control_center_position = "top_right"
@@ -244,7 +236,6 @@ ui_scale = 1.1500000096857548
 [theme]
 builtin = "Tokyo-Night"
 community_palette = "ADW"
-custom_palette = "wallhaven-2em38y-fs"
 source = "community"
 
     [theme.templates]
@@ -256,16 +247,16 @@ fill_mode = "fit"
 transition_on_startup = true
 
     [wallpaper.default]
-    path = "/home/a_merii/Pictures/Wallpapers/wallhaven-9mjoy1.png"
+    path = "~/Pictures/Wallpapers/wallhaven-9mjoy1.png"
 
     [wallpaper.last]
-    path = "/home/a_merii/Pictures/Wallpapers/wallhaven-9mjoy1.png"
+    path = "~/Pictures/Wallpapers/wallhaven-9mjoy1.png"
 
     [wallpaper.monitors.DP-1]
-    path = "/home/a_merii/Pictures/Wallpapers/wallhaven-9mjoy1.png"
+    path = "~/Pictures/Wallpapers/wallhaven-9mjoy1.png"
 
     [wallpaper.monitors.eDP-1]
-    path = "/home/a_merii/Pictures/Wallpapers/wallhaven-9mjoy1.png"
+    path = "~/Pictures/Wallpapers/wallhaven-9mjoy1.png"
 
 [widget.active_window]
 capsule_padding = 7.0
@@ -285,8 +276,6 @@ color = "#CEBE3B"
 
 [widget.cat]
 audio_spectrum = true
-capsule = true
-color = "#025C61"
 tappy_mode = true
 type = "noctalia/bongocat:cat"
 
@@ -354,5 +343,4 @@ capsule = true
 color = "tertiary"
 
 [widget.wallhaven]
-color = "#E987EB"
 type = "noctalia/wallhaven:wallhaven"

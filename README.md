@@ -132,9 +132,17 @@ the old file into the repo.
   Noctalia v5 keeps its settings in `~/.local/state/noctalia/settings.toml`, which the
   settings UI writes to; that file is a symlink into `desktop/noctalia`, so GUI changes show
   up in `git status` and you commit the ones you mean to keep (`noctalia config validate`
-  checks it). Monitor names, wallpaper paths and battery device paths in it are
-  machine-specific. niri includes `noctalia.kdl`, which Noctalia generates from the theme
-  templates; `mise run link` creates an empty placeholder for the first login.
+  checks it). The file stays tracked because it is the only place the bar layout, widgets
+  and theme live, but some sections are per-machine: `[wallpaper.*]` paths (Noctalia expands
+  a leading `~` when it reads them; picking a wallpaper in the UI writes the absolute path
+  back), the `lockscreen-login-box@<output>` entries under `[lockscreen_widgets]` and the
+  `[wallpaper.monitors.<output>]` tables (one per connector name), and `[battery.device.*]`
+  UPower paths that the app adds for whatever headset or mouse is paired. Commit those only
+  when you mean to. `enable_ddcutil = true` drives external-monitor brightness through
+  `ddcutil` (in `pkglist/arch-desktop.txt`); it needs your user in the `i2c` group
+  (`sudo usermod -aG i2c $USER`, then log out and in). niri includes `noctalia.kdl`, which
+  Noctalia generates from the theme templates; `mise run link` creates an empty placeholder
+  for the first login.
   The login screen is [greetd](https://sr.ht/~kennylevinsen/greetd/) running
   [noctalia-greeter](https://github.com/noctalia-dev/noctalia-greeter) (Wayland, no Xorg)
   instead of the installer's sddm. `mise run greeter` installs the files from `system/`,

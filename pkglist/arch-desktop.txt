@@ -12,6 +12,9 @@ xdg-desktop-portal-gtk
 gnome-keyring
 adw-gtk-theme
 brightnessctl
+# External-monitor brightness over DDC/CI (settings.toml has enable_ddcutil = true); the user
+# also needs to be in the i2c group, see README "Machine notes".
+ddcutil
 wl-clipboard
 cliphist
 ghostty
