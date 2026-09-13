@@ -174,6 +174,14 @@ am_or_rebase = "[󰇰 󰜘 am/rebase](yellow)"
 # ----------------------------
 # Python + pixi + uv + hatch
 # Priority: pixi > uv, pixi > hatch
+#
+# Custom-module notes (starship semantics, see src/modules/custom.rs):
+# - `shell = ["sh"]`, not ["sh", "-c"]: starship pipes `when`/`command` in on
+#   stdin, so `sh -c` with no argument exits 2 ("option requires an argument")
+#   and the module silently never shows. Without `shell`, STARSHIP_SHELL (fish)
+#   is used and every check pays ~140ms of fish startup.
+# - `detect_files` is OR'd with `when`; a match skips `when` entirely. So the
+#   pixi-priority checks only hold if the file gate lives inside `when`.
 # ----------------------------
 [python]
 symbol = " "
@@ -188,26 +196,30 @@ style = "yellow"
 format = "[$symbol($environment )]($style)"
 
 [custom.uv]
-detect_files = ["uv.lock"]
 when = """
+test -f uv.lock && \
 ! test -f pixi.toml && \
 ! test -f pixi.lock && \
 ! (test -f pyproject.toml && grep -q '\\[tool\\.pixi\\]' pyproject.toml)
 """
 command = 'echo "󰬂󰬃"'
-shell = ["sh", "-c"]
+shell = ["sh"]
 format = "[$output](bold purple) "
 description = "uv project (uv.lock present, no pixi)"
 
 [custom.hatch]
+# Deliberately no detect_files: ["pyproject.toml"] would show this in every
+# pyproject dir (detect match skips `when`). The file test is first in `when`
+# so non-Python dirs exit before any grep.
 when = """
+(test -f hatch.toml || test -f pyproject.toml) && \
 ! test -f pixi.toml && \
 ! test -f pixi.lock && \
-! (test -f pyproject.toml && grep -q '\\[tool\\.pixi\\]' pyproject.toml) && \
-(test -f hatch.toml || (test -f pyproject.toml && grep -q '\\[tool\\.hatch\\]' pyproject.toml))
+! grep -q '\\[tool\\.pixi\\]' pyproject.toml 2>/dev/null && \
+(test -f hatch.toml || grep -q '\\[tool\\.hatch\\]' pyproject.toml 2>/dev/null)
 """
 command = 'echo "󰪯 hatch"'
-shell = ["sh", "-c"]
+shell = ["sh"]
 format = "[$output](bold yellow) "
 description = "hatch project (hatch.toml or [tool.hatch], no pixi)"
 
@@ -277,9 +289,23 @@ style = "blue"
 format = "[$symbol$context]($style) "
 
 [custom.podman_connection]
-detect_files = ["Containerfile", "Dockerfile", "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"]
+# Shows the running `podman machine` (a macOS/Windows VM concept; on Linux
+# podman runs natively, so this normally stays hidden there). Kept enabled on
+# every OS because the `when` below is cheap: it is a ~2ms `sh` spawn that
+# bails before touching podman unless podman is installed AND the cwd holds a
+# container file. Previously `when` ran under fish (~140-160ms per prompt in
+# every directory, even with podman absent), and the detect_files list
+# short-circuited `when`, rendering a bogus " podman" in any Dockerfile/
+# compose dir. Both gates now live in `when` (see notes above [custom.uv]).
+shell = ["sh"]
+when = '''
+command -v podman >/dev/null 2>&1 || exit 1
+test -f Containerfile || test -f Dockerfile ||
+test -f docker-compose.yml || test -f docker-compose.yaml ||
+test -f compose.yml || test -f compose.yaml || exit 1
+podman machine list --format "{{.Running}}" 2>/dev/null | grep -q true
+'''
 command = 'name=$(podman machine list --format "{{if eq .Running true}}{{.Name}}{{end}}" | tr -d "\n*" | sed "s/podman-machine-//"); [ "$name" != "default" ] && echo "$name"'
-when = 'podman machine list --format "{{.Running}}" 2>/dev/null | grep -q true'
 symbol = " "
 style = "purple"
 format = "[$symbol]($style)[podman( $output)]($style) "
