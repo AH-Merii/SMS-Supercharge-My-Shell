@@ -31,7 +31,12 @@ return {
     -- valid colors for reference: `azure`, `blue`, `cyan`, `green`, `grey`, `orange`, `purple`, `red`, `yellow`
     spec = {
       {
+        { "<leader>f", group = "Find", icon = { icon = "󰈞", color = "blue" } },
+        { "<leader>s", group = "Search", icon = { icon = "󰞷", color = "cyan" } },
+        { "<leader>T", group = "Toggle Features", icon = { icon = "", color = "yellow" } },
+        { "<leader>p", group = "Profiler / PR Review", icon = { icon = "󰔟", color = "yellow" } },
         { "<leader>l", group = "LSP", icon = { icon = "󱍔", color = "purple" } },
+        { "<leader>la", icon = { icon = "󰌵", color = "yellow" }, mode = { "n", "x" } },
         { "<leader>c", group = "LSP (Trouble)", icon = { icon = "󰙎", color = "purple" } },
         { "<leader>t", group = "Test", icon = { icon = "󰙨", color = "cyan" } },
         { "<leader>D", group = "Debugger", icon = { icon = "", color = "purple" } },
@@ -65,10 +70,6 @@ return {
         { "zx", desc = "Recompute folds", icon = { icon = "", color = "yellow" } },
         { "zd", desc = "Delete fold under cursor", icon = { icon = "󰗨", color = "red" } },
         { "zD", desc = "Delete all manual folds", icon = { icon = "󰗩", color = "red" } },
-
-        -- Navigation
-        { "]z", desc = "fold", icon = { icon = "", color = "yellow" } },
-        { "[z", desc = "fold", icon = { icon = "", color = "yellow" } },
 
         -- Global toggle
         { "zi", desc = "Toggle folding (foldenable)" },
@@ -126,10 +127,6 @@ return {
         { "]z", icon = { icon = "", color = "yellow" }, desc = " fold end" },
         { "[z", icon = { icon = "", color = "yellow" }, desc = "fold start" },
 
-        -- Location list
-        { "]l", icon = { icon = "", color = "yellow" }, desc = " loclist item" },
-        { "[l", icon = { icon = "", color = "yellow" }, desc = "loclist item" },
-
         -- Quickfix list
         { "]q", icon = { icon = "", color = "yellow" }, desc = " quickfix item" },
         { "[q", icon = { icon = "", color = "yellow" }, desc = "quickfix item" },
@@ -152,7 +149,6 @@ return {
         { "]Q", hidden = true },
         { "]<C-T>", hidden = true },
         { "]<C-Q>", hidden = true },
-        { "]<C-T>", hidden = true },
         { "]<C-L>", hidden = true },
         { "]%", hidden = true },
 
@@ -164,7 +160,6 @@ return {
         { "[Q", hidden = true },
         { "[<C-T>", hidden = true },
         { "[<C-Q>", hidden = true },
-        { "[<C-T>", hidden = true },
         { "[<C-L>", hidden = true },
         { "[%", hidden = true },
       },
