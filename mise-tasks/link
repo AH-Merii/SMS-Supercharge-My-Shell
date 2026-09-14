@@ -25,11 +25,9 @@ backup_conflicts() {
   local rel path bak
   while IFS= read -r rel; do
     [[ -n $rel ]] || continue
-    path="$target/$rel" bak="$target/$rel.bak"
+    path="$target/$rel"
     [[ -e $path || -L $path ]] || continue
-    if [[ -e $bak || -L $bak ]]; then
-      bak="$bak.$(date +%Y%m%d%H%M%S)"
-    fi
+    bak=$(backup_path "$path")
     mv "$path" "$bak"
     sms_note "backed up $rel -> ${bak#"$target/"}"
   done < <(stow_conflicts "$@")
