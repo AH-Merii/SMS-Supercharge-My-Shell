@@ -27,6 +27,15 @@ fi
 if command -v pacman >/dev/null 2>&1; then
   lists=(pkglist/arch.txt)
   [[ $profile == desktop ]] && lists+=(pkglist/arch-desktop.txt)
+  # A name no enabled repo carries (noctalia-greeter outside CachyOS, say) would abort
+  # the whole -Syu after the database sync. Stop before pacman, with the name.
+  # shellcheck disable=SC2046
+  unavailable=$(pacman_unavailable $(pkgs "${lists[@]}"))
+  if [[ -n $unavailable ]]; then
+    sms_err "not in any enabled pacman repo: ${unavailable//$'\n'/ }"
+    sms_err 'enable the repo it comes from or drop it from pkglist/ (see the comments there)'
+    exit 1
+  fi
   # -Syu: sync the package database and upgrade first; a plain -S against a stale
   # database 404s on mirrors, and a partial -Sy install is unsupported on Arch.
   # shellcheck disable=SC2046,SC2086

@@ -2,7 +2,8 @@
 
 Dotfiles for fish, neovim, tmux, git and a niri desktop. Configs are linked into `~` with
 [GNU Stow](https://www.gnu.org/software/stow/); tools are installed with
-[mise](https://mise.jdx.dev). Runs on Arch (CachyOS), macOS, WSL2 and headless Linux servers.
+[mise](https://mise.jdx.dev). Runs on Arch (CachyOS), macOS, WSL2 and headless Linux servers
+(Arch or Debian; Fedora is not supported).
 
 ## Layout
 
@@ -50,8 +51,9 @@ curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/m
 ./bootstrap.sh                                                                                          # existing checkout
 ```
 
-`bootstrap.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
-macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` if needed, and runs
+`bootstrap.sh` installs git, stow, fish and mise with the OS package manager (pacman, apt,
+or Homebrew on macOS and WSL; on Arch that is a `pacman -Syu`, a full system upgrade, and
+the plan says so), clones the repo to `~/SMS-Supercharge-My-Shell` if needed, and runs
 `mise run setup`: OS packages, symlinks, tools, plugins and, on the Arch desktop, the login
 screen. Files already sitting where a link belongs are moved to `<name>.bak`, never
 overwritten.
@@ -144,7 +146,9 @@ the old file into the repo.
   installed, as it has on a fresh machine). `settings.toml` keeps that sync automatic and turns on
   Noctalia's polkit agent, which is what puts the sync's password prompt on screen.
   `/etc/pam.d/greetd` carries `pam_gnome_keyring`, so the login password still unlocks the
-  keyring.
+  keyring. `noctalia-greeter` comes from the `cachyos` repo only; on vanilla Arch enable
+  that repo or drop it from `pkglist/arch-desktop.txt`, otherwise `deps` stops with the
+  name before pacman runs.
 - **macOS.** Homebrew installs the casks in the `Brewfile` (ghostty, karabiner-elements,
   1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`.
 - **WSL2.** apt covers the base packages, Homebrew supplies mise and a current fish. The

@@ -65,6 +65,17 @@ _show_split() {
 
 # --- OS packages ------------------------------------------------------------------
 
+# Names in "$@" that no enabled pacman repo carries, one per line. `pacman -Sp` rather
+# than `-Si`: it resolves groups as well as plain names, needs no root, and is one call
+# for the whole list. Only "target not found" counts; any other failure is pacman's to
+# explain when deps runs it for real. Empty when there is no sync database yet, since
+# then everything would be "not found".
+pacman_unavailable() {
+  [[ -n $(pacman -Sl 2>/dev/null | head -n1) ]] || return 0
+  LC_ALL=C pacman -Sp --print-format '%n' "$@" 2>&1 >/dev/null |
+    sed -n 's/^error: target not found: //p' || true
+}
+
 _plan_pacman() {
   local lists=("$MISE_PROJECT_ROOT/pkglist/arch.txt") wanted=() missing
   [[ $profile == desktop ]] && lists+=("$MISE_PROJECT_ROOT/pkglist/arch-desktop.txt")
@@ -79,6 +90,14 @@ _plan_pacman() {
   # `deps` runs `pacman -Syu`, a full system upgrade, not just these N packages.
   sms_section pacman "full system upgrade (-Syu) + $(_n ${#_want[@]} 'new package')"
   _show_split
+
+  # One name no enabled repo carries aborts the whole -Syu with "target not found",
+  # after the database sync. Flag it here; deps refuses before touching pacman.
+  local unavailable
+  unavailable=$(pacman_unavailable "${wanted[@]}")
+  if [[ -n $unavailable ]]; then
+    sms_err "not in any enabled pacman repo (deps will stop): ${unavailable//$'\n'/ }"
+  fi
 }
 
 _plan_aur() {
