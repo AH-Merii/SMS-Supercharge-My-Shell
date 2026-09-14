@@ -13,6 +13,8 @@ return {
 
     -- Language-specific debuggers
     "leoluz/nvim-dap-go", -- Golang
+    -- lazy = true: its rockspec makes lazy.nvim treat it as a top-level (eager) spec otherwise
+    { "mfussenegger/nvim-dap-python", lazy = true }, -- Python (debugpy via Mason)
 
     -- Shows variable values inline as virtual text
     "theHamsta/nvim-dap-virtual-text",
@@ -115,5 +117,9 @@ return {
         -- detached = vim.fn.has 'win32' == 0,
       },
     })
+
+    -- Python: use Mason's debugpy venv, fall back to whatever python3 is on PATH
+    local mason_debugpy = vim.fn.stdpath("data") .. "/mason/packages/debugpy/venv/bin/python"
+    require("dap-python").setup(vim.fn.executable(mason_debugpy) == 1 and mason_debugpy or "python3")
   end,
 }

@@ -3,6 +3,7 @@ return {
   -- Neovim notifications and LSP progress messages
   {
     "j-hui/fidget.nvim",
+    opts = {},
   },
 
   -- Heuristically set buffer options
@@ -17,16 +18,20 @@ return {
   },
 
   {
-    "echasnovski/mini.nvim",
+    "echasnovski/mini.surround",
     event = "VeryLazy",
-    dependencies = {
-      { "echasnovski/mini.icons", lazy = true, opts = {} },
-    },
-    config = function() require("mini.surround").setup() end,
+    opts = {},
   },
 
   {
-    "nvim-tree/nvim-web-devicons",
+    "echasnovski/mini.icons",
+    event = "VeryLazy", -- load early enough that the devicons mock is in place for cmd-loaded plugins
+    opts = {},
+    config = function(_, opts)
+      require("mini.icons").setup(opts)
+      -- Serve plugins that only know nvim-web-devicons (e.g. diffview).
+      MiniIcons.mock_nvim_web_devicons()
+    end,
   },
 
   {

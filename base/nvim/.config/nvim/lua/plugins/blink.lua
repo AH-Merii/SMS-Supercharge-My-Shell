@@ -23,7 +23,7 @@ local function highlight_color(ctx)
 end
 
 return {
-  { "L3MON4D3/LuaSnip", keys = {} },
+  { "L3MON4D3/LuaSnip", lazy = true },
   {
     "saghen/blink.cmp",
     dependencies = {
@@ -34,9 +34,6 @@ return {
       require("blink.cmp").setup({
         snippets = { preset = "luasnip" },
         sources = {
-          per_filetype = {
-            codecompanion = { "codecompanion" },
-          },
           default = { "lazydev", "lsp", "path", "snippets", "buffer" },
           providers = {
             lazydev = {
@@ -80,8 +77,8 @@ return {
               components = {
                 -- customize the drawing of kind icons
                 kind_icon = {
-                  text = function(ctx) text_color(ctx) end,
-                  highlight = function(ctx) highlight_color(ctx) end,
+                  text = text_color,
+                  highlight = highlight_color,
                 },
               },
               columns = {

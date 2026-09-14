@@ -76,6 +76,7 @@ return {
   ---------------------------------------------------------------------------
   {
     "mason-org/mason-lspconfig.nvim",
+    lazy = false, -- `keys` would otherwise make this lazy; it must run setup() at startup
     dependencies = {
       "mason-org/mason.nvim",
       "neovim/nvim-lspconfig",
@@ -105,45 +106,5 @@ return {
     opts = {
       ensure_installed = ensure_installed_formatters_linters,
     },
-  },
-
-  ---------------------------------------------------------------------------
-  -- DAP (Python)
-  ---------------------------------------------------------------------------
-  {
-    "mfussenegger/nvim-dap",
-    optional = true,
-  },
-
-  ---------------------------------------------------------------------------
-  -- Mason integration for DAP (optional)
-  ---------------------------------------------------------------------------
-  {
-    "jay-babu/mason-nvim-dap.nvim",
-    optional = true,
-    dependencies = {
-      "mason-org/mason.nvim",
-      "mfussenegger/nvim-dap",
-    },
-    opts = {
-      automatic_installation = true,
-    },
-  },
-
-  ---------------------------------------------------------------------------
-  -- Mason integration for linters/formatters (optional)
-  ---------------------------------------------------------------------------
-  {
-    "rshkarin/mason-nvim-lint",
-    optional = true,
-    dependencies = { "mason-org/mason.nvim" },
-    opts = {},
-  },
-
-  {
-    "zapling/mason-conform.nvim",
-    optional = true,
-    dependencies = { "mason-org/mason.nvim" },
-    opts = {},
   },
 }

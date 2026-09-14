@@ -5,12 +5,12 @@ return {
     keys = {
       {
         "[g",
-        function() require("gitsigns").prev_hunk({ navigation_message = false }) end,
+        function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end,
         desc = "Prev Hunk",
       },
       {
         "]g",
-        function() require("gitsigns").next_hunk({ navigation_message = false }) end,
+        function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end,
         desc = "Next Hunk",
       },
 
@@ -43,8 +43,8 @@ return {
       },
       {
         "<leader>Gu",
-        function() require("gitsigns").undo_stage_hunk() end,
-        desc = "Undo Stage Hunk",
+        function() require("gitsigns").stage_hunk() end, -- stage_hunk toggles: unstages a staged hunk
+        desc = "Unstage Hunk",
       },
 
       {
@@ -107,11 +107,7 @@ return {
       local ok, wk = pcall(require, "which-key")
       if ok then
         wk.add({
-          -- high level group for Git actions (capital G to mirror your <leader>T etc.)
-          { "<leader>G", group = "Git (Actions)", icon = { icon = "", color = "cyan" } },
-          { "<leader>g", group = "Git (Inspect)", icon = { icon = "", color = "cyan" } },
-
-          -- actions
+          -- <leader>G / <leader>g groups are registered in snacks.lua
           { "<leader>Gs", icon = { icon = "", color = "green" } }, -- stage hunk
           { "<leader>Gu", icon = { icon = "", color = "yellow" } }, -- undo stage
           { "<leader>Gr", icon = { icon = "󰁯", color = "orange" } }, -- reset hunk
@@ -129,7 +125,6 @@ return {
 
   {
     "sindrets/diffview.nvim",
-    event = "VeryLazy",
     cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewToggleFiles", "DiffviewFocusFiles" },
   },
 
