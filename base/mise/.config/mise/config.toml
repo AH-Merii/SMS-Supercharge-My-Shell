@@ -42,6 +42,8 @@ bottom = "latest"
 fastfetch = "latest"
 shellcheck = "latest"
 shfmt = "latest"
+# nvim-treesitter (main) shells out to the tree-sitter CLI to build parsers
+tree-sitter = "latest"
 "github:YS-L/csvlens" = "latest"
 # standalone review TUI (`tuicr -w`, `tuicr pr <n>`); not a pager — delta stays core.pager.
 # Built from main, not the github: release backend: 0.25.0 tags a submitted comment with
