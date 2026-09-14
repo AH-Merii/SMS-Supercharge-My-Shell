@@ -2,9 +2,12 @@
 - [Claude settings.json is live-symlinked](claude-config-not-stowed.md) — it is stowed and rewrites itself, so it shows dirty with no human edit; exclude it when staging.
 - [Dotfiles layers and mise](dotfiles-layers-and-mise.md) — base/desktop/macos stow layers, mise for tools, no brew on Arch, fish only.
 - [GitHub issue guidelines](github-issue-guidelines.md) — one problem per issue, pinned to a commit and version, expected vs actual, ruled-out list, linked neighbours.
+- [How my writing should read](how-my-writing-should-read.md) — read before writing a PR body, review comment, issue or reply: first person, purpose before technique, every referent named, the user's register.
+- [Landing a PR](landing-a-pr.md) — rebase onto latest main right before merging; squash by default, rebase-and-merge when commits are worth keeping, merge commits only when forced.
 - [mise tasks in the SMS repo](mise-tasks-in-sms-repo.md) — mise is the only entry point; what each task does, the plan-then-confirm convention, and keep this table current as tasks change.
 - [Never write git config.local](git-identity-never-write-config-local.md) — identity and signing key are the user's; hand back the ggh command, approve the 1Password prompt.
 - [PR description guidelines](pr-description-guidelines.md) — the body carries only what neither the diff nor an inline comment can say; the cause shifts by PR type.
 - [PR review comment guidelines](pr-review-comment-guidelines.md) — comment only where the code lacks the why; eight prefixes; a rotating review line; zero-width marker on agent reviews.
 - [Test fish in a private scratch tmux](test-fish-in-private-scratch-tmux.md) — `fish --private` in `tmux -L scratch`, or test commands pollute the real history.
+- [When a pull conflicts](when-a-pull-conflicts.md) — rebase and replay; resolve what is clear, delegate a quick check when it is not, ask when still unsure.
 - [When to version a memory](when-to-version-memories.md) — portable facts go in the repo and index.md; anything true of one machine only stays local.
