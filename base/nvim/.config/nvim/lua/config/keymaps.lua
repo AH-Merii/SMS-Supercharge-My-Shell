@@ -10,8 +10,8 @@ keymap("v", "J", ":m '>+1<CR>gv", { desc = "Move line down", silent = true })
 keymap("v", "K", ":m '<-2<CR>gv", { desc = "Move line up", silent = true })
 
 -- Fast saving
-keymap("n", "<leader>w", ":write!<CR>", silent_desc("Save file"))
-keymap("n", "<leader>q", ":q!<CR>", silent_desc("Quit without saving"))
+keymap("n", "<leader>w", ":write<CR>", silent_desc("Save file"))
+keymap("n", "<leader>q", ":q<CR>", silent_desc("Quit"))
 
 -- Remap for dealing with visual line wraps -> respects wraps
 keymap("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Move up" })
@@ -22,14 +22,14 @@ keymap("v", "<", function()
   local ok, snacks = pcall(require, "snacks")
   if ok and snacks and snacks.indent then
     local buf = vim.api.nvim_get_current_buf()
-    local prev_state = vim.b[buf].snacks_indent_animate
-    vim.b[buf].snacks_indent_animate = false
+    local prev_state = vim.b[buf].snacks_animate_indent
+    vim.b[buf].snacks_animate_indent = false
 
     -- Perform normal indent and stay in visual mode
     vim.cmd("normal! <gv")
 
     -- Restore animation after short delay
-    vim.defer_fn(function() vim.b[buf].snacks_indent_animate = prev_state end, 30)
+    vim.defer_fn(function() vim.b[buf].snacks_animate_indent = prev_state end, 30)
   else
     vim.cmd("normal! <gv")
   end
@@ -39,12 +39,12 @@ keymap("v", ">", function()
   local ok, snacks = pcall(require, "snacks")
   if ok and snacks and snacks.indent then
     local buf = vim.api.nvim_get_current_buf()
-    local prev_state = vim.b[buf].snacks_indent_animate
-    vim.b[buf].snacks_indent_animate = false
+    local prev_state = vim.b[buf].snacks_animate_indent
+    vim.b[buf].snacks_animate_indent = false
 
     vim.cmd("normal! >gv")
 
-    vim.defer_fn(function() vim.b[buf].snacks_indent_animate = prev_state end, 30)
+    vim.defer_fn(function() vim.b[buf].snacks_animate_indent = prev_state end, 30)
   else
     vim.cmd("normal! >gv")
   end
@@ -54,11 +54,11 @@ end, desc("Indent right"))
 keymap("v", "p", '"_dP', silent_desc("Paste without yanking"))
 keymap("v", "P", '"_dP', silent_desc("Paste without yanking"))
 
--- Panes resizing
-keymap("n", "+", ":vertical resize +5<CR>", silent_desc("Increase width"))
-keymap("n", "-", ":vertical resize -5<CR>", silent_desc("Decrease width"))
-keymap("n", "=", ":resize +5<CR>", silent_desc("Increase height"))
-keymap("n", "_", ":resize -5<CR>", silent_desc("Decrease height"))
+-- Panes resizing (Ctrl + arrows, so =, +, -, _ keep their default meaning)
+keymap("n", "<C-Up>", ":resize +5<CR>", silent_desc("Increase height"))
+keymap("n", "<C-Down>", ":resize -5<CR>", silent_desc("Decrease height"))
+keymap("n", "<C-Right>", ":vertical resize +5<CR>", silent_desc("Increase width"))
+keymap("n", "<C-Left>", ":vertical resize -5<CR>", silent_desc("Decrease width"))
 
 -- Split line with X
 keymap("n", "X", ":keeppatterns substitute/\\s*\\%#\\s*/\\r/e <bar> normal! ==^<cr>", silent_desc("Split line at cursor"))
@@ -74,6 +74,9 @@ keymap("n", "<A-c>", '"_c', silent_desc("Change to black hole register"))
 
 -- Delete using black hole register
 keymap("n", "<A-d>", '"_d', silent_desc("Delete to black hole register"))
+
+-- LSP code action (the built-in `gra` also works; this puts it under the <leader>l group)
+keymap({ "n", "x" }, "<leader>la", function() vim.lsp.buf.code_action() end, silent_desc("Code Action"))
 
 -- Run commands and source files without restarting neovim
 keymap("n", "<space>%", "<cmd>source %<CR>", desc("Source current file"))

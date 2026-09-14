@@ -103,8 +103,8 @@ return {
     { "gD", function() Snacks.picker.lsp_declarations() end, desc = "Declaration" },
     { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Definition" },
     { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Implementations" },
-    { "gr", function() Snacks.picker.lsp_references() end, desc = "References", nowait = true },
-    { "gt", function() Snacks.picker.lsp_type_definitions() end, desc = "Type Definition" },
+    { "gr", function() Snacks.picker.lsp_references() end, desc = "References" },
+    { "gy", function() Snacks.picker.lsp_type_definitions() end, desc = "Type Definition" },
     { "gCi", function() Snacks.picker.lsp_incoming_calls() end, desc = "Incoming Calls" },
     { "gCo", function() Snacks.picker.lsp_outgoing_calls() end, desc = "Outgoing Calls" },
 
@@ -131,12 +131,7 @@ return {
     local ok, wk = pcall(require, "which-key")
     if ok then
       wk.add({
-        -- Groups
-        { "<leader>f", group = "Find", icon = { icon = "󰈞", color = "blue" } },
-        { "<leader>s", group = "Search", icon = { icon = "󰞷", color = "cyan" } },
-        { "<leader>G", group = "Git (Actions)", icon = { icon = "", color = "cyan" } },
-        { "<leader>g", group = "Git (Inspect)", icon = { icon = "", color = "cyan" } },
-        { "<leader>T", group = "Toggle Features", icon = { icon = "", color = "yellow" } },
+        -- Groups (<leader>f/s/T/p) live in which-key.lua; <leader>g/G in git.lua
 
         -- find
         { "<leader>ff", icon = { icon = "󰈞", color = "blue" } },
@@ -186,7 +181,7 @@ return {
         { "gD", icon = { icon = "󱈸", color = "purple" } },
         { "gr", icon = { icon = "", color = "purple" } },
         { "gI", icon = { icon = "󰡱", color = "purple" } },
-        { "gt", icon = { icon = "", color = "purple" } },
+        { "gy", icon = { icon = "", color = "purple" } },
 
         { "gC", group = "calls", icon = { icon = "󰃻", color = "yellow" } },
         { "gCi", icon = { icon = "󰃺", color = "cyan" } },
@@ -222,7 +217,7 @@ return {
         _G.dd = function(...) Snacks.debug.inspect(...) end
         _G.bt = function() Snacks.debug.backtrace() end
 
-        vim._print = function(_, ...) _G.dd(...) end
+        vim.print = _G.dd
 
         local function setup_gitsigns_toggle()
           local ok, gs = pcall(require, "gitsigns")
@@ -246,18 +241,16 @@ return {
             vim.g.snacks_format_on_save = true
           end
 
-          -- Try to load conform and its helper once
+          -- Try to load conform once
           local ok, conform = pcall(require, "conform")
-          if not ok or type(conform.format_buffer) ~= "function" then
-            vim.notify(
-              "conform.nvim or conform.format_buffer() not available. Skipping format-on-save toggle.",
-              vim.log.levels.WARN,
-              { title = "Format on Save" }
-            )
+          if not ok then
+            vim.notify("conform.nvim not available. Skipping format-on-save toggle.", vim.log.levels.WARN, { title = "Format on Save" })
             return
           end
 
-          -- Autoformat on save, using *synchronous* formatting
+          -- Autoformat on save, using *synchronous* formatting.
+          -- conform.format (not the chatty format_buffer wrapper) + quiet = true so saving does not
+          -- notify; LSP fallback still applies via default_format_opts.lsp_format.
           autocmd("BufWritePre", {
             group = user_group,
             pattern = "*",
@@ -265,7 +258,7 @@ return {
               if not vim.g.snacks_format_on_save then
                 return
               end
-              conform.format_buffer({ async = false, quiet = false, bufnr = 0 })
+              conform.format({ async = false, quiet = true, bufnr = 0 })
             end,
           })
 

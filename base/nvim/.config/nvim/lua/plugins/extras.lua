@@ -113,7 +113,7 @@ return {
       pr_list_limit = 250,
     },
     keys = {
-      { "<leader>p", "<cmd>PRReviewMenu<cr>", desc = "PR Review Menu" },
+      { "<leader>pr", "<cmd>PRReviewMenu<cr>", desc = "PR Review Menu" },
       { "<leader>p", ":<C-u>'<,'>PRSuggestChange<CR>", desc = "Suggest change", mode = "v" },
     },
   },
