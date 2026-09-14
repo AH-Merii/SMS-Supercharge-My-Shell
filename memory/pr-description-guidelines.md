@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: dcbb0b42-7add-4235-834a-ec4ddee33004
-  modified: 2026-09-09
+  modified: 2026-09-14
 ---
 
 A PR body answers one question: why does this change exist, and what shaped it. Its
@@ -23,8 +23,8 @@ The test for every sentence is where else the reader could learn it:
   usual sign.
 - **An inline comment would tell them.** Cut, and make sure the comment exists. Each
   callout under [[pr-review-comment-guidelines]] has a home on its hunk: a choice made without asking
-  is a `coinflip:`, a rejected approach a `nope:`, an untested path a `yolo:`, a workaround
-  an `iou:`. The review line already tells the reader those exist, so repeating them in the
+  is a `[COINFLIP]`, a rejected approach a `[NOPE]`, an untested path a `[YOLO]`, a workaround
+  an `[IOU]`. The review line already tells the reader those exist, so repeating them in the
   body means meeting each point twice.
 - **Neither would.** Keep. This is the cause (what is broken or missing, and what made it
   so), the consequence (what it does to the system), and the constraint that shaped the
@@ -46,7 +46,7 @@ sentence must contain:
   PR carries it.
 - **refactor:** a friction: what change the old shape made hard or risky. Say behaviour is
   unchanged, since that is the reader's first question; where it is not, that is a
-  `coinflip:` on the hunk.
+  `[COINFLIP]` on the hunk.
 - **chore:** usually external: upstream moved, a pin went stale, a tool grew a flag. "Why
   now" is the whole body; a bump can be one sentence.
 - **docs:** a reader who got it wrong or could not find it, and what they did as a result.

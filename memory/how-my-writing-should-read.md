@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: 729541b5-93a7-433a-8023-12f62068b0c2
-  modified: 2026-09-10
+  modified: 2026-09-14
 ---
 
 Everything below exists to fix one failure. Optimising for brevity cuts context along
@@ -28,7 +28,7 @@ own work_, so they do not apply to rule statements, templates, or checklists.
    > I still need to check whether this is the most idiomatic approach, however I'm
    > leaving this as is for now, since it works. This is something we can look into later.
 
-   (The prefix still applies, see [[pr-review-comment-guidelines]] for which one and what
+   (The tag still applies, see [[pr-review-comment-guidelines]] for which one and what
    it obliges you to add.)
 
    Ownership matters most where the decision went against what the user asked for. Say
@@ -93,13 +93,14 @@ own work_, so they do not apply to rule statements, templates, or checklists.
 11. **Write in the user's register.** Including product names
     ("windows terminal", "powershell"), contractions, plain connectives, the occasional
     trailing "..". Sounding like the user costs nothing on a review comment, since the
-    prefix is what marks the comment as the assistant's. Basically try to sound more human.
+    user reads it and submits it under their own name. Basically try to sound more human.
 12. **No em dashes.** A comma, a full stop, or brackets. This applies to everything,
     including these memory files.
 
-The `btw:` / `coinflip:` / `nope:` openers on the examples below come from a closed
-vocabulary of eight prefixes, defined with the rules for choosing between them in
-[[pr-review-comment-guidelines]].
+The `[BTW]` / `[COINFLIP]` / `[NOPE]` openers on the examples below come from a closed
+vocabulary of eight tags, defined with the rules for choosing between them in
+[[pr-review-comment-guidelines]]. The examples predate the bracketed form and are shown
+in today's spelling, since what they are here to teach is the prose, not the opener.
 
 ## How to apply
 
@@ -121,12 +122,12 @@ examples is real.
 
 **Owning the call.**
 
-> Posted: `coinflip: Cascadia Code NF rather than the CaskaydiaCove Nerd Font you asked
+> Posted: `[COINFLIP] Cascadia Code NF rather than the CaskaydiaCove Nerd Font you asked
 for. Same cursive italic and ligatures, but it is Microsoft's own build and ships
 inside Windows Terminal, so nothing gets installed on Windows. CaskaydiaCove is not in
 winget, so it would be a manual download per machine. One string here flips it back.`
 
-> Rewritten: `coinflip: I opted to use cascadia code nf instead of caskaydia cove nf (the
+> Rewritten: `[COINFLIP] I opted to use cascadia code nf instead of caskaydia cove nf (the
 community nerd fonts patch) since the former ships with windows terminal and the latter
 does not.`
 >
@@ -143,27 +144,27 @@ the choice matters.
 
 **Naming the referent.**
 
-> Posted: `btw: after tools, not next to deps, because the render needs jq and jq arrives
+> Posted: `[BTW] after tools, not next to deps, because the render needs jq and jq arrives
 with the tools step.`
 
-> Rewritten: `btw: the order here actually matters, (the render) needs jq as a dependency
+> Rewritten: `[BTW] the order here actually matters, (the render) needs jq as a dependency
 and jq is installed as part of the tools step.`
 
 The user bracketed `(the render)` to show they had no idea what it referred to, so the
 brackets are the complaint and not the fix. "The render" was a phrase from the assistant's
 head, not from the diff. What should have been posted:
 
-> `btw: the order here actually matters. mise run winterm renders settings.json with jq,
+> `[BTW] the order here actually matters. mise run winterm renders settings.json with jq,
 since jq is a prerequisite we need to make sure to install it prior to running the winterm step.`
 
 **A topic sentence, then the context.** The user started this one and stopped partway,
 so it is a fragment rather than a full rewrite, kept because the opener is the whole point:
 
-> Posted: `nope: PowerShell for %LOCALAPPDATA% takes about a second to start, and wslvar
+> Posted: `[NOPE] PowerShell for %LOCALAPPDATA% takes about a second to start, and wslvar
 is not on every distro. cmd.exe answers instantly, at the cost of the two quirks handled
 on the next line.`
 
-> The user's opener: `nope: I opted to use cmd instead of powershell. While it's not
+> The user's opener: `[NOPE] I opted to use cmd instead of powershell. While it's not
 immediately obvious powershell takes about a second to ... etc..`
 
 Eight words tell the reader what the comment is about and name both sides of the choice.
@@ -172,7 +173,7 @@ on the next line" without saying what they are, and drops `wslvar` in with no gl
 user's instruction alongside it: summarise what the function was doing and why. Written
 out in full, by the assistant rather than quoted from the user, in the same register:
 
-> `nope: I opted to use cmd.exe instead of powershell for reading %LOCALAPPDATA%.`
+> `[NOPE] I opted to use cmd.exe instead of powershell for reading %LOCALAPPDATA%.`
 >
 > `the function needs that path to find windows terminal's settings.json from inside wsl,
 and I wanted it without adding a visible pause to every run. powershell.exe is the
@@ -187,7 +188,7 @@ trailing CR and the UNC warning are the price, and the next line strips both.`
 **Purpose before technique.** No rewrite for this one. The user narrated their own
 confusion instead, thought by thought as they read it, which is the more useful record.
 
-> Posted: `btw: compared after a key-sorted round trip through jq rather than byte for
+> Posted: `[BTW] compared after a key-sorted round trip through jq rather than byte for
 byte. Windows Terminal rewrites the file in its own layout whenever the settings UI
 saves, so a byte comparison would report a change and back the file up on every run.`
 

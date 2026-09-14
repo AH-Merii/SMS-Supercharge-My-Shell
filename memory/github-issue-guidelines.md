@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: 729541b5-93a7-433a-8023-12f62068b0c2
-  modified: 2026-09-10T09:45:40.142Z
+  modified: 2026-09-14
 ---
 
 An issue is a note to whoever fixes it, which may be you in six months with no memory of
@@ -24,7 +24,7 @@ today. Give them one problem, what it should do instead, and a way to see it the
 - **Cause and fix only when checked**, and say how. A hunch is fine if called a hunch.
   Ghostty closes confident unverified root-cause reports as slop and thanks the ones that
   link a test.
-- **Link the neighbours.** Where it came from (the PR, the `nextpr:` or `hmm:` comment,
+- **Link the neighbours.** Where it came from (the PR, the `[NEXTPR]` or `[HMMM]` comment,
   the discussion) and any issue it blocks, duplicates, or shares a cause with.
 
 Write plainly and stop when the content stops. Cut every sentence the eventual fix's diff
