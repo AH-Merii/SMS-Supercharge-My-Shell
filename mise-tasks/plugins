@@ -8,13 +8,16 @@ source lib/plan.sh
 
 sms_preview plan_plugins 'Install these plugins?' || exit 0
 
+# Only the first, bootstrapping copy of fisher is pinned; `fisher update` then follows
+# fish_plugins. Bump: `gh release list -R jorgebucaran/fisher` (README, "Install").
+fisher_tag=4.4.8
 if command -v fish >/dev/null 2>&1; then
-  fish -c '
+  fish -c "
     if not functions -q fisher
-      curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
+      curl -fsSL https://raw.githubusercontent.com/jorgebucaran/fisher/$fisher_tag/functions/fisher.fish | source
       and fisher install jorgebucaran/fisher
     end
-    fisher update'
+    fisher update"
 fi
 
 tpm="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm"
