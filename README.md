@@ -147,7 +147,9 @@ the old file into the repo.
   keyring.
 - **macOS.** Homebrew installs the casks in the `Brewfile` (ghostty, karabiner-elements,
   1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`.
-- **WSL2.** apt covers the base packages, Homebrew supplies mise and a current fish. The
+- **WSL2.** Homebrew supplies mise and everything else the `Brewfile` names (fish, git,
+  stow, tmux, gnupg, luarocks, wget: Ubuntu's fish is too old); `deps` installs from
+  `pkglist/debian.txt` only what the Brewfile does not, so no package has two sources. The
   clipboard goes through `clip.exe` in fish and tmux automatically.
 - **Servers.** `base` profile only; nothing desktop-related is linked or installed.
 

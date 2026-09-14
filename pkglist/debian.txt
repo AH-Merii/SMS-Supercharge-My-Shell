@@ -1,5 +1,7 @@
-# apt packages for the base profile on Debian/Ubuntu (servers, WSL).
-# On WSL the Brewfile supplies mise and a current fish; here apt covers the rest.
+# apt packages for the base profile on Debian/Ubuntu.
+# Servers install all of it. On WSL the Brewfile is the source for everything it also
+# names (fish, git, stow, tmux, gnupg, luarocks, wget: Ubuntu's fish is too old), and
+# `deps` drops those from this list (apt_pkgs in lib/plan.sh), so apt only covers the rest.
 build-essential
 curl
 git
