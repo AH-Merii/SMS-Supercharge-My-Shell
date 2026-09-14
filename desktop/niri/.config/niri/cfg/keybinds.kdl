@@ -166,7 +166,7 @@ binds {
     Mod+CTRL+R                          hotkey-overlay-title="Cycle Window Height Presets" { switch-preset-window-height; }
     // niri binds run a single action, and there is no reset-column-width, so
     // resetting both axes has to go through niri msg.
-    Mod+Shift+R                         hotkey-overlay-title="Reset Window Size" { spawn "sh" "-c" "niri msg action set-column-width 50%; niri msg action reset-window-height"; }
+    Mod+Shift+R                         hotkey-overlay-title="Reset Window Size" { spawn-sh "niri msg action set-column-width 50%; niri msg action reset-window-height"; }
 
     // ─── Modes ───
     Mod+T                               hotkey-overlay-title="Toggle Floating Window" { toggle-window-floating; }

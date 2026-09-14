@@ -18,6 +18,4 @@
 
         // Explicit so Mod+Shift+R has a well-defined width to reset to.
         default-column-width { proportion 0.5; }
-
-        struts {}
     }

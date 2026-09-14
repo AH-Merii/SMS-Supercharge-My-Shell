@@ -56,9 +56,6 @@ if [[ -z $flags ]] && command -v bat >/dev/null 2>&1; then
 fi
 
 if [[ -z $flags && " ${layers[*]} " == *" desktop "* ]]; then
-  # niri includes noctalia.kdl, which Noctalia generates on first run
-  mkdir -p "$target/.config/niri"
-  touch "$target/.config/niri/noctalia.kdl"
   # pick up a relinked settings.toml without a re-login
   if command -v noctalia >/dev/null 2>&1 && pgrep -x noctalia >/dev/null 2>&1; then
     noctalia msg config-reload >/dev/null 2>&1 || true
