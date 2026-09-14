@@ -1,24 +1,53 @@
 ---
 name: pr-review-comment-guidelines
-description: "How and when to leave inline PR review comments: only where the code does not show the why, one of eight prefixes (btw coinflip nope hmm yolo iou nextpr maybelater), a short human review line built from their counts, and a zero-width marker that tells agent reviews from the user's"
+description: "How and when to leave inline PR review comments, read before commenting on PRs"
 metadata:
   node_type: memory
   type: feedback
   originSessionId: dcbb0b42-7add-4235-834a-ec4ddee33004
-  modified: 2026-09-10T09:58:28.600Z
+  modified: 2026-09-10
 ---
 
 Agent-written PR reviews are inline comments on hunks, posted as one review. No per-hunk
-rule: a comment only where the code and its own comments do not show the why. Each
-comment starts with exactly one lowercase prefix and a colon, which is how the user tells
-agent comments from their own (the user never opens a comment with these words):
+rule: a comment only where the code and its own comments do not show the why.
+Read the code's own comments before writing, since the why is often already there, one
+line up.
+
+A comment exists to carry something the reader would be worse off not knowing. Find that
+thing, confirm it is true, then look for a prefix. If one fits, use it. If none fits,
+that is information rather than a problem to route around: say the thing plainly under
+the nearest prefix, or leave the comment unwritten. Never the other way round. A prefix
+is a form with a slot in it, `nope:` wants an approach that failed, `yolo:` wants an
+untested path, `iou:` wants an exit condition, and starting from the prefix means filling
+that slot whether or not anything real goes in it. That is how a small true point grows
+into a comment-shaped story.
+
+A claim that something matters needs the context that makes it matter. "slow",
+"expensive", "on every call" mean nothing on their own. Say how often and in what
+situation, and let that settle whether the cost is real. "twice, in a task you run by
+hand when provisioning a machine" kills the argument. "on every keystroke, through a
+neovim hook" makes it, with no number anywhere. An exact count is good when you have one,
+and the sequence of events is enough when you don't. If you can give neither, the cost is
+not a justification, so do not use it as one. The same holds for "fragile" and
+"confusing": fragile when what changes, confusing to whom.
+
+An inline comment is for what is anchored to that hunk. A caveat true of the whole PR,
+untested everywhere or a constraint that shaped every file, belongs in the PR description
+instead. The test: could the reader act on it by looking only at this hunk? How the
+comment itself should be worded is [[how-my-writing-should-read]], which applies to every
+comment here.
+
+Each comment starts with exactly one lowercase prefix and a colon, which is how the user
+tells agent comments from their own (the user never opens a comment with these words):
 
 - `btw:` context not in the code, nothing to do. A non-obvious reason, an interesting
   one, or what someone without this thread's context would need to follow the change.
 - `coinflip:` a choice made without asking, with the alternative. Read before merging.
 - `nope:` an obvious approach tried or considered, and what broke.
 - `hmm:` needs the reviewer's answer.
-- `yolo:` shipped without running on the target; say what was verified instead.
+- `yolo:` shipped without running on the target; say what is untested and how the
+  reviewer could test it, and why we couldn't test it. Never an inventory of what was exercised, since that is a testing
+  log, which [[pr-description-guidelines]] bans.
 - `iou:` a workaround: what it is, why the proper route is not available now, and the
   condition for removing it. A callout, not a scribble: the code should not fill up with
   workarounds, so each one is flagged and the reviewer decides whether it stays.
@@ -95,5 +124,6 @@ thing do not.
 with `event: COMMENT`, the full commit SHA (a short one is rejected), `body` as the line
 above plus the marker, and `comments[]` of `path`, `line`, `body`. A submitted review
 cannot be deleted, so get the line right before posting; its comments can be deleted one
-by one. Keep each comment to a sentence or three of cause and consequence, per
-[[pr-description-guidelines]]. Single-purpose PRs keep the why in the body.
+by one. Each comment carries cause and consequence, at whatever length the reader needs to
+follow it on the first read, per [[how-my-writing-should-read]]. Single-purpose PRs keep
+the why in the body.
