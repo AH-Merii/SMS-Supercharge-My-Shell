@@ -46,7 +46,7 @@ tells agent comments from their own (the user never opens a comment with these w
 - `nope:` an obvious approach tried or considered, and what broke.
 - `hmm:` needs the reviewer's answer.
 - `yolo:` shipped without running on the target; say what is untested and how the
-  reviewer could test it. Never an inventory of what was exercised, since that is a testing
+  reviewer could test it, and why we couldn't test it. Never an inventory of what was exercised, since that is a testing
   log, which [[pr-description-guidelines]] bans.
 - `iou:` a workaround: what it is, why the proper route is not available now, and the
   condition for removing it. A callout, not a scribble: the code should not fill up with
