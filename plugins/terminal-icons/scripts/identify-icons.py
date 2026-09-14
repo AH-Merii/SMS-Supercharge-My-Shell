@@ -11,7 +11,7 @@ def load_icons():
     """Load the nerdfont-icons.json database and create reverse lookup."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(script_dir, "..", "data", "nerdfont-icons.json")
-    with open(data_path, "r") as f:
+    with open(data_path, "r", encoding="utf-8") as f:
         icons = json.load(f)
 
     # Create reverse lookup: codepoint -> name
