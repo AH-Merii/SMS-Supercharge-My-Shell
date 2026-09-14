@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 sesh_fzf_picker() {
-  sesh connect "$(
+  local session
+  session="$(
     sesh list --icons | fzf-tmux -p 80%,70% \
       --no-sort --ansi \
       --border-label " sesh " \
@@ -16,10 +17,13 @@ sesh_fzf_picker() {
       --bind "ctrl-d:execute(tmux kill-session -t {2..})+change-prompt(⚡ )+reload(sesh list --icons)" \
       --preview-window "right:55%" \
       --preview "sesh preview {}"
-  )"
+  )" || return 0 # fzf cancelled (Esc / ^C)
+  [[ -n "$session" ]] || return 0 # nothing chosen; don't run `sesh connect ""`
+  sesh connect "$session"
 }
 
 setup_sesh_bindings() {
+  local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}"
 
   if ! command -v sesh >/dev/null; then
     tmux display-message "sesh not found; skipping sesh bindings."
@@ -29,9 +33,9 @@ setup_sesh_bindings() {
   tmux bind-key -N "last-session (via sesh)" b run-shell "sesh last"
 
   if command -v fzf-tmux >/dev/null && command -v fd >/dev/null; then
-    tmux bind-key -N "Run sesh fzf-tmux" C-k run-shell "$XDG_CONFIG_HOME/tmux/scripts/configure-sesh-tmux-bindings.sh picker"
+    tmux bind-key -N "Run sesh fzf-tmux" C-k run-shell "$config_dir/tmux/scripts/configure-sesh-tmux-bindings.sh picker"
   else
-    tmux printf "sesh installed but fzf-tmux or fd not found; skipping sesh picker binding."
+    tmux display-message "sesh installed but fzf-tmux or fd not found; skipping sesh picker binding."
   fi
 }
 
