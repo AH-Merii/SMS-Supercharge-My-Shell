@@ -14,7 +14,9 @@ cd ~/SMS-Supercharge-My-Shell && stow claude
 ```
 claude/
 └── .config/claude/
-    └── settings.json    # the entire config -- one file
+    ├── settings.json    # the whole config -- one file
+    └── skills/
+        └── tuicr/       # vendored from agavra/tuicr (see Skills)
 ```
 
 `CLAUDE_CONFIG_DIR` is set to `$XDG_CONFIG_HOME/claude` by
@@ -83,6 +85,32 @@ Instead, `extraKnownMarketplaces` points at the repo path directly:
 
 `plugins/` sits at the repo root, outside the stow layers, so it is never linked into `~/`.
 The plugin works straight from the repo with no stow step.
+
+### Skills
+
+`skills/tuicr/` comes from [`agavra/tuicr`](https://github.com/agavra/tuicr), taken from
+`skills/tuicr/` at commit `4a9bda23`. It teaches the agent to drive the review TUI: find
+or open a session, read the comments back, and add its own.
+
+It is a **trimmed** copy, not a clean vendor. Upstream also ships tmux, Zellij and cmux
+wrappers and branches on `$TMUX`, `$ZELLIJ` and `$CMUX_WORKSPACE_ID`; all of that is cut,
+leaving `$HERDR_ENV` as the only pane launcher. So a refresh is a re-trim, not an
+overwrite: pull the upstream files, then remove the non-Herdr wrappers and every branch
+that mentions them (the Start A Session table, the wrapper path list, the timeout note,
+the tips section, and two rows of the error table).
+
+```bash
+D=base/claude/.config/claude/skills/tuicr
+for f in SKILL.md _tuicr-common.sh tuicr-wrapper-herdr.sh; do
+  curl -sfL "https://raw.githubusercontent.com/agavra/tuicr/main/skills/tuicr/$f" -o "$D/$f"
+done
+```
+
+One deviation is deliberately *not* made here. The skill's "Core Rule" says not to add
+agent comments during a user-led review; our standing order is the opposite, comments land
+locally by default and the user submits them. That lives in the review-comment memory
+instead, which loads every session and wins, so the rule stays where it can be changed
+once rather than re-applied on every refresh.
 
 ## Gotchas
 
