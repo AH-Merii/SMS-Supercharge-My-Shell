@@ -44,6 +44,8 @@ elif command -v apt-get >/dev/null 2>&1; then
   sudo apt-get install $confirm_apt $(pkgs pkglist/debian.txt)
 fi
 
-if command -v brew >/dev/null 2>&1; then
+# use_brew (mise-tasks/profile) keeps a linuxbrew on Arch from installing the Brewfile
+# on top of the pacman packages; the plan applies the same gate (#32).
+if use_brew && command -v brew >/dev/null 2>&1; then
   brew bundle --file=Brewfile
 fi
