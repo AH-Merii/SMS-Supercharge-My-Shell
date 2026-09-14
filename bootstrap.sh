@@ -5,7 +5,8 @@
 #   existing checkout:  ./bootstrap.sh
 #   unattended:         ./bootstrap.sh -y      (piped: ... | sh -s -- -y)
 #
-# 1. git, stow, fish, mise from the OS package manager (Homebrew on macOS and WSL)
+# 1. git, stow, fish, mise from the OS package manager (Homebrew on macOS and WSL, where
+#    it also brings a current bash: the tasks need 4+ and macOS ships 3.2)
 # 2. clone to ~/SMS-Supercharge-My-Shell unless already running from a checkout
 # 3. mise run setup  ->  deps, link, tools, plugins
 #
@@ -21,7 +22,7 @@ for arg in "$@"; do
   case $arg in
     -y | --yes) SMS_YES=1 ;;
     -h | --help)
-      sed -n '2,13p' "$0" 2>/dev/null || printf 'usage: bootstrap.sh [-y|--yes]\n'
+      sed -n '2,14p' "$0" 2>/dev/null || printf 'usage: bootstrap.sh [-y|--yes]\n'
       exit 0
       ;;
     *)
@@ -126,7 +127,10 @@ if command -v pacman >/dev/null 2>&1; then
   pkgs="git stow fish mise"
 elif [ "$os" = Darwin ] || [ "$wsl" = 1 ]; then
   mgr=brew
-  pkgs="git stow fish mise"
+  # bash too: the mise tasks are bash 4+ scripts (mapfile, associative arrays) and macOS
+  # ships 3.2. It has to come from here rather than the Brewfile, since `deps` only runs
+  # after `setup` and `link` have already needed it.
+  pkgs="git stow fish mise bash"
 elif command -v apt-get >/dev/null 2>&1; then
   mgr=apt
   pkgs="curl git stow fish"
@@ -176,6 +180,9 @@ case $mgr in
     if ! command -v brew >/dev/null 2>&1; then
       NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
+    # shellenv puts the brew prefix ahead of /bin, and `mise run setup` below inherits
+    # this PATH, so `#!/usr/bin/env bash` in the tasks resolves to the bash installed here
+    # rather than /bin/bash 3.2.
     for b in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
       if [ -x "$b" ]; then
         eval "$("$b" shellenv)"

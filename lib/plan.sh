@@ -15,6 +15,15 @@
 [ -n "${_SMS_PLAN:-}" ] && return 0
 _SMS_PLAN=1
 
+# mapfile, `local -A` and ${var,,} below need bash 4+; macOS ships 3.2. Say so here rather
+# than die a few lines on with `mapfile: command not found`. bootstrap.sh installs a
+# current bash from Homebrew before the first task runs.
+if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
+  printf 'these tasks need bash 4+; this is bash %s (%s)\n' "${BASH_VERSION:-?}" "${BASH:-bash}" >&2
+  printf 'on macOS: brew install bash, then re-run\n' >&2
+  exit 1
+fi
+
 # shellcheck source=lib/ui.sh
 source "${MISE_PROJECT_ROOT:?}/lib/ui.sh"
 
