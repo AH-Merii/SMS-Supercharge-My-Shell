@@ -1,6 +1,6 @@
 ---
 name: pr-review-comment-guidelines
-description: "How and when to leave inline PR review comments: only where the code does not show the why, one of eight prefixes (btw coinflip nope hmm yolo iou nextpr maybelater), a short human review line built from their counts, a zero-width marker that tells agent reviews from the user's, and the rule that PR-wide caveats belong in the description rather than on a hunk"
+description: "How and when to leave inline PR review comments, read before commenting on PRs"
 metadata:
   node_type: memory
   type: feedback
