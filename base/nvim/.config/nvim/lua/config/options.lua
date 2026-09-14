@@ -47,12 +47,6 @@ vim.opt.cmdheight = 0
 vim.o.showcmd = true
 vim.o.showcmdloc = "last" -- show partial commands in the statusline
 
--- make the hidden chars foreground color more subtle
-vim.cmd([[
-highlight NonText guifg=#cccccc ctermfg=lightgray
-highlight SpecialKey guifg=#cccccc ctermfg=lightgray
-]])
-
 -- 󰞷 Editing & Indentation
 vim.opt.expandtab = true
 vim.opt.shiftwidth = 2
