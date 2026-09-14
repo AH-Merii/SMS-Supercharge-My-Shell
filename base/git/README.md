@@ -74,8 +74,10 @@ This writes, all outside the repo:
 
 - an SSH host alias `github-myorg` in `~/.ssh/config` pinned to the org key
 - `url.git@github-myorg:MyOrg/.insteadOf = git@github.com:MyOrg/` in `config.local`, so plain `git clone git@github.com:MyOrg/repo.git` URLs route to that key
-- two `includeIf` blocks in `config.local` (one for the host alias, one for `github.com:MyOrg/**`) pointing at `~/.config/git/config-myorg`
+- three `includeIf` blocks in `config.local` (the host alias, `git@github.com:MyOrg/**` and `https://github.com/MyOrg/**`) pointing at `~/.config/git/config-myorg`
 - `~/.config/git/config-myorg` with the org `[user]` section and signing key
+
+The `includeIf` and `insteadOf` matches are case-sensitive: pass `--org` in the exact case that appears in clone URLs (`MyOrg`, not `myorg`). Only the host-alias rule is case-independent, since the alias itself is lower-cased.
 
 Run `ggh status` to see what is configured. Repeat `ggh add` for each org.
 
@@ -97,7 +99,7 @@ Replacing a GitHub key is account-wide: any other machine still using it loses a
 Two global flags control the prompts:
 
 - `-k` / `--keep-existing` answers every prompt with the non-destructive choice (Keep, Use existing, Add alongside). Useful for unattended runs.
-- `-n` / `--dry-run` prints what would happen, including which prompts would appear, and writes nothing.
+- `-n` / `--dry-run` prints what would happen, including which prompts would appear, and writes nothing. Read-only lookups (`gh auth status`, `gh ssh-key list`, `op item list`, `op read`) still run so the report compares against what really exists.
 
 The last step of every command is a live check: `ssh -T` against GitHub, then a throwaway commit signed in a temp repo and verified against `allowed_signers`. For org commands the temp repo gets a remote under that org, so the same `includeIf` rules decide which identity signs. Run it on its own any time:
 
@@ -216,7 +218,6 @@ Scripts in `~/.local/bin/` that extend git:
 | Script          | Description                                                                   |
 | --------------- | ----------------------------------------------------------------------------- |
 | `ggh`           | GitHub SSH setup CLI — keys, signing, org configs, `status` and `verify`      |
-| `op-ssh-sign`   | Cross-platform 1Password signing wrapper (detects macOS vs Linux)             |
 | `git-whichside` | Shows ours vs theirs during conflicts (rebase, merge, cherry-pick, stash pop) |
 
 Usage:
@@ -345,7 +346,7 @@ This means `git clone git@github.com:Acme/repo.git` works directly — git rewri
 | ---------------------------- | ------------------------------- | -------------------------------------------------- |
 | `gpg.format`                 | `ssh`                           | Use SSH keys instead of GPG                        |
 | `user.signingkey`            | `<path>`                        | File path to public key, set by `ggh`              |
-| `gpg.ssh.program`            | (platform-specific)             | Direct path to op-ssh-sign binary (1Password only) |
+| `gpg.ssh.program`            | (platform-specific)             | 1Password's `op-ssh-sign` binary; `ggh` writes the macOS or Linux path (1Password only) |
 | `gpg.ssh.allowedSignersFile` | `~/.config/git/allowed_signers` | Local signature verification                       |
 
 Signing is configured by `ggh init` or `ggh op init`, which write these keys to the untracked `config.local`. The `user.signingkey` points to a public key file on disk (e.g., `~/.ssh/github_jane`). Git reads the key from the file, so re-exporting the `.pub` file after key rotation is enough — no config change needed.
@@ -358,6 +359,9 @@ Standard SSH keys use `IdentityFile` pointing at the private key. 1Password keys
 | ---------------- | -------------------------------------------------------------- |
 | `IdentityFile`   | Points at public key file — selects which key the agent uses   |
 | `IdentitiesOnly` | Prevents agent from offering other keys                        |
+| `IdentityAgent`  | Linux only: `~/.1password/agent.sock`, so the block works regardless of the shell's `SSH_AUTH_SOCK` |
+
+On macOS the 1Password app maintains `~/.ssh/1Password/config` (a `Host *` block naming its agent) and `ggh` adds an `Include` for it instead; that file does not exist on Linux, so no `Include` is written there.
 
 `ggh op init` saves the public key to `~/.ssh/github_<name>` (no `.pub` extension, `0o600` permissions) and configures the SSH host block. `ggh op add` does the same for a separate org key (`~/.ssh/github_<org>`, item `GitHub <org>` by default) behind the `github-<org>` host alias, and adds the per-org identity via `includeIf`.
 
