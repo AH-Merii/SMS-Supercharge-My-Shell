@@ -171,7 +171,7 @@ function M.build_lsp_info()
     end
 
     -- Server status
-    if client.is_stopped() then
+    if client:is_stopped() then
       table.insert(lines, "  Status: 󰅚 Stopped")
     else
       table.insert(lines, "  Status: 󰄬 Running")
