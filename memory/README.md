@@ -10,8 +10,8 @@ into it. Run it on a new machine, or after moving the checkout.
 
 ## What lives here
 
-The memories that hold on any machine: how to write PR descriptions, review comments and
-issues, how this repo is laid out, and a few standing preferences. `index.md` holds their
+The memories that hold on any machine: how to write prose the user will read, how this
+repo is laid out, and a few standing preferences. `index.md` holds their
 one-line entries for `MEMORY.md`, which Claude loads at session start.
 
 ## What deliberately does not
