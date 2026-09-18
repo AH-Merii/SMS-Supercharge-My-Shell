@@ -4,3 +4,6 @@
 # ggh writes identity here; these must never enter the repo
 /base/git/.config/git/config.local
 /base/git/.config/git/config-*
+
+# nix build output
+/result
