@@ -12,4 +12,4 @@ When the user asks for a specific config change to test a hypothesis, change onl
 
 **Why:** Extra changes alter visible behavior the user didn't consent to, and they confound the experiment — if the feel changes, you can't tell which variable did it. The user caught this and asked why the unrelated setting moved.
 
-**How to apply:** Make the one requested change, verify it, and *suggest* further levers as a next step rather than applying them. Related: [[dotfiles-layers-and-mise]].
+**How to apply:** Make the one requested change, verify it, and *suggest* further levers as a next step rather than applying them.

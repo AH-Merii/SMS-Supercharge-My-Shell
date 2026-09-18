@@ -29,5 +29,4 @@ elsewhere.
 
 **How to apply:** classify before writing, not after. When it is genuinely ambiguous,
 keep it local and say so, rather than versioning on a guess. The repo-side rationale
-lives in `memory/README.md`. Related: [[mise-tasks-in-sms-repo]],
-[[dotfiles-layers-and-mise]].
+lives in `memory/README.md`.

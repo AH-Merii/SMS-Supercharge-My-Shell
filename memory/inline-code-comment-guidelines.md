@@ -41,4 +41,4 @@ true, and the reader keeps trusting it anyway.
 
 **How to apply:** two questions before writing, in order. Could the code say this itself?
 Then: will this change what a future editor does? Only a yes to the second earns the
-line. Related: [[how-my-writing-should-read]], [[pr-review-comment-guidelines]].
+line.
