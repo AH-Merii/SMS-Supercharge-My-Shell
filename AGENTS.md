@@ -2,7 +2,7 @@
 
 Dotfiles for fish, neovim, tmux, git and a niri desktop, one directory per program under
 `programs/`. `CONTEXT.md` holds the vocabulary and `docs/adr/` the decisions; `README.md` is
-a placeholder until the rebuild (#123) is done.
+the setup walkthrough and the guide to adding, removing and moving programs.
 
 ## Building the Nix configurations
 
