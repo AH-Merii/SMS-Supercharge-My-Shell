@@ -1,6 +1,6 @@
 # What the Desktop session on Linux gets from home-manager and no program owns: the fonts, the
 # cursor theme, and the environment the compositor's session runs in. greetd starts the
-# compositor, not fish, so nothing conf.d puts on the PATH reaches it; environment.d is what
+# compositor, not fish, so nothing fish puts on the PATH reaches it; environment.d is what
 # the systemd user session reads, and everything niri spawns inherits it.
 { config, pkgs, ... }:
 {
@@ -17,8 +17,9 @@
   # sees them.
   fonts.fontconfig.enable = true;
 
-  # The Nerd Fonts ghostty's config names, with Meslo as a third face and Noto for what none of
-  # them cover: the bar's text and the emoji in notifications.
+  # The Nerd Fonts ghostty's config names, which the session check holds it to, and what the
+  # old desktop list carried beside them: Meslo as a third face, Noto for the scripts and the
+  # emoji the Nerd Fonts lack. No program names those two, so nothing holds them.
   home.packages = with pkgs; [
     nerd-fonts.fira-code
     nerd-fonts.caskaydia-cove

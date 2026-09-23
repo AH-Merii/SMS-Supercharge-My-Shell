@@ -1,12 +1,12 @@
-# The Desktop session sees what the shell sees. The compositor is started by greetd and not
-# by fish, so nothing fish puts on the PATH reaches it: the environment.d entry is what puts
-# the Nix profile on the session's PATH and data dirs, and this is where its absence shows.
+# The Desktop session sees what fish sees. The compositor is started by greetd and not by
+# fish, so nothing fish puts on the PATH reaches it: the environment.d entry is what puts the
+# Nix profile on the session's PATH and data dirs, and this is where its absence shows.
 #
 # The fonts and the cursor theme are held to the programs that ask for them, read off
 # programs/ rather than off the platform module, so the check cannot agree with the module by
 # reading the module: every font family ghostty's config names must be one the profile
 # carries, and the cursor theme niri's config names must be the one the profile carries and
-# the one ~ points the toolkits at.
+# the one ~ points the toolkits at. A font no program names is held by nothing here.
 { lib, runCommand, fontconfig, configuration, programsDir }:
 let
   inherit (configuration.config) home;
@@ -15,10 +15,13 @@ let
   lines = file: lib.splitString "\n" (builtins.readFile file);
 
   # `font-family = "..."` and its bold and italic variants; a commented-out line is not a
-  # request, and match is anchored so it does not see one.
-  families = lib.unique (lib.concatMap
-    (line: let m = builtins.match ''font-family[a-z-]* *= *"([^"]*)"'' line; in if m == null then [ ] else m)
-    (lines (programsDir + "/ghostty/.config/ghostty/config")));
+  # request, and match is anchored so it does not see one. None at all is refused rather than
+  # asserted over: a ghostty that names no family would otherwise pass with no fonts.
+  families =
+    let found = lib.unique (lib.concatMap
+      (line: let m = builtins.match ''font-family[a-z-]* *= *"([^"]*)"'' line; in if m == null then [ ] else m)
+      (lines (programsDir + "/ghostty/.config/ghostty/config")));
+    in if found == [ ] then throw "programs/ghostty names no font family, and the check needs one" else found;
 
   # niri's `xcursor-theme "..."` and `xcursor-size N`, one each.
   one = what: pattern: file:
@@ -46,18 +49,15 @@ runCommand "${tier}-${platform}-session"
 
   # fontconfig reads the profile's fonts the way the session will, from the conf.d entry
   # fontconfig.enable writes -- and only through it, so the entry is checked by being used.
-  # -R, since every file under home-files is a link into the store.
-  conf=$(grep -Rl "$profile/share/fonts" "$files/.config/fontconfig/conf.d" 2>/dev/null | head -n1) ||
+  # -R, since every file under home-files is a link into the store; `|| true`, since the
+  # builder runs under pipefail and a conf.d that is not there is a finding, not an abort.
+  conf=$(grep -Rl "$profile/share/fonts" "$files/.config/fontconfig/conf.d" 2>/dev/null | head -n1 || true)
+  if [ -z "$conf" ]; then
     fail "fontconfig has no conf.d entry naming the profile's fonts"
-  if [ -n "$conf" ]; then
-    cat > fonts.conf <<EOF
-  <?xml version="1.0"?>
-  <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
-  <fontconfig>
-    <include ignore_missing="yes">$conf</include>
-    <cachedir>$PWD/cache</cachedir>
-  </fontconfig>
-  EOF
+  else
+    printf '%s\n' '<?xml version="1.0"?>' '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">' '<fontconfig>' \
+      "<include ignore_missing=\"yes\">$conf</include>" "<cachedir>$PWD/cache</cachedir>" '</fontconfig>' \
+      > fonts.conf
     FONTCONFIG_FILE=$PWD/fonts.conf fc-list : family | tr ',' '\n' | sort -u > installed
     while read -r family; do
       grep -Fxq "$family" installed || fail "ghostty asks for the font family $family, which the profile does not carry"
@@ -70,8 +70,10 @@ runCommand "${tier}-${platform}-session"
     grep -qx "Inherits=$niriCursor" "$files/$index" 2>/dev/null ||
       fail "~/$index does not point the toolkits at $niriCursor"
   done
+  # niri exports its own size to what it spawns; this is the size fish's shells get, held to
+  # the same number so a program launched from either looks the same.
   grep -qx "export XCURSOR_SIZE=\"$niriCursorSize\"" "$profile/etc/profile.d/hm-session-vars.sh" 2>/dev/null ||
-    fail "niri's cursor size is $niriCursorSize and the session's XCURSOR_SIZE is not"
+    fail "niri's cursor size is $niriCursorSize and the XCURSOR_SIZE home-manager sets is not"
 
   # environment.d is what the systemd user session reads; the compositor and everything it
   # spawns inherit it. The profile first on both, so a Nix tool shadows a distro one.

@@ -28,6 +28,8 @@ let
   failures =
     refused "a path claimed by two programs"
       (link { programsDir = fixturesDir + "/collision"; }).files
+    ++ refused "a source no one has, on a platform nothing builds"
+      (link { programsDir = fixturesDir + "/unknown-source"; }).files
     ++ refused "a checkout that does not exist"
       (link { checkout = "/nowhere/no-such-checkout"; }).files
     ++ refused "a checkout that holds no programs/"
