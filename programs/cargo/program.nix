@@ -1,5 +1,4 @@
-# Its own program because nixpkgs ships it as its own derivation: rustc does not bring cargo,
-# and one declaration names one package.
+# Separate from rustc because nixpkgs ships cargo as its own derivation.
 {
   tier = "shell";
   install = {
