@@ -92,6 +92,12 @@ by `SMS_CHECKOUT` to point a build at another one, a worktree under test say. Th
 refuses a checkout that is not there or holds no `programs/`.
 _Avoid_: repo root, source tree, dotfiles directory
 
+**Generation**:
+What one switch builds and activates: the packages and the file links of one configuration
+for one home, kept beside the earlier ones so a bad switch is undone by activating the one
+before. home-manager's word, and the unit its preview and rollback reason about.
+_Avoid_: build output, result, profile
+
 **Applied file**:
 A config file copied into place by a switch and changed only by the next switch, so that it
 rolls back with the packages. The exception, named per file by the program that ships it.
