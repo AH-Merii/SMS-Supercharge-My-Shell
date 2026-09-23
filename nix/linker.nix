@@ -17,6 +17,12 @@ let
   distroSources = [ "pacman" "aur" ];
   sources = [ "nixpkgs" "repo" ] ++ distroSources;
 
+  # Homebrew is declared and not wired: a program may name its cask for macOS so the
+  # declaration is complete, and no configuration reads it until the nix-darwin phase. Known
+  # here so a typo in one is refused now, and not in `sources` so a configuration that does
+  # select one refuses the declaration rather than installing nothing.
+  declaredSources = sources ++ [ "brew" ];
+
   notLinked = [ "program.nix" "package.nix" "README.md" ];
 
   filesUnder = dir: rel:
@@ -38,15 +44,21 @@ let
 
   # A tier or platform we do not have selects nothing, so a typo would install a program
   # nowhere with every check still green -- the declaration and the configurations would agree
-  # it belongs to none. An applied file naming nothing the program ships is the same silence.
+  # it belongs to none. An applied file naming nothing the program ships is the same silence,
+  # and so is a source on a platform no configuration builds yet.
   named = name: decl:
     let
       unknown = lib.subtractLists vocabulary.platforms (lib.attrNames decl.install);
+      unsourced = lib.filter
+        (platform: lib.length (lib.intersectLists declaredSources (lib.attrNames decl.install.${platform})) != 1)
+        (lib.attrNames decl.install);
       missing = lib.subtractLists (filesUnder (programsDir + "/${name}") "") (decl.applied or [ ]);
     in if !(lib.elem decl.tier vocabulary.tiers)
     then throw "programs/${name}: tier ${decl.tier} is not one of ${lib.concatStringsSep ", " vocabulary.tiers}"
     else if unknown != [ ]
     then throw "programs/${name}: install names ${lib.concatStringsSep ", " unknown}, and the platforms are ${lib.concatStringsSep ", " vocabulary.platforms}"
+    else if unsourced != [ ]
+    then throw "programs/${name}: install.${lib.head unsourced} must name exactly one of ${lib.concatStringsSep ", " declaredSources}"
     else if missing != [ ]
     then throw "programs/${name}: applied names ${lib.concatStringsSep ", " missing}, which the program does not ship"
     else decl;

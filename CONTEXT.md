@@ -53,10 +53,11 @@ project and never installed for the machine as a whole.
 _Avoid_: dev dependency, local version, toolchain
 
 **Install source**:
-Where a program comes from on one platform: nixpkgs, the repo, pacman or the AUR. A program's
-declaration names exactly one per platform it exists on. A nixpkgs program and a repo one --
-built from a `package.nix` in the program's own directory, for what nixpkgs does not carry --
-are installed by the configuration itself; the rest are handed to the distro's own install step.
+Where a program comes from on one platform: nixpkgs, the repo, pacman or the AUR, and on
+macOS Homebrew, declared but not wired until the nix-darwin phase. A program's declaration
+names exactly one per platform it exists on. A nixpkgs program and a repo one -- built from a
+`package.nix` in the program's own directory, for what nixpkgs does not carry -- are installed
+by the configuration itself; the rest are handed to the distro's own install step.
 _Avoid_: package manager, backend, provider, install method
 
 **Distro list**:
