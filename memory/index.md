@@ -1,3 +1,4 @@
+- [A PR closes its issue](pr-closes-its-issue.md) — "Closes #N" in the PR body, or the ticket sits open after the merge.
 - [Change only what was asked](change-only-what-was-asked.md) — no bundled while-I-am-here tweaks; they confound the test and change behaviour you did not ask for.
 - [Claude settings.json is live-symlinked](claude-config-not-stowed.md) — it is stowed and rewrites itself, so it shows dirty with no human edit; exclude it when staging.
 - [Inline code comment guidelines](inline-code-comment-guidelines.md) — let the code speak first; comment the why, the quirks and the workarounds; no transcripts, no commented-out code.
