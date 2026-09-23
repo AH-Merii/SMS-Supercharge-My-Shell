@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#MISE description="Print the computed tiers: what Shell and Desktop contain on each platform"
+#
+# The tiers are computed from the program declarations and never written down (ADR 0001), so
+# a directory listing does not show them; this prints them.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+
+# --impure because every evaluation reads the username and home from the environment.
+exec nix run --impure .#tiers

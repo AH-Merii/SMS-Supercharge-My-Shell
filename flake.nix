@@ -2,6 +2,7 @@
 #
 #   nix build --impure .#homeConfigurations.shell-linux.activationPackage   # build only
 #   nix flake check --impure                                                 # build + assertions
+#   nix run --impure .#tiers                                                 # the computed view
 #
 # --impure because the username and home directory are read from the environment; nothing
 # person-specific is committed. SMS_CHECKOUT, when set, is where the live links point
@@ -19,22 +20,80 @@
 
   outputs = { self, nixpkgs, home-manager, ... }:
     let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+      inherit (nixpkgs) lib;
+
+      # The tiers and the platforms of the glossary, in the order the tiers task prints them.
+      tiers = [ "shell" "desktop" ];
+      platforms = [ "linux" "darwin" "wsl" ];
+
+      # Which nixpkgs system each platform builds for. WSL2 is Linux.
+      systemOf = { linux = "x86_64-linux"; darwin = "aarch64-darwin"; wsl = "x86_64-linux"; };
+
+      # The pairs that exist. Desktop on macOS waits for nix-darwin, and WSL2 has no
+      # graphical session of ours.
+      pairs = [
+        { tier = "shell"; platform = "linux"; }
+        { tier = "desktop"; platform = "linux"; }
+        { tier = "shell"; platform = "darwin"; }
+        { tier = "shell"; platform = "wsl"; }
+      ];
+      nameOf = pair: "${pair.tier}-${pair.platform}";
 
       configuration = { tier, platform }:
         home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
+          pkgs = nixpkgs.legacyPackages.${systemOf.${platform}};
           modules = [ ./nix/home.nix { sms = { inherit tier platform; }; } ];
         };
-    in {
-      homeConfigurations.shell-linux = configuration { tier = "shell"; platform = "linux"; };
 
-      checks.${system} = {
-        shell-linux = self.homeConfigurations.shell-linux.activationPackage;
-        bat-links-live = pkgs.callPackage ./nix/checks/links-live.nix {
-          home = self.homeConfigurations.shell-linux;
+      forAllSystems = f:
+        lib.genAttrs (lib.unique (map (pair: systemOf.${pair.platform}) pairs))
+          (system: f system nixpkgs.legacyPackages.${system});
+    in {
+      homeConfigurations =
+        lib.listToAttrs (map (pair: lib.nameValuePair (nameOf pair) (configuration pair)) pairs);
+
+      packages = forAllSystems (_: pkgs: {
+        tiers = pkgs.callPackage ./nix/tiers.nix { } {
+          inherit tiers platforms;
+          configurations = self.homeConfigurations;
         };
-      };
+      });
+
+      # A configuration only builds on its own system, so each system checks the pairs that
+      # are its own, and so does any check that builds a configuration's files. The
+      # assertions read evaluated configurations and run anywhere.
+      checks = forAllSystems (system: pkgs:
+        let
+          builds = lib.listToAttrs (map
+            (pair: lib.nameValuePair (nameOf pair) self.homeConfigurations.${nameOf pair}.activationPackage)
+            (lib.filter (pair: systemOf.${pair.platform} == system) pairs));
+
+          onLinux = lib.optionalAttrs (system == systemOf.linux) {
+            bat-links-live = pkgs.callPackage ./nix/checks/links-live.nix {
+              home = self.homeConfigurations.shell-linux;
+            };
+          };
+
+          distroLists = lib.listToAttrs (lib.concatMap
+            (name: map
+              (source: lib.nameValuePair "${source}-list-${name}"
+                (pkgs.callPackage ./nix/checks/distro-list.nix {
+                  inherit source;
+                  configuration = self.homeConfigurations.${name};
+                  programsDir = ./programs;
+                  platformsDir = ./platforms;
+                }))
+              [ "pacman" "aur" ])
+            [ "shell-linux" "desktop-linux" ]);
+        in builds // onLinux // distroLists // {
+          declared-membership = pkgs.callPackage ./nix/checks/declared-membership.nix {
+            configurations = self.homeConfigurations;
+            programsDir = ./programs;
+          };
+          desktop-linux-contains-shell = pkgs.callPackage ./nix/checks/desktop-contains-shell.nix {
+            shell = self.homeConfigurations.shell-linux;
+            desktop = self.homeConfigurations.desktop-linux;
+          };
+        });
     };
 }

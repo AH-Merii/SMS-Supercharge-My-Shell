@@ -1,5 +1,7 @@
 # The home-manager module every configuration is built from: which tier on which platform,
-# where the checkout is, and whose home this is.
+# where the checkout is, and whose home this is. What the declarations compute to -- the
+# programs this configuration contains and the lists the distro installs -- is read back off
+# the built configuration, by the flake checks and by the tiers task.
 { config, lib, pkgs, ... }:
 let
   inherit (lib) mkOption types;
@@ -13,12 +15,19 @@ let
   # worktree while a branch is being tested; unset, the usual location applies.
   checkoutEnv = builtins.getEnv "SMS_CHECKOUT";
 
-  programs = import ./linker.nix {
+  linked = import ./linker.nix {
     inherit lib pkgs;
     inherit (config.lib.file) mkOutOfStoreSymlink;
   } {
     inherit (config.sms) tier platform checkout;
     programsDir = ../programs;
+    platformsDir = ../platforms;
+  };
+
+  distroList = source: mkOption {
+    type = types.listOf types.str;
+    readOnly = true;
+    description = "The ${source} packages this configuration expects, derived from the declarations.";
   };
 in {
   options.sms = {
@@ -31,13 +40,29 @@ in {
       default = if checkoutEnv != "" then checkoutEnv else "${home}/SMS-Supercharge-My-Shell";
       description = "Where the repo is checked out; every live file links into it.";
     };
+
+    programs = mkOption {
+      type = types.attrsOf (types.submodule {
+        options = {
+          tier = mkOption { type = types.enum [ "shell" "desktop" ]; };
+          source = mkOption { type = types.str; };
+          package = mkOption { type = types.str; };
+        };
+      });
+      readOnly = true;
+      description = "The programs this configuration contains, and where each is installed from.";
+    };
+    pacman = distroList "pacman";
+    aur = distroList "aur";
   };
 
   config = {
     home.username = env "USER";
     home.homeDirectory = home;
     home.stateVersion = "25.05";
-    home.file = programs.files;
-    home.packages = programs.packages;
+    home.file = linked.files;
+    home.packages = linked.packages;
+
+    sms = { inherit (linked) programs pacman aur; };
   };
 }
