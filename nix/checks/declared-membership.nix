@@ -4,9 +4,7 @@
 # both tiers of every platform it declares.
 { lib, runCommand, configurations, programsDir }:
 let
-  declarations = lib.genAttrs
-    (lib.attrNames (lib.filterAttrs (_: kind: kind == "directory") (builtins.readDir programsDir)))
-    (name: import (programsDir + "/${name}/program.nix"));
+  declarations = import ../declarations.nix { inherit lib; } programsDir;
 
   tiersOf = decl: if decl.tier == "shell" then [ "shell" "desktop" ] else [ decl.tier ];
 

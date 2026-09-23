@@ -9,14 +9,13 @@ let
   # Desktop is Shell and more: a Shell program is in every tier.
   tiers = if tier == "desktop" then [ "shell" "desktop" ] else [ "shell" ];
 
-  # Where a program can come from. nixpkgs is installed by this configuration; pacman and aur
-  # are lists the Linux install step hands to the distro, which owns the session stack.
+  # Where a program can come from. nixpkgs is installed by this configuration; the rest are
+  # lists handed to the distro's own install step, which owns the Linux session stack.
   sources = [ "nixpkgs" "pacman" "aur" ];
+  distroSources = lib.remove "nixpkgs" sources;
 
   # A program's own description is not config; neither is a README.
   notLinked = [ "program.nix" "README.md" ];
-
-  dirsIn = dir: lib.attrNames (lib.filterAttrs (_: kind: kind == "directory") (builtins.readDir dir));
 
   filesUnder = dir: rel:
     lib.concatLists (lib.mapAttrsToList (name: kind:
@@ -24,8 +23,7 @@ let
       in if kind == "directory" then filesUnder (dir + "/${name}") path else [ path ])
       (builtins.readDir dir));
 
-  declarations = lib.genAttrs (dirsIn programsDir)
-    (name: import (programsDir + "/${name}/program.nix"));
+  declarations = import ./declarations.nix { inherit lib; } programsDir;
   selected = lib.filterAttrs
     (_: decl: lib.elem decl.tier tiers && decl.install ? ${platform})
     declarations;
@@ -46,9 +44,10 @@ let
   # What the platform needs that belongs to no one program, tiered the way a program is.
   platformDecl = import (platformsDir + "/${platform}/platform.nix");
 
-  listFrom = source: lib.sort (a: b: a < b) (
+  # A union, so a package a program and the platform both name is installed once.
+  listFrom = source: lib.sort (a: b: a < b) (lib.unique (
     lib.mapAttrsToList (_: p: p.package) (lib.filterAttrs (_: p: p.source == source) programs)
-    ++ lib.concatMap (t: platformDecl.${t}.${source} or [ ]) tiers);
+    ++ lib.concatMap (t: platformDecl.${t}.${source} or [ ]) tiers));
 
   linksOf = name:
     lib.listToAttrs (map (rel: {
@@ -60,6 +59,5 @@ in {
   files = lib.concatMapAttrs (name: _: linksOf name) selected;
   packages = map (p: lib.getAttrFromPath (lib.splitString "." p.package) pkgs)
     (lib.filter (p: p.source == "nixpkgs") (lib.attrValues programs));
-  pacman = listFrom "pacman";
-  aur = listFrom "aur";
+  distro = lib.genAttrs distroSources listFrom;
 }

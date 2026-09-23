@@ -3,7 +3,8 @@
 # under ~. A Desktop machine is never a Shell machine with something missing.
 { lib, runCommand, shell, desktop }:
 let
-  lacking = kind: got: wanted: map (name: "${kind} ${name}") (lib.subtractLists got wanted);
+  lacking = kind: inDesktop: inShell:
+    map (name: "${kind} ${name}") (lib.subtractLists inDesktop inShell);
 
   missing =
     lacking "program" (lib.attrNames desktop.config.sms.programs) (lib.attrNames shell.config.sms.programs)

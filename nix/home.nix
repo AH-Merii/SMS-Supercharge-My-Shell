@@ -1,5 +1,5 @@
 # The home-manager module every configuration is built from: which tier on which platform,
-# where the checkout is, and whose home this is. What the declarations compute to -- the
+# where the checkout is, and whose home this is. What the declarations computed to -- the
 # programs this configuration contains and the lists the distro installs -- is read back off
 # the built configuration, by the flake checks and by the tiers task.
 { config, lib, pkgs, ... }:
@@ -24,11 +24,6 @@ let
     platformsDir = ../platforms;
   };
 
-  distroList = source: mkOption {
-    type = types.listOf types.str;
-    readOnly = true;
-    description = "The ${source} packages this configuration expects, derived from the declarations.";
-  };
 in {
   options.sms = {
     tier = mkOption { type = types.enum [ "shell" "desktop" ]; };
@@ -52,8 +47,11 @@ in {
       readOnly = true;
       description = "The programs this configuration contains, and where each is installed from.";
     };
-    pacman = distroList "pacman";
-    aur = distroList "aur";
+    distro = mkOption {
+      type = types.attrsOf (types.listOf types.str);
+      readOnly = true;
+      description = "What this configuration expects the distro to install, keyed by source.";
+    };
   };
 
   config = {
@@ -63,6 +61,6 @@ in {
     home.file = linked.files;
     home.packages = linked.packages;
 
-    sms = { inherit (linked) programs pacman aur; };
+    sms = { inherit (linked) programs distro; };
   };
 }

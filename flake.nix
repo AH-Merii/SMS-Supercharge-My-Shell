@@ -74,25 +74,32 @@
             };
           };
 
-          distroLists = lib.listToAttrs (lib.concatMap
-            (name: map
+          # One list check per configuration and source, so a source added to a declaration
+          # is checked without a name being written here.
+          distroLists = lib.listToAttrs (lib.concatLists (lib.mapAttrsToList
+            (name: home: map
               (source: lib.nameValuePair "${source}-list-${name}"
                 (pkgs.callPackage ./nix/checks/distro-list.nix {
                   inherit source;
-                  configuration = self.homeConfigurations.${name};
+                  configuration = home;
                   programsDir = ./programs;
                   platformsDir = ./platforms;
                 }))
-              [ "pacman" "aur" ])
-            [ "shell-linux" "desktop-linux" ]);
-        in builds // onLinux // distroLists // {
+              (lib.attrNames home.config.sms.distro))
+            self.homeConfigurations));
+
+          # Every platform that has both tiers; Linux is the only one so far.
+          containsShell = lib.listToAttrs (map
+            (platform: lib.nameValuePair "desktop-${platform}-contains-shell"
+              (pkgs.callPackage ./nix/checks/desktop-contains-shell.nix {
+                shell = self.homeConfigurations."shell-${platform}";
+                desktop = self.homeConfigurations."desktop-${platform}";
+              }))
+            (lib.filter (platform: self.homeConfigurations ? "desktop-${platform}") platforms));
+        in builds // onLinux // distroLists // containsShell // {
           declared-membership = pkgs.callPackage ./nix/checks/declared-membership.nix {
             configurations = self.homeConfigurations;
             programsDir = ./programs;
-          };
-          desktop-linux-contains-shell = pkgs.callPackage ./nix/checks/desktop-contains-shell.nix {
-            shell = self.homeConfigurations.shell-linux;
-            desktop = self.homeConfigurations.desktop-linux;
           };
         });
     };
