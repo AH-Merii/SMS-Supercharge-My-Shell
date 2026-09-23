@@ -72,12 +72,6 @@ it and the copy rolls back together with the packages.
 
 ## Setting up a machine
 
-The bootstrap script and the `setup` and `deps` tasks in this tree are the old layout's and
-do not know about home-manager yet (#129). Until they are rewritten, a machine is set up by
-hand with the steps below; the script will run the same switch, distro and greeter steps.
-`greeter`, `plugins`, `memory` and `unlink` are old-layout tasks too, and still do what they
-did.
-
 ### A Fresh machine
 
 You need `curl` and, on Linux, `sudo`. Nothing else.
@@ -151,8 +145,7 @@ mise run greeter
 ```
 
 It installs the greetd config, switches the display manager from sddm and syncs Noctalia's
-look into the greeter. Reboot to log in through it. Run before the pacman step it refuses,
-and the advice in its message to run `deps` is the old layout's: run step 4 instead.
+look into the greeter. Reboot to log in through it. Run before the pacman step, it refuses.
 
 **5. The pieces the configuration does not own.** Fish and tmux plugins are fetched by their
 own managers, and git's identity and signing key are yours, never committed:
@@ -176,24 +169,6 @@ Nix profile goes in front of it on the PATH and the two coexist.
 One case is refused rather than backed up. home-manager backs up files and never links, so a
 link at a managed path that does not already point at the same content stops the switch with
 the offending paths listed. Move them aside and run the switch again.
-
-### A machine on the old stow layout
-
-A machine set up before the rebuild has stow links into its checkout and no Nix. Install Nix
-as in step 1, then from the old checkout remove the stow links with the old task, bring the
-checkout up to the new layout, and run the first switch from the temporary shell of step 2:
-
-```sh
-mise run unlink
-git fetch && git checkout nix-main    # `git pull` once the new layout is on main
-nix shell nixpkgs#git nixpkgs#mise nixpkgs#bash
-mise trust
-mise run switch --tier shell
-exit
-```
-
-Then step 3 onwards. Anything stow left behind that is not a link, a directory it created say, the preview reports
-as in the way and backs up.
 
 ### A Set-up machine
 
