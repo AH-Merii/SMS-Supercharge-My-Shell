@@ -48,10 +48,17 @@
         config.allowUnfreePredicate = pkg: lib.elem (lib.getName pkg) allowedUnfree;
       };
 
-      configuration = { tier, platform }:
+      # What a platform directory adds beyond its lists: a home-manager module per tier, for
+      # the tiers it has one for. Desktop is Shell and more, so Desktop takes the Shell one too.
+      platformModules = { tier, platform }:
+        lib.filter builtins.pathExists
+          (map (t: ./platforms + "/${platform}/${t}.nix")
+            (if tier == "desktop" then [ "shell" "desktop" ] else [ "shell" ]));
+
+      configuration = { tier, platform }@pair:
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsFor systemOf.${platform};
-          modules = [ ./nix/home.nix { sms = { inherit tier platform; }; } ];
+          modules = [ ./nix/home.nix { sms = { inherit tier platform; }; } ] ++ platformModules pair;
         };
 
       forAllSystems = f:
@@ -109,6 +116,15 @@
               (lib.attrNames home.config.sms.distro))
             self.homeConfigurations));
 
+          # Linux's alone: environment.d is systemd's, and Desktop exists nowhere else yet.
+          sessions = lib.listToAttrs (map
+            (pair: lib.nameValuePair "${nameOf pair}-session"
+              (pkgs.callPackage ./nix/checks/desktop-session.nix {
+                configuration = self.homeConfigurations.${nameOf pair};
+                programsDir = ./programs;
+              }))
+            (lib.filter (pair: pair.tier == "desktop" && pair.platform == "linux") ours));
+
           containsShell = lib.listToAttrs (map
             (platform: lib.nameValuePair "desktop-${platform}-contains-shell"
               (pkgs.callPackage ./nix/checks/desktop-contains-shell.nix {
@@ -116,7 +132,7 @@
                 desktop = self.homeConfigurations."desktop-${platform}";
               }))
             (lib.filter (platform: self.homeConfigurations ? "desktop-${platform}") platforms));
-        in builds // fileChecks // runtimeChecks // distroLists // containsShell // {
+        in builds // fileChecks // runtimeChecks // distroLists // sessions // containsShell // {
           declared-membership = pkgs.callPackage ./nix/checks/declared-membership.nix {
             configurations = self.homeConfigurations;
             programsDir = ./programs;
