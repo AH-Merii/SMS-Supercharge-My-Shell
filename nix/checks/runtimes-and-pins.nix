@@ -7,23 +7,27 @@
 # a declaration deleted or renamed should fail this, not quietly redefine what a Shell machine
 # has. What each one installs is still read from its declaration, so the check does not also
 # own the package names.
-{ lib, runCommand, configuration, programsDir }:
+{ lib, pkgs, runCommand, configuration, programsDir }:
 let
   runtimes = [ "bun" "go" "node" "rust" "uv" ];
 
   declarations = import ../declarations.nix { inherit lib; } programsDir;
   inherit (configuration.config.sms) platform;
 
-  installed = map (pkg: lib.getName pkg) configuration.config.home.packages;
+  # Store paths rather than names: a declaration names a nixpkgs attribute, and an attribute
+  # is not always its package's name -- nodejs_22 is the nodejs package -- so comparing the
+  # two strings would report a runtime as missing while it sat in the set.
+  installed = map (pkg: pkg.outPath) configuration.config.home.packages;
 
   missing = lib.concatMap (name:
     if !(declarations ? ${name})
     then [ "there is no programs/${name}" ]
-    else let package = declarations.${name}.install.${platform}.nixpkgs or null; in
-      if package == null
+    else let attribute = declarations.${name}.install.${platform}.nixpkgs or null; in
+      if attribute == null
       then [ "programs/${name} does not install from nixpkgs on ${platform}" ]
-      else lib.optional (!(lib.elem package installed))
-        "programs/${name} declares ${package}, which is not in the package set")
+      else lib.optional
+        (!(lib.elem (lib.getAttrFromPath (lib.splitString "." attribute) pkgs).outPath installed))
+        "programs/${name} declares ${attribute}, which is not in the package set")
     runtimes;
 
   mise = programsDir + "/mise/.config/mise/config.toml";

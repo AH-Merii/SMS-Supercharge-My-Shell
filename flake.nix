@@ -7,6 +7,12 @@
 # --impure because the username and home directory are read from the environment; nothing
 # person-specific is committed. SMS_CHECKOUT, when set, is where the live links point
 # instead of the checkout under ~ (a worktree under test, say).
+#
+# Anywhere the clone is not at ~/SMS-Supercharge-My-Shell -- CI, a container, a worktree --
+# SMS_CHECKOUT has to say so, or every configuration refuses to build rather than pointing
+# the live links at a path that is not there:
+#
+#   SMS_CHECKOUT=$PWD nix flake check --impure
 {
   description = "SMS Supercharge-My-Shell: one tier on one platform, from one lock file";
 
@@ -123,6 +129,8 @@
             programsDir = ./programs;
           };
 
+          # Not one of the pairs: a unit test of the linker's refusals, which are the same
+          # whichever tier and platform it is asked about, so it runs on every system.
           linker-refusals = pkgs.callPackage ./nix/checks/linker-refusals.nix {
             programsDir = ./programs;
             platformsDir = ./platforms;

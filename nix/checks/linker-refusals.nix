@@ -19,6 +19,9 @@ let
     # The linker never forces a link's target on the paths under test, and the refusals must
     # not depend on home-manager, so the identity function stands in for the real helper.
     mkOutOfStoreSymlink = target: target;
+    # Neither refusal depends on which tier or platform was asked for -- a contested path and
+    # an unreachable checkout are the linker's own logic -- so one pair is named here
+    # arbitrarily and stands for all of them.
   } ({
     tier = "shell";
     platform = "linux";
@@ -40,7 +43,7 @@ let
     ++ refused "a checkout that does not exist"
       (link { checkout = "/nowhere/no-such-checkout"; }).files
     ++ refused "a checkout that holds no programs/"
-      (link { checkout = toString (fixturesDir + "/collision/one"); }).files
+      (link { checkout = toString (fixturesDir + "/not-a-checkout"); }).files
     ++ accepted "this checkout" (link { }).files;
 in
 runCommand "linker-refusals"

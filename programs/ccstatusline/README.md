@@ -27,12 +27,9 @@ that runs it. Changing it therefore needs a switch, unlike every other config in
 
 ## Setup
 
-1. **The binary comes from `package.nix`.** nixpkgs does not carry ccstatusline, so the repo
-   packages it: npm publishes one bundled file with no runtime dependencies, which `package.nix`
-   unpacks from a pinned tarball and hands to node. Bumping it is by hand -- change the version,
-   set the hash to `lib.fakeHash`, build, and copy the hash the failure prints.
-
-   The version is pinned deliberately. `npx -y ccstatusline@latest` re-resolves the package on every repaint, which upstream measures at ~430ms; a pinned binary avoids it.
+1. **The binary comes from `package.nix` beside this file**, because nixpkgs does not carry
+   ccstatusline. It pins a version and a tarball hash; why it is pinned and how to move it are
+   written there, next to the lines you would edit.
 
 2. **Point Claude Code at it.** Already set in `../claude/.config/claude/settings.json`:
 

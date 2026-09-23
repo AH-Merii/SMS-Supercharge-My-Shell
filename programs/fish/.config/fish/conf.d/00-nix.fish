@@ -14,15 +14,21 @@ end
 
 # The session variables the configuration sets, SMS_CHECKOUT among them. home-manager writes
 # them as a POSIX shell fragment and ships no fish flavour unless it owns fish's config, which
-# it does not: this file is live. The fragment is generated and uniform -- one
-# `export NAME="VALUE"` per line, values quoted and literal -- so reading it is a translation
-# and not an evaluation. Names and values are matched separately over the same lines, which
-# keeps a value with a space in it in one piece; the one unquoted line, home-manager's
-# already-sourced flag, matches neither pattern and is left to the shells that need it.
+# it does not: this file is live. So the fragment is read rather than sourced, and only the
+# lines that mean the same thing in both shells are taken -- `export NAME="VALUE"` with a
+# value carrying neither `$` nor a backtick. A value that would expand is skipped rather than
+# mangled: home-manager's sessionPath writes `export PATH="$PATH:..."`, and taken literally
+# that replaces PATH with those nine characters and leaves the shell with no commands at all.
+# If an expanding variable is ever needed here, the answer is babelfish, which is what
+# home-manager's own fish module uses to translate this file.
+#
+# Names and values are matched separately over the same lines, which keeps a value with a
+# space in it in one piece. home-manager's already-sourced flag is unquoted and matches
+# neither pattern, so it is left to the shells that source the fragment properly.
 set -l hm_vars $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh
 if test -r $hm_vars
-    set -l names (string replace -rf '^export ([A-Za-z_][A-Za-z0-9_]*)=".*"$' '$1' <$hm_vars)
-    set -l values (string replace -rf '^export [A-Za-z_][A-Za-z0-9_]*="(.*)"$' '$1' <$hm_vars)
+    set -l names (string replace -rf '^export ([A-Za-z_][A-Za-z0-9_]*)="[^"$`]*"$' '$1' <$hm_vars)
+    set -l values (string replace -rf '^export [A-Za-z_][A-Za-z0-9_]*="([^"$`]*)"$' '$1' <$hm_vars)
     for i in (seq (count $names))
         set -gx $names[$i] $values[$i]
     end

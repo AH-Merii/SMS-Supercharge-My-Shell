@@ -12,11 +12,10 @@ let
 
   # Where a program can come from. The first two this configuration installs itself: a nixpkgs
   # attribute, or a package.nix in a program's own directory, for what nixpkgs does not carry.
-  # The rest are lists handed to the distro's own install step, which owns the Linux session
-  # stack. Both lists are named once and the order of `sources` follows from them.
-  ownSources = [ "nixpkgs" "repo" ];
+  # The rest become lists handed to the distro's own install step, which owns the Linux session
+  # stack, and are named separately because `distro` is keyed by exactly them.
   distroSources = [ "pacman" "aur" ];
-  sources = ownSources ++ distroSources;
+  sources = [ "nixpkgs" "repo" ] ++ distroSources;
 
   # A program's own description is not config; neither is its package or a README.
   notLinked = [ "program.nix" "package.nix" "README.md" ];
@@ -33,7 +32,7 @@ let
   # somewhere else with SMS_CHECKOUT unset, say -- would build, activate, and scatter dangling
   # links across ~, surfacing much later as "no such file" from fish rather than as a failed
   # switch. Evaluation is impure already, so it is cheap to ask here instead.
-  checked =
+  reachableCheckout =
     if !(builtins.pathExists checkout) then
       throw "sms.checkout is ${checkout}, and there is nothing there; point SMS_CHECKOUT at the checkout the live links should reach"
     else if !(builtins.pathExists "${checkout}/programs") then
@@ -92,7 +91,7 @@ let
       value.source =
         if lib.elem rel (decl.applied or [ ])
         then programsDir + "/${name}/${rel}"
-        else mkOutOfStoreSymlink "${checked}/programs/${name}/${rel}";
+        else mkOutOfStoreSymlink "${reachableCheckout}/programs/${name}/${rel}";
     }) (lib.subtractLists notLinked (filesUnder (programsDir + "/${name}") ""));
 
   entries = lib.concatMap entriesOf (lib.attrNames selected);
@@ -103,15 +102,15 @@ let
   claimants = lib.foldl'
     (acc: e: acc // { ${e.rel} = (acc.${e.rel} or [ ]) ++ [ e.program ]; })
     { } entries;
-  contested = lib.filterAttrs (_: programs: lib.length programs > 1) claimants;
+  contested = lib.filterAttrs (_: names: lib.length names > 1) claimants;
 
-  # seq, so the checkout is checked whatever a configuration turns out to contain: nothing else
-  # here forces it unless some program ships a live file, and a configuration of applied files
-  # alone would otherwise accept a checkout that is not there.
-  files = builtins.seq checked (
+  # seq, so the checkout is reached whatever a configuration turns out to contain: nothing
+  # else here forces it unless some program ships a live file, and a configuration of applied
+  # files alone would otherwise accept a checkout that is not there.
+  files = builtins.seq reachableCheckout (
     if contested != { }
     then throw (lib.concatStringsSep "; " (lib.mapAttrsToList
-      (rel: programs: "~/${rel} is claimed by ${lib.concatStringsSep " and " (map (p: "programs/${p}") programs)}")
+      (rel: names: "~/${rel} is claimed by ${lib.concatStringsSep " and " (map (name: "programs/${name}") names)}")
       contested))
     else lib.listToAttrs (map (e: { name = e.rel; inherit (e) value; }) entries));
 
