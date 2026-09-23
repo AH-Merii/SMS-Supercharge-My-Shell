@@ -6,13 +6,30 @@
 let
   titles = { shell = "Shell"; desktop = "Desktop"; };
 
+  delimiter = "REPORT";
+
   # The heredoc that prints the report expands the colour variables, so nothing rendered into
   # it may carry shell syntax of its own. Every name comes from a directory listing, and this
-  # is what keeps a directory named `$(...)` from ever being run.
+  # is what keeps a directory named `$(...)` from ever being run. A newline is on the list for
+  # a second reason: a name that spans lines could put a line of its own choosing into the
+  # heredoc, and a line is the unit everything below reasons about.
   inert = s:
-    if lib.any (syntax: lib.hasInfix syntax s) [ "$" "`" "\\" ]
+    if lib.any (syntax: lib.hasInfix syntax s) [ "$" "`" "\\" "\n" ]
     then throw "tiers: ${s} carries shell syntax and cannot be printed"
     else s;
+
+  roles = [ "platform" "tier" "dim" "off" ];
+
+  # A line equal to the delimiter closes the heredoc early and hands the rest of the report to
+  # the shell as commands. Rows are indented and so can never be one; the platform headers are
+  # not, and this is what says they are not. The comparison is against the line the shell will
+  # print, with the colour variables emptied as they are off a terminal -- before that they
+  # all carry a ${...} and none could ever collide.
+  guarded = report:
+    let bare = lib.replaceStrings (map (role: "\${${role}}") roles) (map (_: "") roles) report;
+    in if lib.elem delimiter (lib.splitString "\n" bare)
+    then throw "tiers: a line collides with the ${delimiter} heredoc delimiter"
+    else report;
 
   paint = role: text: "\${${role}}${text}\${off}";
 
@@ -58,4 +75,5 @@ let
     fi
   '';
 in
-writeShellScriptBin "tiers" (colours + "cat <<REPORT\n" + report + "REPORT\n")
+writeShellScriptBin "tiers"
+  (colours + "cat <<${delimiter}\n" + guarded report + "${delimiter}\n")
