@@ -1,6 +1,6 @@
 # SMS Supercharge-My-Shell
 
-One person's working environment, carried onto any machine they are handed: a Linux desktop,
+My working/development environment, carried onto any machine I am handed: a Linux desktop,
 a Mac, a Windows box through WSL2, or a bare server. Every tool comes from one committed lock
 file through Nix home-manager; every config is a plain file in this checkout that `~` reaches
 through a link, so an edit is seen by the program at once.
