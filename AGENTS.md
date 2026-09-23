@@ -1,7 +1,8 @@
 # SMS Supercharge-My-Shell
 
-Dotfiles for fish, neovim, tmux, git and a niri desktop. `README.md` describes the layout,
-the profiles and the tasks.
+Dotfiles for fish, neovim, tmux, git and a niri desktop, one directory per program under
+`programs/`. `CONTEXT.md` holds the vocabulary and `docs/adr/` the decisions; `README.md` is
+a placeholder until the rebuild (#123) is done.
 
 ## Building the Nix configurations
 
