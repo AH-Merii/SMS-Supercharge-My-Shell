@@ -12,8 +12,7 @@ let
     let value = builtins.getEnv name;
     in if value == "" then throw "${name} is not set: evaluate with --impure" else value;
   home = env "HOME";
-  # SMS_CHECKOUT points a build at a checkout other than the one under ~, such as a
-  # worktree while a branch is being tested; unset, the usual location applies.
+  # Unset, the usual location under ~ applies.
   checkoutEnv = builtins.getEnv "SMS_CHECKOUT";
 
   linked = import ./linker.nix {
@@ -62,14 +61,13 @@ in {
     home.file = linked.files;
     home.packages = linked.packages;
 
-    # Where the live files point, published so that a config which cannot be generated -- the
-    # Claude settings, which Claude Code rewrites and which therefore stays live -- can still
-    # name the checkout without writing a path down.
+    # Published so a config that cannot be generated -- the Claude settings, which Claude Code
+    # rewrites -- can name the checkout without writing a path down.
     #
     # One name for both directions, which pins: this is the same variable the build reads, so a
-    # switch made against a worktree exports that worktree to every later shell, and the builds
-    # those shells run inherit it and target the worktree again. Coming back is deliberate --
-    # `SMS_CHECKOUT=<checkout>` on the switch that moves it, or `set -e SMS_CHECKOUT` first.
+    # switch made against a worktree exports it to every later shell, whose builds then target
+    # that worktree again. Coming back is deliberate -- `SMS_CHECKOUT=<checkout>` on the switch
+    # that moves it, or `set -e SMS_CHECKOUT` first.
     home.sessionVariables.SMS_CHECKOUT = config.sms.checkout;
 
     sms = { inherit (linked) programs distro; };

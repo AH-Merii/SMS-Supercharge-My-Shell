@@ -1,8 +1,5 @@
-# The compiler itself from the lock file, rather than rustup. rustup would lock the manager and
-# leave the toolchain it downloads outside the lock file, which is the one thing a single lock
-# file exists to prevent. Nothing is lost by dropping it: a project pins its own toolchain
-# through mise, which bootstraps a rustup of its own when none is there and whose default
-# profile carries clippy and rustfmt, so this default only ever serves work outside a project.
+# rustc and cargo rather than rustup, whose toolchain would sit outside the lock file.
+# See docs/adr/0002-rust-from-the-lock-file.md.
 {
   tier = "shell";
   install = {

@@ -1,17 +1,7 @@
-# Two ways a build could go quietly wrong, and the linker's refusal of each.
-#
-# A path two programs both claim: the link sets were merged, last name alphabetically winning,
-# so one program's file simply would not be there -- and no other check would notice, because
-# they compare program names and package lists, never paths.
-#
-# A checkout that is not there: mkOutOfStoreSymlink never looks at its target, so a clone
-# somewhere other than the default with SMS_CHECKOUT unset would build and activate, and the
-# dangling links would surface later as "no such file" from whatever read one.
-#
-# This is the one check that runs the linker rather than re-deriving what it should have done,
-# because the linker's refusal is the thing under test. tryEval reports that evaluation failed
-# but not what it said, so what the message names -- both programs and the path -- is fixed by
-# the linker's code and not asserted here.
+# The linker's refusals, which linker.nix explains. The one check that runs the linker rather
+# than re-deriving what it should have done, because the refusal is the thing under test.
+# tryEval reports that evaluation failed but not what it said, so what the messages name is
+# fixed by the linker's code and not asserted here.
 { lib, pkgs, runCommand, programsDir, platformsDir, fixturesDir, checkout }:
 let
   link = args: import ../linker.nix {
@@ -19,9 +9,7 @@ let
     # The linker never forces a link's target on the paths under test, and the refusals must
     # not depend on home-manager, so the identity function stands in for the real helper.
     mkOutOfStoreSymlink = target: target;
-    # Neither refusal depends on which tier or platform was asked for -- a contested path and
-    # an unreachable checkout are the linker's own logic -- so one pair is named here
-    # arbitrarily and stands for all of them.
+    # No refusal depends on the tier or platform asked for, so one pair stands for all.
   } ({
     tier = "shell";
     platform = "linux";

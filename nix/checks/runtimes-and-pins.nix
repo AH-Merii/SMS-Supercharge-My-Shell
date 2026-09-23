@@ -1,17 +1,12 @@
-# A runtime is an ordinary tool, and mise owns nothing but a project's pin. The two halves of
-# that decision are one check because they are one decision: every machine's default node, bun,
-# go, rust and python toolchain comes from the lock file, and mise's global config declares
-# nothing that could shadow it in every directory.
+# A runtime is an ordinary tool, and mise owns nothing but a project's pin -- one check because
+# it is one decision.
 #
 # The runtimes are named here rather than read off programs/, because naming them is the point:
 # a declaration deleted or renamed should fail this, not quietly redefine what a Shell machine
-# has. What each one installs is still read from its declaration, so the check does not also
-# own the package names.
+# has. What each one installs is still read from its declaration.
 { lib, pkgs, runCommand, configuration, programsDir }:
 let
-  # Rust is two of these, and spelled rustc: nixpkgs ships the compiler and the package manager
-  # as separate derivations, and a declaration names one package, so the language's name is not
-  # a program here and naming it would guard nothing.
+  # rustc and cargo, not rust: nixpkgs ships them as separate derivations.
   runtimes = [ "bun" "cargo" "go" "node" "rustc" "uv" ];
 
   declarations = import ../declarations.nix { inherit lib; } programsDir;

@@ -17,7 +17,6 @@ let
   distroSources = [ "pacman" "aur" ];
   sources = [ "nixpkgs" "repo" ] ++ distroSources;
 
-  # A program's own description is not config; neither is its package or a README.
   notLinked = [ "program.nix" "package.nix" "README.md" ];
 
   filesUnder = dir: rel:
@@ -28,10 +27,8 @@ let
 
   vocabulary = import ./vocabulary.nix;
 
-  # mkOutOfStoreSymlink never looks at its target, so a checkout that is not there -- a clone
-  # somewhere else with SMS_CHECKOUT unset, say -- would build, activate, and scatter dangling
-  # links across ~, surfacing much later as "no such file" from fish rather than as a failed
-  # switch. Evaluation is impure already, so it is cheap to ask here instead.
+  # mkOutOfStoreSymlink never looks at its target, so a checkout that is not there would build
+  # and activate, scattering dangling links across ~ that surface much later as "no such file".
   reachableCheckout =
     if !(builtins.pathExists checkout) then
       throw "sms.checkout is ${checkout}, and there is nothing there; point SMS_CHECKOUT at the checkout the live links should reach"
@@ -39,10 +36,9 @@ let
       throw "sms.checkout is ${checkout}, which holds no programs/, so it is not a checkout of this repo"
     else checkout;
 
-  # A tier or a platform we do not have selects nothing, so a typo would otherwise install a
-  # program nowhere, on every platform, with every check still green: the declaration and the
-  # configurations would agree that it belongs to no configuration at all. An applied file that
-  # names nothing the program ships is the same kind of silence, one file wide.
+  # A tier or platform we do not have selects nothing, so a typo would install a program
+  # nowhere with every check still green -- the declaration and the configurations would agree
+  # it belongs to none. An applied file naming nothing the program ships is the same silence.
   named = name: decl:
     let
       unknown = lib.subtractLists vocabulary.platforms (lib.attrNames decl.install);
@@ -73,7 +69,6 @@ let
       package = decl.install.${platform}.${source};
     }) selected;
 
-  # What the platform needs that belongs to no one program, tiered the way a program is.
   platformDecl = import (platformsDir + "/${platform}/platform.nix");
 
   # A union, so a package a program and the platform both name is installed once.
@@ -116,9 +111,8 @@ let
 
   fromSource = source: lib.filter (p: p.source == source) (lib.attrValues programs);
 
-  # An in-repo package names the directory under programs/ that holds its package.nix, which
-  # is the program's own but need not be: saying so here turns a typo into a named refusal
-  # rather than callPackage's bare "path does not exist".
+  # Checked by hand so a typo is a named refusal rather than callPackage's bare
+  # "path does not exist".
   inRepo = p:
     let file = programsDir + "/${p.package}/package.nix";
     in if builtins.pathExists file then pkgs.callPackage file { }

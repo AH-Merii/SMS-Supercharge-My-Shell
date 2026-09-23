@@ -1,12 +1,9 @@
-# ccstatusline is not in nixpkgs, so the repo packages it rather than reopening the question
-# of a second package manager. npm publishes it as one bundled ESM file with no dependencies
-# at runtime, so there is nothing to resolve: unpack the tarball, keep dist/, and hand the
-# entry point to node.
+# Not in nixpkgs. npm publishes it as one bundled ESM file with no runtime dependencies, so
+# there is nothing to resolve: unpack the tarball, keep dist/, hand the entry point to node.
 #
-# Bumping it is by hand, and deliberately so -- the status line repaints on every keystroke's
-# worth of work, and `npx ccstatusline@latest` re-resolving the package each time is the
-# ~430ms this pin exists to avoid. To move it: change `version`, set `hash` to
-# lib.fakeHash, build, and copy the hash the failure prints.
+# Pinned rather than `npx ccstatusline@latest`, which re-resolves the package on every repaint
+# -- the ~430ms this exists to avoid. To bump: change `version`, set `hash` to lib.fakeHash,
+# build, and copy the hash the failure prints.
 { lib, stdenvNoCC, fetchurl, nodejs, makeWrapper }:
 let
   version = "2.2.28";

@@ -5,12 +5,9 @@
 #   nix run --impure .#tiers                                                 # the computed view
 #
 # --impure because the username and home directory are read from the environment; nothing
-# person-specific is committed. SMS_CHECKOUT, when set, is where the live links point
-# instead of the checkout under ~ (a worktree under test, say).
-#
-# Anywhere the clone is not at ~/SMS-Supercharge-My-Shell -- CI, a container, a worktree --
-# SMS_CHECKOUT has to say so, or every configuration refuses to build rather than pointing
-# the live links at a path that is not there:
+# person-specific is committed. Anywhere the clone is not at ~/SMS-Supercharge-My-Shell --
+# CI, a container, a worktree -- SMS_CHECKOUT has to say where it is, or the build refuses
+# rather than pointing the live links at a path that is not there:
 #
 #   SMS_CHECKOUT=$PWD nix flake check --impure
 {
@@ -43,9 +40,8 @@
       ];
       nameOf = pair: "${pair.tier}-${pair.platform}";
 
-      # nixpkgs refuses an unfree package by default, and one program is unfree. A predicate
-      # naming it, rather than allowUnfree, so that the licence is accepted for this package
-      # and a second unfree one cannot arrive without a line here saying so.
+      # A predicate rather than allowUnfree, so a second unfree package cannot arrive without
+      # a line here saying so.
       allowedUnfree = [ "claude-code" ];
       pkgsFor = system: import nixpkgs {
         inherit system;
@@ -83,7 +79,6 @@
             (pair: lib.nameValuePair (nameOf pair) self.homeConfigurations.${nameOf pair}.activationPackage)
             ours);
 
-          # Builds a configuration's files, so only the pairs of this system.
           fileChecks = lib.listToAttrs (map
             (pair: lib.nameValuePair "files-live-and-applied-${nameOf pair}"
               (pkgs.callPackage ./nix/checks/files-live-and-applied.nix {
@@ -92,7 +87,6 @@
               }))
             ours);
 
-          # Reads a configuration's package set, which only resolves on its own system.
           runtimeChecks = lib.listToAttrs (map
             (pair: lib.nameValuePair "runtimes-and-pins-${nameOf pair}"
               (pkgs.callPackage ./nix/checks/runtimes-and-pins.nix {
@@ -115,7 +109,6 @@
               (lib.attrNames home.config.sms.distro))
             self.homeConfigurations));
 
-          # Every platform that has both tiers; Linux is the only one so far.
           containsShell = lib.listToAttrs (map
             (platform: lib.nameValuePair "desktop-${platform}-contains-shell"
               (pkgs.callPackage ./nix/checks/desktop-contains-shell.nix {

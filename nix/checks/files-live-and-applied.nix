@@ -1,13 +1,10 @@
-# The test the linker exists to pass, over every program in a configuration: what ~ reaches
-# for a live config file is the file in the checkout, never a copy in the store; what it
-# reaches for an applied file is the store, so that file rolls back with the packages; and the
-# files that describe a program are not linked at all.
+# The test the linker exists to pass: a live file reaches the checkout, an applied file reaches
+# the store, and the files describing a program are not linked at all.
 #
-# Which files exist and which are applied is read here from programs/, not from the linker, so
-# that the check cannot come to agree with the linker by running its code. A live link is
-# followed as far as the store goes -- home-manager puts its own store symlink in front of the
-# out-of-store one -- and since the checkout is not in the sandbox, the last hop is compared
-# as a string.
+# Read from programs/ rather than from the linker, so the check cannot come to agree with it by
+# running its code. A live link is followed only as far as the store goes -- home-manager puts
+# its own store symlink in front of the out-of-store one -- and since the checkout is not in
+# the sandbox, the last hop is compared as a string.
 { lib, runCommand, configuration, programsDir }:
 let
   inherit (configuration.config.sms) tier platform checkout;
@@ -28,8 +25,6 @@ let
 
   shipped = name: filesUnder (programsDir + "/${name}") "";
 
-  # Split every program's tree three ways: the files that describe it, the files it named as
-  # applied, and everything else, which is live.
   partition = name: decl:
     let
       files = shipped name;
