@@ -33,5 +33,5 @@ The five canonical triage labels, unchanged: `needs-triage`, `needs-info`,
 
 ### Domain docs
 
-Single-context: one `CONTEXT.md` at the repo root and ADRs under `docs/adr/`, neither
-created yet. See `docs/agents/domain.md`.
+Single-context: one `CONTEXT.md` at the repo root and ADRs under `docs/adr/`. See
+`docs/agents/domain.md`.

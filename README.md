@@ -23,8 +23,9 @@ flake.nix, flake.lock     the configurations and the versions of everything in t
 mise-tasks/               the front door: check, switch, update, tiers
 ```
 
-There are four layers, and everything a machine has is placed by answering where it sits in
-them.
+Everything a machine has is placed by answering four questions: which program it belongs to,
+which tier that program is in, which platforms it exists on, and where it is installed from
+on each.
 
 **A program** is the unit. `programs/fish/` holds fish's config tree and a declaration:
 
@@ -45,8 +46,8 @@ platform not named means the program is absent on that platform, config tree inc
 
 **A tier** is what a machine gets. `shell` is the layer every machine has in common: fish,
 neovim, tmux, git and the command-line tools. `desktop` is the graphical session on top of it,
-so a Desktop machine has every Shell program too. The tiers are never written down as lists;
-they are computed from the declarations, and `mise run tiers` prints them.
+so a Desktop machine has every Shell program too. What a tier contains is never written down
+as a list; it is computed from the declarations, and `mise run tiers` prints it.
 
 **A platform** is how a program is installed and which ones exist there: `linux`, `darwin` or
 `wsl`. The platform directory holds what belongs to the platform rather than to any program:
@@ -71,9 +72,11 @@ it and the copy rolls back together with the packages.
 
 ## Setting up a machine
 
-The bootstrap script and the `setup` task in this tree are the old layout's and do not know
-about home-manager yet (#129). Until they are rewritten, a machine is set up by hand with the
-steps below. They are the same steps that script will run.
+The bootstrap script and the `setup` and `deps` tasks in this tree are the old layout's and
+do not know about home-manager yet (#129). Until they are rewritten, a machine is set up by
+hand with the steps below; the script will run the same switch, distro and greeter steps.
+`greeter`, `plugins`, `memory` and `unlink` are old-layout tasks too, and still do what they
+did.
 
 ### A Fresh machine
 
@@ -116,30 +119,40 @@ chsh -s "$HOME/.nix-profile/bin/fish"
 Log in again. fish puts the Nix profile on the PATH itself, so a login shell, a `fish -c`
 and a program spawned by the compositor all see the same tools.
 
-**4. On a Linux desktop only,** give the distro its list. pacman keeps the compositor, the
-bar, the greeter and the portals, so they move with the drivers; the configuration says which
-packages those are:
+**4. On Linux with pacman,** give the distro its list. The configuration computes it: for
+Shell it is `base-devel` alone, the toolchain the AUR builds need; for Desktop it adds the
+compositor, the bar, the greeter and the portals, which pacman keeps so they move with the
+drivers. Run these from the checkout, naming the configuration you switched to, `shell-linux`
+or `desktop-linux`:
 
 ```sh
 sudo pacman -S --needed $(nix eval --impure --raw \
   '.#homeConfigurations.desktop-linux.config.sms.distro.pacman' \
   --apply 'l: builtins.concatStringsSep " " l')
+```
+
+Desktop also has an AUR list, 1Password and its CLI, which paru installs. CachyOS ships paru;
+on plain Arch build it from the AUR first, which is what `base-devel` above is for:
+
+```sh
 paru -S --needed $(nix eval --impure --raw \
   '.#homeConfigurations.desktop-linux.config.sms.distro.aur' \
   --apply 'l: builtins.concatStringsSep " " l')
 ```
 
-Run those from the checkout. `mise run tiers` shows the same two lists, one row per
-program plus a `platforms/linux` row for the session stack.
+`mise run tiers` shows the same lists, one row per program plus a `platforms/linux` row for
+what belongs to no program. A Linux without pacman (Debian, say) has nothing to run here.
 
-The login screen is root's and stays a separate step that asks for sudo:
+On a Desktop, once the pacman list is in, the login screen. It is root's and stays a separate
+step that asks for sudo:
 
 ```sh
 mise run greeter
 ```
 
 It installs the greetd config, switches the display manager from sddm and syncs Noctalia's
-look into the greeter. Reboot to log in through it.
+look into the greeter. Reboot to log in through it. Run before the pacman step it refuses,
+and the advice in its message to run `deps` is the old layout's: run step 4 instead.
 
 **5. The pieces the configuration does not own.** Fish and tmux plugins are fetched by their
 own managers, and git's identity and signing key are yours, never committed:
@@ -166,17 +179,20 @@ the offending paths listed. Move them aside and run the switch again.
 
 ### A machine on the old stow layout
 
-A machine set up before the rebuild has stow links into its checkout. Remove them with the
-old task before the switch, from the old checkout, then bring the checkout up to the new layout
-(`git pull` once it is on `main`; until then, check out `nix-main`):
+A machine set up before the rebuild has stow links into its checkout and no Nix. Install Nix
+as in step 1, then from the old checkout remove the stow links with the old task, bring the
+checkout up to the new layout, and run the first switch from the temporary shell of step 2:
 
 ```sh
 mise run unlink
-git pull
+git fetch && git checkout nix-main    # `git pull` once the new layout is on main
+nix shell nixpkgs#git nixpkgs#mise nixpkgs#bash
+mise trust
 mise run switch --tier shell
+exit
 ```
 
-Anything stow left behind that is not a link, a directory it created say, the preview reports
+Then step 3 onwards. Anything stow left behind that is not a link, a directory it created say, the preview reports
 as in the way and backs up.
 
 ### A Set-up machine
@@ -201,6 +217,8 @@ ls ~/.local/state/nix/profiles/
 ~/.local/state/nix/profiles/home-manager-<N>-link/activate
 ```
 
+(`~/.local/state` is `XDG_STATE_HOME` when that is set.)
+
 ### Giving the machine back
 
 ```sh
@@ -219,8 +237,9 @@ backups the switch made are still beside them with their original contents.
 | `mise run update --tier shell` | Pull the checkout, then switch. |
 | `mise run tiers` | Print what Shell and Desktop contain on each platform, with each program's source. |
 
-Every task takes `--tier shell` or `--tier desktop` and an optional `--platform`; the platform
-is detected when not given.
+`check`, `switch` and `update` take `--tier shell` or `--tier desktop` and an optional
+`--platform`; the platform is detected when not given. `tiers` takes nothing and prints every
+platform.
 
 **Editing a config** needs no step: the file under `~` is a link to the file in the checkout,
 so the program sees the edit at once. Only an applied file waits for the next switch.
@@ -261,8 +280,7 @@ with itself.
    `mise run tiers` to see it in place, then `switch`.
 
 A program whose source is `pacman` or `aur` is declared the same way; the switch links its
-config and the derived list gains a line for you to install as in the Linux desktop step of
-the setup. A program
+config and the derived list gains a line for you to install as in step 4 of the setup. A program
 nixpkgs does not carry gets a `package.nix` in its directory and `install.<platform>.repo =
 "<name>"`; ccstatusline is the example.
 
