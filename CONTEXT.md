@@ -52,6 +52,18 @@ A version of a language runtime that one project requires, honoured only inside 
 project and never installed for the machine as a whole.
 _Avoid_: dev dependency, local version, toolchain
 
+**Install source**:
+Where a program comes from on one platform: nixpkgs, pacman or the AUR. A program's
+declaration names exactly one per platform it exists on. A nixpkgs program is installed by
+the configuration itself; the rest are handed to the distro's own install step.
+_Avoid_: package manager, backend, provider, install method
+
+**Distro list**:
+The packages of one install source that a configuration expects the distro to install:
+the union of the programs of its tiers that name that source and the platform directory's
+own list. Computed from the declarations, never written down as a list of its own.
+_Avoid_: pkglist, package list, manifest
+
 ### Repo units
 
 **Program**:
