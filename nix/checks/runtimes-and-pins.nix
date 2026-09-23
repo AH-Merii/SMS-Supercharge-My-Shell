@@ -9,7 +9,10 @@
 # own the package names.
 { lib, pkgs, runCommand, configuration, programsDir }:
 let
-  runtimes = [ "bun" "go" "node" "rust" "uv" ];
+  # Rust is two of these, and spelled rustc: nixpkgs ships the compiler and the package manager
+  # as separate derivations, and a declaration names one package, so the language's name is not
+  # a program here and naming it would guard nothing.
+  runtimes = [ "bun" "cargo" "go" "node" "rustc" "uv" ];
 
   declarations = import ../declarations.nix { inherit lib; } programsDir;
   inherit (configuration.config.sms) platform;
