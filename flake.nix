@@ -22,9 +22,7 @@
     let
       inherit (nixpkgs) lib;
 
-      # The tiers and the platforms of the glossary, in the order the tiers task prints them.
-      tiers = [ "shell" "desktop" ];
-      platforms = [ "linux" "darwin" "wsl" ];
+      inherit (import ./nix/vocabulary.nix) tiers platforms;
 
       # Which nixpkgs system each platform builds for. WSL2 is Linux.
       systemOf = { linux = "x86_64-linux"; darwin = "aarch64-darwin"; wsl = "x86_64-linux"; };

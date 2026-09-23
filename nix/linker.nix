@@ -23,7 +23,20 @@ let
       in if kind == "directory" then filesUnder (dir + "/${name}") path else [ path ])
       (builtins.readDir dir));
 
-  declarations = import ./declarations.nix { inherit lib; } programsDir;
+  vocabulary = import ./vocabulary.nix;
+
+  # A tier or a platform we do not have selects nothing, so a typo would otherwise install a
+  # program nowhere, on every platform, with every check still green: the declaration and the
+  # configurations would agree that it belongs to no configuration at all.
+  named = name: decl:
+    let unknown = lib.subtractLists vocabulary.platforms (lib.attrNames decl.install);
+    in if !(lib.elem decl.tier vocabulary.tiers)
+    then throw "programs/${name}: tier ${decl.tier} is not one of ${lib.concatStringsSep ", " vocabulary.tiers}"
+    else if unknown != [ ]
+    then throw "programs/${name}: install names ${lib.concatStringsSep ", " unknown}, and the platforms are ${lib.concatStringsSep ", " vocabulary.platforms}"
+    else decl;
+
+  declarations = lib.mapAttrs named (import ./declarations.nix { inherit lib; } programsDir);
   selected = lib.filterAttrs
     (_: decl: lib.elem decl.tier tiers && decl.install ? ${platform})
     declarations;

@@ -5,6 +5,7 @@
 { config, lib, pkgs, ... }:
 let
   inherit (lib) mkOption types;
+  vocabulary = import ./vocabulary.nix;
 
   # Read at evaluation time, so every command that evaluates a configuration passes --impure.
   env = name:
@@ -26,8 +27,8 @@ let
 
 in {
   options.sms = {
-    tier = mkOption { type = types.enum [ "shell" "desktop" ]; };
-    platform = mkOption { type = types.enum [ "linux" "darwin" "wsl" ]; };
+    tier = mkOption { type = types.enum vocabulary.tiers; };
+    platform = mkOption { type = types.enum vocabulary.platforms; };
     checkout = mkOption {
       # A string, never a path: a path would copy the checkout into the store and every
       # live file would point at the copy.
@@ -39,7 +40,7 @@ in {
     programs = mkOption {
       type = types.attrsOf (types.submodule {
         options = {
-          tier = mkOption { type = types.enum [ "shell" "desktop" ]; };
+          tier = mkOption { type = types.enum vocabulary.tiers; };
           source = mkOption { type = types.str; };
           package = mkOption { type = types.str; };
         };
