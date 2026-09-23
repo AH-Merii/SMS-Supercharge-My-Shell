@@ -76,60 +76,52 @@ it and the copy rolls back together with the packages.
 ### A Fresh machine
 
 You need `curl` and, on Linux, `sudo`. Nothing else. One command takes the machine from
-nothing to set up:
+nothing to set up; it is `bootstrap.sh` at the root of this repo, so read it first if you
+would rather know what you are running:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh
 ```
 
-On a Linux desktop say `sh -s -- --tier desktop` instead of `sh`. The script does three
-things, each skipped when already done, so it is safe to run again:
-
-1. Installs Nix with the Determinate installer, unless `nix` is already there. That sets up
-   the multi-user daemon, turns flakes on and leaves a one-command uninstall behind. The
-   installer asks its own question.
-2. Clones the repo to `~/SMS-Supercharge-My-Shell`, unless it is already there.
-3. Runs `mise run setup` for the tier, in a shell that borrows git, mise and bash from nixpkgs
-   because the machine has none of them yet. After the first switch it has all three from the
-   configuration, and that shell is never needed again.
-
-`setup` builds the configuration and shows one plan: what the switch will do to this home
-(packages, links, and any file in the way with the name it will be backed up under), and on
-Linux with pacman the derived pacman and AUR lists against what is installed, and on a
-Desktop the login screen. One question, then every step runs in order: the switch, pacman,
-the greeter, the Claude memories. The greeter writes root's files and asks for your password
-itself, whatever was answered and whatever pacman left cached. `-y` (or `SMS_YES=1`) answers
-every question yes, for a run nobody is watching; the greeter then stops rather than run
-unattended.
-
-The same steps by hand, for a machine where the one command is not wanted:
+For a Linux desktop, the same with the Desktop tier. The script's own flags go after
+`sh -s --`, which is how a piped script takes arguments:
 
 ```sh
-curl -fsSL https://install.determinate.systems/nix | sh -s -- install
-# open a new shell so nix is on the PATH
-nix shell nixpkgs#git nixpkgs#mise nixpkgs#bash
-git clone https://github.com/AH-Merii/SMS-Supercharge-My-Shell.git ~/SMS-Supercharge-My-Shell
-cd ~/SMS-Supercharge-My-Shell
-mise trust
-mise run setup --tier shell
-exit
+curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh -s -- --tier desktop
 ```
 
-Or, instead of `setup`, the steps one at a time, each with its own preview and question and
-all with the same `--tier`: `mise run switch --tier desktop`, then on Linux with pacman
-`mise run pacman --tier desktop`, then on a Desktop `mise run greeter`, then `mise run
-memory`. The platform is detected from the machine either way.
+It installs Nix, clones this repo to `~/SMS-Supercharge-My-Shell` and sets the machine up
+as the tier you chose: the packages, the configs, and on a Desktop the distro's packages and
+the login screen. Every step shows what it is about to change and asks before doing it, so
+follow the prompts. Each step is skipped when already done, so the command is safe to run
+again, and `--help` lists the flags.
 
-**What the distro installs.** On Linux with pacman, the configuration computes what pacman
-and the AUR are expected to install: for Shell it is `base-devel` alone, which building
-from the AUR needs; for Desktop it adds the compositor, the bar, the greeter and the portals,
-which pacman keeps so they move with the drivers, and 1Password with its CLI from the AUR.
-`mise run pacman --tier desktop` previews the two lists against what is installed and asks
-once; `mise run tiers` shows the same lists, one row per program plus a `platforms/linux`
-row for what belongs to no program. paru installs the AUR list: CachyOS ships it, and on
-plain Arch it is built from the AUR first, which is what `base-devel` is for; without it the
-AUR names are printed for you to install by hand. A Linux without pacman (Debian, say) has
-nothing to install here.
+### Piece by piece
+
+If you want to adopt specific parts of the setup instead of installing all of it, run the
+tasks that `mise run setup` is made of, one at a time. Each shows a preview and asks before
+changing anything, so you can mix and match. They need Nix and the clone in place, and run
+from inside the clone. The smallest part is a tier: a single program is added or removed by
+editing its declaration (see "Changing what a machine has"), not by an install command of
+its own.
+
+```sh
+mise run switch --tier shell    # the packages and the configs of Shell, nothing else
+```
+
+The other parts, each taking the same `--tier`:
+
+- `mise run pacman --tier shell`: the packages the distro installs, on Arch.
+- `mise run greeter`: the login screen, on a Desktop.
+- `mise run memory`: the portable Claude Code memories, linked into this checkout's Claude
+  Code project directory.
+
+**What the distro installs.** On an Arch-based distro, some of a Desktop is handed to pacman
+and the AUR rather than installed by the switch: the compositor, the greeter and the portals,
+which move with the drivers, and 1Password. `mise run tiers` shows exactly what, and
+`mise run pacman` installs it after a preview. This is tested on CachyOS, which ships paru
+for the AUR; on plain Arch, paru is built from the AUR first. On any other non-Arch Linux
+distro the pacman step is skipped and only the Nix packages of the tier are installed.
 
 **The login screen** is root's and stays a separate step that asks for sudo, run by `setup`
 on a Desktop or by hand as `mise run greeter`. It installs the greetd config, switches the
@@ -156,13 +148,12 @@ mise run plugins
 ggh
 ```
 
-fish reminds you about `ggh` until the identity is set. `mise run memory` links the portable
-Claude Code memories into this checkout's project directory; `setup` has run it already.
+fish reminds you about `ggh` until the identity is set.
 
 ### An Existing machine
 
 A machine that already has some of these programs, or its own files at the paths the
-configuration manages, is set up the same way, by the one command or by hand. The preview
+configuration manages, is set up the same way, by the one command or piece by piece. The preview
 before the switch lists every file in the way and the name it will be backed up under
 (`<path>.bak`, or a timestamped suffix if that name is taken); nothing is lost. Software installed by other means is left alone: the
 Nix profile goes in front of it on the PATH and the two coexist.
@@ -210,9 +201,9 @@ backups the switch made are still beside them with their original contents.
 | --- | --- |
 | `mise run check --tier shell` | Build one configuration and touch nothing. A broken change is caught here. |
 | `mise run switch --tier shell` | Build, preview the change to this home, ask once, activate. |
-| `mise run update --tier shell` | Pull the checkout, then switch. |
+| `mise run update --tier shell` | Pull the latest commits from GitHub, then switch. |
 | `mise run setup --tier shell` | One plan and one question for the switch, pacman, the greeter and the memories, where each applies. |
-| `mise run pacman --tier shell` | Preview the derived pacman and AUR lists against what is installed, ask once, install. Linux with pacman only. |
+| `mise run pacman --tier shell` | Preview the derived pacman and AUR lists against what is installed, ask once, install. Arch-based distros only. |
 | `mise run tiers` | Print what Shell and Desktop contain on each platform, with each program's source. |
 
 `check`, `switch`, `update`, `setup` and `pacman` take `--tier shell` or `--tier desktop`
@@ -222,21 +213,27 @@ and prints every platform.
 **Editing a config** needs no step: the file under `~` is a link to the file in the checkout,
 so the program sees the edit at once. Only an applied file waits for the next switch.
 
-**Updating the versions** is a deliberate act: `nix flake update`, a `check` of each
-configuration that matters to you, and a commit of `flake.lock`. Every machine then picks the
-new versions up on its next `update`.
+**Updating the versions** is a deliberate act, done on one machine and pushed from it; the
+other machines request nothing, they take what was pushed. On the machine you update from,
+`nix flake update` moves `flake.lock` to the newest versions (there is no mise task for it).
+Then build each configuration you use to see that it still does, `mise run check --tier
+desktop` and `mise run check --tier shell` on the laptop (a macOS configuration only builds
+on a Mac), and `mise run switch` to take the versions on this machine. Commit and push
+`flake.lock`. Every other machine picks the new versions up on its next `mise run update`,
+and until then keeps the old ones.
 
-**Running nix directly.** Every `nix` command here takes `--impure`, because the username and
-home are read from the environment. From anywhere other than `~/SMS-Supercharge-My-Shell` (a
-worktree, a container, CI) set `SMS_CHECKOUT` to the checkout the live links should point at,
-or the build refuses:
+**Running nix directly**, which is how a change is tested before it reaches a machine. Every
+`nix` command here takes `--impure`, because the username and home are read from the
+environment. From anywhere other than `~/SMS-Supercharge-My-Shell` (a worktree, a container,
+CI) set `SMS_CHECKOUT` to the checkout the live links should point at, or the build refuses:
 
 ```sh
 SMS_CHECKOUT=$PWD nix flake check --impure
 ```
 
 The mise tasks set it to the checkout they run from, so a switch from a worktree links the
-home into that worktree, and a switch from the main checkout brings it back.
+home into that worktree to try a change live, and a switch from the main checkout brings it
+back.
 
 ## Changing what a machine has
 
@@ -287,7 +284,8 @@ contains all of Shell, and each derived list equals its declarations.
 
 ### Add something that belongs to a platform
 
-What is no program's, the session stack on Linux for one, goes in the platform directory.
+Some things belong to a platform rather than to any one program, the session wiring on
+Linux for one. They go in the platform directory.
 `platforms/<platform>/platform.nix` lists distro packages per tier and source, and joins the
 derived list. `platforms/<platform>/<tier>.nix` is an ordinary home-manager module for what
 home-manager adds to that tier there: fonts, the cursor theme and the session environment for
