@@ -37,15 +37,24 @@
       ];
       nameOf = pair: "${pair.tier}-${pair.platform}";
 
+      # nixpkgs refuses an unfree package by default, and one program is unfree. A predicate
+      # naming it, rather than allowUnfree, so that the licence is accepted for this package
+      # and a second unfree one cannot arrive without a line here saying so.
+      allowedUnfree = [ "claude-code" ];
+      pkgsFor = system: import nixpkgs {
+        inherit system;
+        config.allowUnfreePredicate = pkg: lib.elem (lib.getName pkg) allowedUnfree;
+      };
+
       configuration = { tier, platform }:
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${systemOf.${platform}};
+          pkgs = pkgsFor systemOf.${platform};
           modules = [ ./nix/home.nix { sms = { inherit tier platform; }; } ];
         };
 
       forAllSystems = f:
         lib.genAttrs (lib.unique (map (pair: systemOf.${pair.platform}) pairs))
-          (system: f system nixpkgs.legacyPackages.${system});
+          (system: f system (pkgsFor system));
     in {
       homeConfigurations =
         lib.listToAttrs (map (pair: lib.nameValuePair (nameOf pair) (configuration pair)) pairs);
@@ -62,15 +71,29 @@
       # assertions read evaluated configurations and run anywhere.
       checks = forAllSystems (system: pkgs:
         let
+          ours = lib.filter (pair: systemOf.${pair.platform} == system) pairs;
+
           builds = lib.listToAttrs (map
             (pair: lib.nameValuePair (nameOf pair) self.homeConfigurations.${nameOf pair}.activationPackage)
-            (lib.filter (pair: systemOf.${pair.platform} == system) pairs));
+            ours);
 
-          onLinux = lib.optionalAttrs (system == systemOf.linux) {
-            bat-links-live = pkgs.callPackage ./nix/checks/links-live.nix {
-              home = self.homeConfigurations.shell-linux;
-            };
-          };
+          # Builds a configuration's files, so only the pairs of this system.
+          fileChecks = lib.listToAttrs (map
+            (pair: lib.nameValuePair "files-live-and-applied-${nameOf pair}"
+              (pkgs.callPackage ./nix/checks/files-live-and-applied.nix {
+                configuration = self.homeConfigurations.${nameOf pair};
+                programsDir = ./programs;
+              }))
+            ours);
+
+          # Reads a configuration's package set, which only resolves on its own system.
+          runtimeChecks = lib.listToAttrs (map
+            (pair: lib.nameValuePair "runtimes-and-pins-${nameOf pair}"
+              (pkgs.callPackage ./nix/checks/runtimes-and-pins.nix {
+                configuration = self.homeConfigurations.${nameOf pair};
+                programsDir = ./programs;
+              }))
+            ours);
 
           # One list check per configuration and source, so a source added to a declaration
           # is checked without a name being written here.
@@ -94,10 +117,17 @@
                 desktop = self.homeConfigurations."desktop-${platform}";
               }))
             (lib.filter (platform: self.homeConfigurations ? "desktop-${platform}") platforms));
-        in builds // onLinux // distroLists // containsShell // {
+        in builds // fileChecks // runtimeChecks // distroLists // containsShell // {
           declared-membership = pkgs.callPackage ./nix/checks/declared-membership.nix {
             configurations = self.homeConfigurations;
             programsDir = ./programs;
+          };
+
+          linker-refusals = pkgs.callPackage ./nix/checks/linker-refusals.nix {
+            programsDir = ./programs;
+            platformsDir = ./platforms;
+            fixturesDir = ./nix/checks/fixtures;
+            inherit (self.homeConfigurations.shell-linux.config.sms) checkout;
           };
         });
     };

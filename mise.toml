@@ -1,6 +1,6 @@
 # Task runner for this repo: `mise tasks` lists everything, `mise run <task>` runs it.
 # File tasks live in mise-tasks/. Tools are NOT declared here; a [tools] block in this file
-# would shadow the global config (base/mise/.config/mise/config.toml) whenever the cwd is
+# would shadow the global config (programs/mise/.config/mise/config.toml) whenever the cwd is
 # inside the repo.
 #
 # setup and tools are file tasks too: they print a plan before installing anything, which
