@@ -19,7 +19,7 @@ sms_distro_here() { command -v pacman >/dev/null 2>&1; }
 # (which names what is missing) into pacman_want/pacman_have and aur_want/aur_have. An AUR
 # package that is installed is in pacman's database like any other, so one query serves both.
 sms_distro_lists() {
-  local line source name
+  local source name
   pacman_all=() aur_all=()
   while read -r source name; do
     case $source in

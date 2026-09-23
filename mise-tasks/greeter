@@ -30,6 +30,10 @@ if [[ -n $missing ]]; then
   exit 1
 fi
 
+# Root's files, so the password is asked here whatever came before: a cached credential
+# from an earlier step is dropped first, and without a terminal to ask on this stops rather
+# than writing to /etc unattended.
+sudo -k
 sudo -v
 
 # --- files ----------------------------------------------------------------------------

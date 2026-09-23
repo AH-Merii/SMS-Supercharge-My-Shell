@@ -32,6 +32,11 @@ _sms_username_of() { # _sms_username_of <generation>
   printf '%s\n' "${name%\'}"
 }
 
+# What home-manager counts as its own link: one into any generation's files.
+_sms_managed="$(readlink -e /nix/store)/*-home-manager-files/*"
+# shellcheck disable=SC2053  # a glob, matched unquoted on purpose
+_sms_owned() { [[ $(readlink "$1" 2>/dev/null) == $_sms_managed ]]; }
+
 # The names of the packages a generation's profile is built from: the profile's direct
 # references, less the store hash and the output suffixes that split one package over several.
 _sms_packages_of() { # _sms_packages_of <generation>
@@ -73,11 +78,6 @@ sms_switch_scan() {
   mapfile -t added < <(comm -13 <(printf '%s\n' "$old_packages") <(printf '%s\n' "$new_packages"))
   mapfile -t removed < <(comm -23 <(printf '%s\n' "$old_packages") <(printf '%s\n' "$new_packages") | grep -v '^$' || true)
 
-  # What home-manager counts as its own link: one into any generation's files.
-  local managed
-  managed="$(readlink -e /nix/store)/*-home-manager-files/*"
-  # shellcheck disable=SC2053  # a glob, matched unquoted on purpose
-  owned() { [[ $(readlink "$1" 2>/dev/null) == $managed ]]; }
   local files source rel target
   files=$(readlink -e "$generation/home-files")
 
@@ -88,7 +88,7 @@ sms_switch_scan() {
     if [[ -L $target ]]; then
       if [[ ! -e $target ]]; then
         link+=("$rel")
-      elif owned "$target"; then
+      elif _sms_owned "$target"; then
         if [[ $(readlink -f "$target") == "$(readlink -f "$source")" ]]; then
           unchanged=$((unchanged + 1))
         else
@@ -113,7 +113,7 @@ sms_switch_scan() {
     while IFS= read -r -d '' source; do
       rel=${source#"$old_files/"}
       [[ -e $files/$rel ]] && continue
-      owned "$HOME/$rel" && unlink+=("$rel")
+      _sms_owned "$HOME/$rel" && unlink+=("$rel")
     done < <(find "$old_files" \( -type f -o -type l \) -print0)
   fi
 

@@ -5,7 +5,8 @@
 # One plan for every step that applies to this configuration, one question, then the steps
 # run with SMS_PLAN_CONFIRMED=1, which skips their own previews and prompts: everything they
 # would have asked about is already on screen above. The greeter is the exception by design:
-# it writes root's files and asks for sudo itself, whatever was answered here.
+# it writes root's files and asks for the password itself, whatever was answered here and
+# whatever pacman's sudo left cached.
 #
 # Which steps apply is the configuration's to say, not the machine's: pacman on Linux where
 # pacman exists, the greeter on the Linux Desktop, memory everywhere.
@@ -48,8 +49,9 @@ if ! sms_confirm 'Set up?'; then
   exit 0
 fi
 
-# One password prompt at a predictable moment, rather than partway through pacman.
-[[ $distro == 0 ]] || sudo -v
+# One password prompt at a predictable moment rather than partway through pacman, which
+# asks again itself if this one was declined or mistyped.
+[[ $distro == 0 || ${#pacman_want[@]} -eq 0 ]] || sudo -v || true
 
 export SMS_PLAN_CONFIRMED=1
 

@@ -10,12 +10,11 @@ cd "$MISE_PROJECT_ROOT"
 # shellcheck source=lib/distro.sh
 source lib/distro.sh
 
-if ! sms_distro_here; then
-  sms_note 'no pacman on this machine; nothing to install here'
+sms_configuration "$@"
+if [[ $platform != linux ]] || ! sms_distro_here; then
+  sms_note "no pacman for $configuration on this machine; nothing to install here"
   exit 0
 fi
-
-sms_configuration "$@"
 sms_distro_lists
 sms_header "pacman for $configuration"
 

@@ -97,9 +97,10 @@ things, each skipped when already done, so it is safe to run again:
 (packages, links, and any file in the way with the name it will be backed up under), and on
 Linux with pacman the derived pacman and AUR lists against what is installed, and on a
 Desktop the login screen. One question, then every step runs in order: the switch, pacman,
-the greeter, the Claude memories. The greeter writes root's files and asks for sudo itself,
-whatever was answered. `-y` (or `SMS_YES=1`) answers every question yes, for a run nobody is
-watching.
+the greeter, the Claude memories. The greeter writes root's files and asks for your password
+itself, whatever was answered and whatever pacman left cached. `-y` (or `SMS_YES=1`) answers
+every question yes, for a run nobody is watching; the greeter then stops rather than run
+unattended.
 
 The same steps by hand, for a machine where the one command is not wanted:
 
@@ -114,14 +115,14 @@ mise run setup --tier shell
 exit
 ```
 
-Or, instead of `setup`, the steps one at a time, each with its own preview and question:
-`mise run switch --tier shell`, then on Linux with pacman `mise run pacman --tier shell`,
-then on a Desktop `mise run greeter`, then `mise run memory`. The platform is detected from
-the machine either way.
+Or, instead of `setup`, the steps one at a time, each with its own preview and question and
+all with the same `--tier`: `mise run switch --tier desktop`, then on Linux with pacman
+`mise run pacman --tier desktop`, then on a Desktop `mise run greeter`, then `mise run
+memory`. The platform is detected from the machine either way.
 
 **What the distro installs.** On Linux with pacman, the configuration computes what pacman
-and the AUR are expected to install: for Shell it is `base-devel` alone, the toolchain the
-AUR builds need; for Desktop it adds the compositor, the bar, the greeter and the portals,
+and the AUR are expected to install: for Shell it is `base-devel` alone, which building
+from the AUR needs; for Desktop it adds the compositor, the bar, the greeter and the portals,
 which pacman keeps so they move with the drivers, and 1Password with its CLI from the AUR.
 `mise run pacman --tier desktop` previews the two lists against what is installed and asks
 once; `mise run tiers` shows the same lists, one row per program plus a `platforms/linux`
@@ -133,7 +134,8 @@ nothing to install here.
 **The login screen** is root's and stays a separate step that asks for sudo, run by `setup`
 on a Desktop or by hand as `mise run greeter`. It installs the greetd config, switches the
 display manager from sddm and syncs Noctalia's look into the greeter. Reboot to log in
-through it. Run before the pacman step, it refuses.
+through it. Run before the pacman step, it stops: the packages it configures are not there
+yet.
 
 **Then, the pieces the configuration does not own.** Make fish the login shell first: it
 lives in the Nix profile, which the login database does not know about, and `setup` prints
