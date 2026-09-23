@@ -15,7 +15,9 @@ build rather than pointing the live links at a path that is not there:
 SMS_CHECKOUT=$PWD nix flake check --impure
 ```
 
-`flake.nix` lists the rest of the commands.
+`flake.nix` lists the rest of the commands. The front door is the mise tasks, which set
+`SMS_CHECKOUT` to the checkout they run from: `mise run check --tier shell` builds one
+configuration and touches nothing, `switch` previews and activates it, `update` pulls first.
 
 ## Agent skills
 

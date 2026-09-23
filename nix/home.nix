@@ -65,9 +65,10 @@ in {
     # rewrites -- can name the checkout without writing a path down.
     #
     # One name for both directions, which pins: this is the same variable the build reads, so a
-    # switch made against a worktree exports it to every later shell, whose builds then target
-    # that worktree again. Coming back is deliberate -- `SMS_CHECKOUT=<checkout>` on the switch
-    # that moves it, or `set -e SMS_CHECKOUT` first.
+    # switch made against a worktree exports it to every later shell, whose bare `nix` builds
+    # then target that worktree again. The tasks set it to the checkout they run from, so
+    # coming back is a switch from the main checkout; a bare build comes back with
+    # `SMS_CHECKOUT=<checkout>` on the command, or `set -e SMS_CHECKOUT` first.
     home.sessionVariables.SMS_CHECKOUT = config.sms.checkout;
 
     sms = { inherit (linked) programs distro; };

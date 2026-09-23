@@ -48,6 +48,8 @@ sms_have() { _sms_list "$c_dim$c_green" 'already installed' "$@"; }
 sms_want() { _sms_list "$c_yellow" 'will install' "$@"; }
 sms_drop() { _sms_list "$c_yellow" 'will remove' "$@"; }
 sms_backup() { _sms_list "$c_yellow" 'will back up' "$@"; }
+sms_link() { _sms_list "$c_yellow" 'will link' "$@"; }
+sms_unlink() { _sms_list "$c_yellow" 'will unlink' "$@"; }
 
 # Ask a Y/n question, default yes. Keep this small: called from an `if`, its body runs
 # with errexit disabled, so a bug in here would be swallowed rather than reported.
