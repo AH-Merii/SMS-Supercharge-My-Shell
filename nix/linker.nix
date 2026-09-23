@@ -2,20 +2,22 @@
 # tier and platform into the configuration's files, its Nix packages, and the lists the distro
 # installs. One file entry per file, never per directory, so every directory under ~ stays a
 # real directory and runtime files beside a managed one are untouched. Live files point at the
-# checkout string, not the store.
+# checkout string, not the store; a file a program names as applied points into the store, so
+# it rolls back with the packages.
 { lib, pkgs, mkOutOfStoreSymlink }:
 { tier, platform, checkout, programsDir, platformsDir }:
 let
   # Desktop is Shell and more: a Shell program is in every tier.
   tiers = if tier == "desktop" then [ "shell" "desktop" ] else [ "shell" ];
 
-  # Where a program can come from. nixpkgs is installed by this configuration; the rest are
-  # lists handed to the distro's own install step, which owns the Linux session stack.
-  sources = [ "nixpkgs" "pacman" "aur" ];
-  distroSources = lib.remove "nixpkgs" sources;
+  # Where a program can come from. The first two this configuration installs itself: a nixpkgs
+  # attribute, or a package.nix in a program's own directory, for what nixpkgs does not carry.
+  # The rest become lists handed to the distro's own install step, which owns the Linux session
+  # stack, and are named separately because `distro` is keyed by exactly them.
+  distroSources = [ "pacman" "aur" ];
+  sources = [ "nixpkgs" "repo" ] ++ distroSources;
 
-  # A program's own description is not config; neither is a README.
-  notLinked = [ "program.nix" "README.md" ];
+  notLinked = [ "program.nix" "package.nix" "README.md" ];
 
   filesUnder = dir: rel:
     lib.concatLists (lib.mapAttrsToList (name: kind:
@@ -25,15 +27,28 @@ let
 
   vocabulary = import ./vocabulary.nix;
 
-  # A tier or a platform we do not have selects nothing, so a typo would otherwise install a
-  # program nowhere, on every platform, with every check still green: the declaration and the
-  # configurations would agree that it belongs to no configuration at all.
+  # mkOutOfStoreSymlink never looks at its target, so a checkout that is not there would build
+  # and activate, scattering dangling links across ~ that surface much later as "no such file".
+  reachableCheckout =
+    if !(builtins.pathExists checkout) then
+      throw "sms.checkout is ${checkout}, and there is nothing there; point SMS_CHECKOUT at the checkout the live links should reach"
+    else if !(builtins.pathExists "${checkout}/programs") then
+      throw "sms.checkout is ${checkout}, which holds no programs/, so it is not a checkout of this repo"
+    else checkout;
+
+  # A tier or platform we do not have selects nothing, so a typo would install a program
+  # nowhere with every check still green -- the declaration and the configurations would agree
+  # it belongs to none. An applied file naming nothing the program ships is the same silence.
   named = name: decl:
-    let unknown = lib.subtractLists vocabulary.platforms (lib.attrNames decl.install);
+    let
+      unknown = lib.subtractLists vocabulary.platforms (lib.attrNames decl.install);
+      missing = lib.subtractLists (filesUnder (programsDir + "/${name}") "") (decl.applied or [ ]);
     in if !(lib.elem decl.tier vocabulary.tiers)
     then throw "programs/${name}: tier ${decl.tier} is not one of ${lib.concatStringsSep ", " vocabulary.tiers}"
     else if unknown != [ ]
     then throw "programs/${name}: install names ${lib.concatStringsSep ", " unknown}, and the platforms are ${lib.concatStringsSep ", " vocabulary.platforms}"
+    else if missing != [ ]
+    then throw "programs/${name}: applied names ${lib.concatStringsSep ", " missing}, which the program does not ship"
     else decl;
 
   declarations = lib.mapAttrs named (import ./declarations.nix { inherit lib; } programsDir);
@@ -54,7 +69,6 @@ let
       package = decl.install.${platform}.${source};
     }) selected;
 
-  # What the platform needs that belongs to no one program, tiered the way a program is.
   platformDecl = import (platformsDir + "/${platform}/platform.nix");
 
   # A union, so a package a program and the platform both name is installed once.
@@ -62,15 +76,51 @@ let
     lib.mapAttrsToList (_: p: p.package) (lib.filterAttrs (_: p: p.source == source) programs)
     ++ lib.concatMap (t: platformDecl.${t}.${source} or [ ]) tiers));
 
-  linksOf = name:
-    lib.listToAttrs (map (rel: {
-      name = rel;
-      value.source = mkOutOfStoreSymlink "${checkout}/programs/${name}/${rel}";
-    }) (lib.subtractLists notLinked (filesUnder (programsDir + "/${name}") "")));
+  # One entry per file a selected program ships, carrying the program it came from so that a
+  # path two programs claim can be reported with both their names.
+  entriesOf = name:
+    let decl = selected.${name};
+    in map (rel: {
+      program = name;
+      inherit rel;
+      value.source =
+        if lib.elem rel (decl.applied or [ ])
+        then programsDir + "/${name}/${rel}"
+        else mkOutOfStoreSymlink "${reachableCheckout}/programs/${name}/${rel}";
+    }) (lib.subtractLists notLinked (filesUnder (programsDir + "/${name}") ""));
+
+  entries = lib.concatMap entriesOf (lib.attrNames selected);
+
+  # concatMapAttrs would merge two programs' link sets silently, last one alphabetically
+  # winning, and no check compares paths: the loser would simply not be there. Refuse instead,
+  # naming the path and everyone who claims it.
+  claimants = lib.foldl'
+    (acc: e: acc // { ${e.rel} = (acc.${e.rel} or [ ]) ++ [ e.program ]; })
+    { } entries;
+  contested = lib.filterAttrs (_: names: lib.length names > 1) claimants;
+
+  # seq, so the checkout is reached whatever a configuration turns out to contain: nothing
+  # else here forces it unless some program ships a live file, and a configuration of applied
+  # files alone would otherwise accept a checkout that is not there.
+  files = builtins.seq reachableCheckout (
+    if contested != { }
+    then throw (lib.concatStringsSep "; " (lib.mapAttrsToList
+      (rel: names: "~/${rel} is claimed by ${lib.concatStringsSep " and " (map (name: "programs/${name}") names)}")
+      contested))
+    else lib.listToAttrs (map (e: { name = e.rel; inherit (e) value; }) entries));
+
+  fromSource = source: lib.filter (p: p.source == source) (lib.attrValues programs);
+
+  # Checked by hand so a typo is a named refusal rather than callPackage's bare
+  # "path does not exist".
+  inRepo = p:
+    let file = programsDir + "/${p.package}/package.nix";
+    in if builtins.pathExists file then pkgs.callPackage file { }
+    else throw "install.repo names ${p.package}, and there is no programs/${p.package}/package.nix";
 in {
-  inherit programs;
-  files = lib.concatMapAttrs (name: _: linksOf name) selected;
-  packages = map (p: lib.getAttrFromPath (lib.splitString "." p.package) pkgs)
-    (lib.filter (p: p.source == "nixpkgs") (lib.attrValues programs));
+  inherit programs files;
+  packages =
+    map (p: lib.getAttrFromPath (lib.splitString "." p.package) pkgs) (fromSource "nixpkgs")
+    ++ map inRepo (fromSource "repo");
   distro = lib.genAttrs distroSources listFrom;
 }

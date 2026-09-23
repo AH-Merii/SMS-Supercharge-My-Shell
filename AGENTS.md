@@ -3,6 +3,19 @@
 Dotfiles for fish, neovim, tmux, git and a niri desktop. `README.md` describes the layout,
 the profiles and the tasks.
 
+## Building the Nix configurations
+
+Every `nix` command here takes `--impure`, because the username and home directory are read
+from the environment. Where the clone is not at `~/SMS-Supercharge-My-Shell` — a worktree, a
+container, CI — `SMS_CHECKOUT` has to say where it is, or every configuration refuses to
+build rather than pointing the live links at a path that is not there:
+
+```
+SMS_CHECKOUT=$PWD nix flake check --impure
+```
+
+`flake.nix` lists the rest of the commands.
+
 ## Agent skills
 
 ### Issue tracker

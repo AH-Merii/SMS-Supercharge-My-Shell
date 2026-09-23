@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "cleanupPeriodDays": 365,
+  "env": {
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "16000",
+    "MAX_THINKING_TOKENS": "8000",
+    "MAX_MCP_OUTPUT_TOKENS": "25000",
+    "TASK_MAX_OUTPUT_LENGTH": "20000"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git restore:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git remote:*)",
+      "Bash(git tag:*)",
+      "Bash(git blame:*)",
+      "Bash(git worktree:*)",
+      "Bash(npm *)",
+      "Bash(pnpm *)",
+      "Bash(node *)",
+      "Bash(ls *)",
+      "Bash(which *)",
+      "Bash(mkdir *)",
+      "Bash(cat *)",
+      "Bash(jq *)"
+    ],
+    "deny": [
+      "Read(.env*)",
+      "Edit(.env*)",
+      "Bash(cat *.env*)",
+      "Bash(head *.env*)",
+      "Bash(tail *.env*)",
+      "Bash(less *.env*)",
+      "Bash(more *.env*)"
+    ],
+    "defaultMode": "auto"
+  },
+  "model": "opus[1m]",
+  "statusLine": {
+    "type": "command",
+    "command": "ccstatusline",
+    "padding": 0
+  },
+  "enabledPlugins": {
+    "terminal-icons@local-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "local-plugins": {
+      "source": {
+        "source": "directory",
+        "path": "${SMS_CHECKOUT}/plugins"
+      }
+    }
+  },
+  "feedbackSurveyRate": 0,
+  "spinnerVerbs": {
+    "mode": "replace",
+    "verbs": [
+      "Hallucinating responsibly",
+      "Pretending to think",
+      "Confidently guessing",
+      "Consulting my imagination",
+      "Speedrunning your tech debt",
+      "Apologizing in advance",
+      "Vibing with your codebase",
+      "Submitting my best guess",
+      "Amaze amaze amaze",
+      "Breeding astrophage",
+      "Harvesting xenonite",
+      "Using the Force",
+      "Making the Kessel Run",
+      "Powering up the hyperdrive",
+      "Negotiating aggressively",
+      "Bypassing the compressor",
+      "Walking into Mordor",
+      "Speaking friend and entering",
+      "Dodging bullets",
+      "Downloading kung fu",
+      "Following the white rabbit",
+      "Declaring bankruptcy",
+      "Treating myself",
+      "Casting Expelliarmus",
+      "Brewing polyjuice potion",
+      "Hitting 88 mph",
+      "Storming the castle",
+      "Warping through pipes",
+      "Making a huge mistake",
+      "Making fetch happen",
+      "Riding the sandworm",
+      "Enhancing the image",
+      "Hacking the mainframe",
+      "Assembling the Avengers",
+      "Choosing violence",
+      "Rolling a nat 20",
+      "Pulling a Leeroy Jenkins",
+      "Activating ludicrous speed",
+      "Activating lightspeed",
+      "Stealing the moon",
+      "Reconnecting the chiral network",
+      "Refining the scary numbers",
+      "Trying to exit Vim",
+      "Compiling shaders",
+      "Pulling a shot"
+    ]
+  },
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "medium"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "low"
+    }
+  },
+  "autoUpdatesChannel": "stable",
+  "tui": "fullscreen",
+  "theme": "dark",
+  "editorMode": "vim",
+  "agentPushNotifEnabled": true
+}

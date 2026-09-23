@@ -5,8 +5,11 @@
 #   nix run --impure .#tiers                                                 # the computed view
 #
 # --impure because the username and home directory are read from the environment; nothing
-# person-specific is committed. SMS_CHECKOUT, when set, is where the live links point
-# instead of the checkout under ~ (a worktree under test, say).
+# person-specific is committed. Anywhere the clone is not at ~/SMS-Supercharge-My-Shell --
+# CI, a container, a worktree -- SMS_CHECKOUT has to say where it is, or the build refuses
+# rather than pointing the live links at a path that is not there:
+#
+#   SMS_CHECKOUT=$PWD nix flake check --impure
 {
   description = "SMS Supercharge-My-Shell: one tier on one platform, from one lock file";
 
@@ -37,15 +40,23 @@
       ];
       nameOf = pair: "${pair.tier}-${pair.platform}";
 
+      # A predicate rather than allowUnfree, so a second unfree package cannot arrive without
+      # a line here saying so.
+      allowedUnfree = [ "claude-code" ];
+      pkgsFor = system: import nixpkgs {
+        inherit system;
+        config.allowUnfreePredicate = pkg: lib.elem (lib.getName pkg) allowedUnfree;
+      };
+
       configuration = { tier, platform }:
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${systemOf.${platform}};
+          pkgs = pkgsFor systemOf.${platform};
           modules = [ ./nix/home.nix { sms = { inherit tier platform; }; } ];
         };
 
       forAllSystems = f:
         lib.genAttrs (lib.unique (map (pair: systemOf.${pair.platform}) pairs))
-          (system: f system nixpkgs.legacyPackages.${system});
+          (system: f system (pkgsFor system));
     in {
       homeConfigurations =
         lib.listToAttrs (map (pair: lib.nameValuePair (nameOf pair) (configuration pair)) pairs);
@@ -62,15 +73,27 @@
       # assertions read evaluated configurations and run anywhere.
       checks = forAllSystems (system: pkgs:
         let
+          ours = lib.filter (pair: systemOf.${pair.platform} == system) pairs;
+
           builds = lib.listToAttrs (map
             (pair: lib.nameValuePair (nameOf pair) self.homeConfigurations.${nameOf pair}.activationPackage)
-            (lib.filter (pair: systemOf.${pair.platform} == system) pairs));
+            ours);
 
-          onLinux = lib.optionalAttrs (system == systemOf.linux) {
-            bat-links-live = pkgs.callPackage ./nix/checks/links-live.nix {
-              home = self.homeConfigurations.shell-linux;
-            };
-          };
+          fileChecks = lib.listToAttrs (map
+            (pair: lib.nameValuePair "files-live-and-applied-${nameOf pair}"
+              (pkgs.callPackage ./nix/checks/files-live-and-applied.nix {
+                configuration = self.homeConfigurations.${nameOf pair};
+                programsDir = ./programs;
+              }))
+            ours);
+
+          runtimeChecks = lib.listToAttrs (map
+            (pair: lib.nameValuePair "runtimes-and-pins-${nameOf pair}"
+              (pkgs.callPackage ./nix/checks/runtimes-and-pins.nix {
+                configuration = self.homeConfigurations.${nameOf pair};
+                programsDir = ./programs;
+              }))
+            ours);
 
           # One list check per configuration and source, so a source added to a declaration
           # is checked without a name being written here.
@@ -86,7 +109,6 @@
               (lib.attrNames home.config.sms.distro))
             self.homeConfigurations));
 
-          # Every platform that has both tiers; Linux is the only one so far.
           containsShell = lib.listToAttrs (map
             (platform: lib.nameValuePair "desktop-${platform}-contains-shell"
               (pkgs.callPackage ./nix/checks/desktop-contains-shell.nix {
@@ -94,10 +116,19 @@
                 desktop = self.homeConfigurations."desktop-${platform}";
               }))
             (lib.filter (platform: self.homeConfigurations ? "desktop-${platform}") platforms));
-        in builds // onLinux // distroLists // containsShell // {
+        in builds // fileChecks // runtimeChecks // distroLists // containsShell // {
           declared-membership = pkgs.callPackage ./nix/checks/declared-membership.nix {
             configurations = self.homeConfigurations;
             programsDir = ./programs;
+          };
+
+          # Not one of the pairs: a unit test of the linker's refusals, which are the same
+          # whichever tier and platform it is asked about, so it runs on every system.
+          linker-refusals = pkgs.callPackage ./nix/checks/linker-refusals.nix {
+            programsDir = ./programs;
+            platformsDir = ./platforms;
+            fixturesDir = ./nix/checks/fixtures;
+            inherit (self.homeConfigurations.shell-linux.config.sms) checkout;
           };
         });
     };

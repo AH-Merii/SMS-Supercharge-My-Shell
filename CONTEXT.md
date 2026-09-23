@@ -53,9 +53,10 @@ project and never installed for the machine as a whole.
 _Avoid_: dev dependency, local version, toolchain
 
 **Install source**:
-Where a program comes from on one platform: nixpkgs, pacman or the AUR. A program's
-declaration names exactly one per platform it exists on. A nixpkgs program is installed by
-the configuration itself; the rest are handed to the distro's own install step.
+Where a program comes from on one platform: nixpkgs, the repo, pacman or the AUR. A program's
+declaration names exactly one per platform it exists on. A nixpkgs program and a repo one --
+built from a `package.nix` in the program's own directory, for what nixpkgs does not carry --
+are installed by the configuration itself; the rest are handed to the distro's own install step.
 _Avoid_: package manager, backend, provider, install method
 
 **Distro list**:
@@ -82,6 +83,13 @@ Linux, machine-level settings on macOS, what differs under WSL2.
 A config file that `~` reaches through a link into the checkout, so an edit is seen by the
 program at once with no build step. The default for every file a program ships.
 _Avoid_: symlinked file, out-of-store file
+
+**Checkout**:
+Where the repo is cloned on a machine, as a path every live file links into. One string the
+configuration is built with, defaulting to the clone under the home directory and overridden
+by `SMS_CHECKOUT` to point a build at another one, a worktree under test say. The build
+refuses a checkout that is not there or holds no `programs/`.
+_Avoid_: repo root, source tree, dotfiles directory
 
 **Applied file**:
 A config file copied into place by a switch and changed only by the next switch, so that it

@@ -1,0 +1,37 @@
+# tuicr, the review TUI behind the `gd` abbreviation (`tuicr -w`) and `tuicr pr <n>`.
+#
+# Both sets of comment types live in one list because tuicr reads a single config with no
+# per-repo override. Which set to use is the writer's call: my prefixes on my own change,
+# tuicr's own on someone else's PR.
+#
+# `none` is first because tuicr makes the first entry the default, and a comment should
+# stay untyped until it earns a type. Colours are the 16 terminal names rather than hex so
+# the badges follow whatever palette the terminal is wearing.
+comment_types = [
+  { id = "none" },
+
+  # Mine, for my own change.
+  { id = "btw", color = "blue", definition = "context not in the code, nothing to do: a non-obvious or interesting reason, or what a reader without this thread would need to follow the change" },
+  { id = "nextpr", color = "cyan", definition = "a committed followup; must carry an issue number, otherwise it is a maybelater" },
+  { id = "maybelater", color = "dark_gray", definition = "a promising idea, considered and out of scope, with nothing scheduled" },
+  { id = "coinflip", color = "magenta", definition = "a choice made without asking, named together with the alternative; read before merging" },
+  { id = "nope", color = "green", definition = "an obvious approach that was tried or considered, and what broke" },
+  { id = "hmmm", color = "yellow", definition = "an open question that needs the reviewer's answer" },
+  { id = "yolo", color = "light_magenta", definition = "shipped without running on the target: what is untested, why it could not be tested, and how the reviewer could test it; never an inventory of what was exercised" },
+  { id = "iou", color = "light_red", definition = "a workaround: what it is, why the proper route is unavailable now, and the condition for removing it" },
+
+  # tuicr's own, for reviewing someone else's PR. Mine are written by the author of a
+  # change explaining themselves, so most of them mean nothing from the other direction.
+  { id = "note", label = "question", definition = "ask for clarification", color = "yellow" },
+  { id = "suggestion", definition = "possible improvements" },
+  { id = "issue", definition = "problems to fix" },
+  { id = "praise", definition = "positive feedback" },
+  { id = "nit", label = "nitpick", definition = "small optional tweaks", color = "#d19a66" },
+]
+
+[forge]
+# Submitted comments read `[BTW] ...`, not the `btw: ...` I type by hand: tuicr uppercases
+# and brackets the tag with no way to spell it lowercase. Worth it to have the tool stamp
+# it. `label` on note and nit needs a tuicr past 0.25, where a submitted comment carried the
+# type id and an exported one its label; nixpkgs is past that, so the build from main is gone.
+comment_type_prefix = true
