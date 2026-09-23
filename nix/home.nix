@@ -64,9 +64,12 @@ in {
 
     # Where the live files point, published so that a config which cannot be generated -- the
     # Claude settings, which Claude Code rewrites and which therefore stays live -- can still
-    # name the checkout without writing a path down. It is the same name the build reads, so a
-    # switch made against a worktree leaves every later shell pointed at that worktree until
-    # the next switch moves it back.
+    # name the checkout without writing a path down.
+    #
+    # One name for both directions, which pins: this is the same variable the build reads, so a
+    # switch made against a worktree exports that worktree to every later shell, and the builds
+    # those shells run inherit it and target the worktree again. Coming back is deliberate --
+    # `SMS_CHECKOUT=<checkout>` on the switch that moves it, or `set -e SMS_CHECKOUT` first.
     home.sessionVariables.SMS_CHECKOUT = config.sms.checkout;
 
     sms = { inherit (linked) programs distro; };

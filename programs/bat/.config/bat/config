@@ -4,8 +4,7 @@
 # reads the same theme for diffs, and the fzf and hints previews get it through here.
 # bat loads custom themes from its cache, and refuses a cache a different bat built: a
 # minor upgrade makes every bat call exit with a cache error until `bat cache --build`
-# runs. The switch task rebuilds it, so a bat that arrives with a new generation brings a
-# cache that matches.
+# runs.
 --theme="ansi-roles"
 
 # Comments are italic in the theme, as they are on the command line; bat drops italics

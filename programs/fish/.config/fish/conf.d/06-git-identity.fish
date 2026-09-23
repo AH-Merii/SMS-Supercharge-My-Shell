@@ -1,7 +1,7 @@
 # Warn when git identity or commit signing is not set up on this machine.
-# The stowed git config enforces SSH signing but keeps identity out of the repo:
+# The linked git config enforces SSH signing but keeps identity out of the repo:
 # it lives in untracked ~/.config/git/config.local, which `ggh` writes per machine
-# (see base/git/README.md).
+# (see programs/git/README.md).
 status is-interactive; or return
 type -q git; or return
 
@@ -19,5 +19,5 @@ if test (count $missing) -gt 0
     echo "  ggh op init --name 'Your Name' --email you@example.com   # 1Password SSH key"
     echo "  ggh init    --name 'Your Name' --email you@example.com   # plain SSH key"
     echo "  ggh op add  --org MyOrg --name 'Your Name' --email you@work.com   # per-org identity"
-    echo "  details: ~/SMS-Supercharge-My-Shell/base/git/README.md"
+    echo "  details: ~/SMS-Supercharge-My-Shell/programs/git/README.md"
 end
