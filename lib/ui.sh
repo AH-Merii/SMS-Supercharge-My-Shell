@@ -1,9 +1,6 @@
 # shellcheck shell=bash
-# Colours and prompts for the install tasks. Sourced, never run.
-#
-# bootstrap.sh does not use this file -- when curl-piped it runs before the repo is
-# cloned, so it inlines its own minimal copy of the colour vars and sms_confirm.
-# Keep the two in step.
+# Colours and prompts for the tasks. Sourced, never run. bootstrap.sh runs before the clone
+# and asks nothing of its own, so it does without this file.
 
 [ -n "${_SMS_UI:-}" ] && return 0
 _SMS_UI=1
@@ -58,7 +55,7 @@ sms_confirm() {
 
   # Open the tty once as fd 3 rather than redirecting each read: `read < /dev/tty` on an
   # unopenable tty under `set -e` behaves differently across bash versions. Prompt on
-  # fd 3 too, so `mise run setup | tee log` cannot swallow the question.
+  # fd 3 too, so `mise run setup ... | tee log` cannot swallow the question.
   #
   # Probed in a subshell rather than attempted directly. `exec` is a special builtin, so
   # a failed redirection on it kills the whole shell in POSIX mode instead of returning

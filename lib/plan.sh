@@ -324,7 +324,7 @@ plan_greeter() {
   missing=$(pacman -T greetd noctalia-greeter 2>/dev/null) || true
   _split_by_missing "$missing" greetd noctalia-greeter
   _show_split
-  [[ ${#_want[@]} -gt 0 ]] && sms_note 'deps installs those; greeter runs after it'
+  [[ ${#_want[@]} -gt 0 ]] && sms_note 'pacman installs those; greeter runs after it'
 
   local f
   for f in etc/greetd/config.toml etc/pam.d/greetd; do

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#MISE description="Install the distro's share of one configuration through pacman and paru: --tier shell|desktop"
+#MISE raw=true
+#
+# The derived pacman and AUR lists of a configuration, previewed against what is installed,
+# one question, then the install. What the switch installs itself is not here, and nothing
+# the distro installed is ever removed: a program that leaves the list is yours to `pacman -Rs`.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=lib/distro.sh
+source lib/distro.sh
+
+if ! sms_distro_here; then
+  sms_note 'no pacman on this machine; nothing to install here'
+  exit 0
+fi
+
+sms_configuration "$@"
+sms_distro_lists
+sms_header "pacman for $configuration"
+
+if ! sms_preview sms_distro_show 'Install these?'; then
+  # Exit 0: declining is an answer, not a failure.
+  printf '\n  aborted, nothing installed\n\n'
+  exit 0
+fi
+
+sms_distro_install

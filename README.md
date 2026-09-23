@@ -20,7 +20,8 @@ platforms/<platform>/
   <tier>.nix              a home-manager module for that tier on that platform, if any
 nix/                      the linker, the module and the flake checks
 flake.nix, flake.lock     the configurations and the versions of everything in them
-mise-tasks/               the front door: check, switch, update, tiers
+mise-tasks/               the front door: check, switch, update, setup, pacman, tiers
+bootstrap.sh              a Fresh machine, from nothing to setup
 ```
 
 Everything a machine has is placed by answering four questions: which program it belongs to,
@@ -74,36 +75,69 @@ it and the copy rolls back together with the packages.
 
 ### A Fresh machine
 
-You need `curl` and, on Linux, `sudo`. Nothing else.
+You need `curl` and, on Linux, `sudo`. Nothing else. One command takes the machine from
+nothing to set up:
 
-**1. Install Nix** with the Determinate installer. It sets up the multi-user daemon, turns
-flakes on and leaves a one-command uninstall behind:
+```sh
+curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh
+```
+
+On a Linux desktop say `sh -s -- --tier desktop` instead of `sh`. The script does three
+things, each skipped when already done, so it is safe to run again:
+
+1. Installs Nix with the Determinate installer, unless `nix` is already there. That sets up
+   the multi-user daemon, turns flakes on and leaves a one-command uninstall behind. The
+   installer asks its own question.
+2. Clones the repo to `~/SMS-Supercharge-My-Shell`, unless it is already there.
+3. Runs `mise run setup` for the tier, in a shell that borrows git, mise and bash from nixpkgs
+   because the machine has none of them yet. After the first switch it has all three from the
+   configuration, and that shell is never needed again.
+
+`setup` builds the configuration and shows one plan: what the switch will do to this home
+(packages, links, and any file in the way with the name it will be backed up under), and on
+Linux with pacman the derived pacman and AUR lists against what is installed, and on a
+Desktop the login screen. One question, then every step runs in order: the switch, pacman,
+the greeter, the Claude memories. The greeter writes root's files and asks for sudo itself,
+whatever was answered. `-y` (or `SMS_YES=1`) answers every question yes, for a run nobody is
+watching.
+
+The same steps by hand, for a machine where the one command is not wanted:
 
 ```sh
 curl -fsSL https://install.determinate.systems/nix | sh -s -- install
-```
-
-Open a new shell afterwards so `nix` is on the PATH.
-
-**2. Clone and switch.** git and mise are not on the machine yet, and on macOS the system
-bash is too old for the tasks, so the first switch runs inside a temporary shell that carries
-all three:
-
-```sh
+# open a new shell so nix is on the PATH
 nix shell nixpkgs#git nixpkgs#mise nixpkgs#bash
 git clone https://github.com/AH-Merii/SMS-Supercharge-My-Shell.git ~/SMS-Supercharge-My-Shell
 cd ~/SMS-Supercharge-My-Shell
 mise trust
-mise run switch --tier shell
+mise run setup --tier shell
 exit
 ```
 
-On a Linux desktop say `--tier desktop` instead. The platform is detected from the machine.
-`switch` builds the configuration, prints what the switch will do to this home and asks once;
-the answer is what installs the packages and writes the links. From here on git, mise and bash come from the configuration itself.
+Or, instead of `setup`, the steps one at a time, each with its own preview and question:
+`mise run switch --tier shell`, then on Linux with pacman `mise run pacman --tier shell`,
+then on a Desktop `mise run greeter`, then `mise run memory`. The platform is detected from
+the machine either way.
 
-**3. Make fish the login shell.** It lives in the Nix profile, which the login database does
-not know about:
+**What the distro installs.** On Linux with pacman, the configuration computes what pacman
+and the AUR are expected to install: for Shell it is `base-devel` alone, the toolchain the
+AUR builds need; for Desktop it adds the compositor, the bar, the greeter and the portals,
+which pacman keeps so they move with the drivers, and 1Password with its CLI from the AUR.
+`mise run pacman --tier desktop` previews the two lists against what is installed and asks
+once; `mise run tiers` shows the same lists, one row per program plus a `platforms/linux`
+row for what belongs to no program. paru installs the AUR list: CachyOS ships it, and on
+plain Arch it is built from the AUR first, which is what `base-devel` is for; without it the
+AUR names are printed for you to install by hand. A Linux without pacman (Debian, say) has
+nothing to install here.
+
+**The login screen** is root's and stays a separate step that asks for sudo, run by `setup`
+on a Desktop or by hand as `mise run greeter`. It installs the greetd config, switches the
+display manager from sddm and syncs Noctalia's look into the greeter. Reboot to log in
+through it. Run before the pacman step, it refuses.
+
+**Then, the pieces the configuration does not own.** Make fish the login shell first: it
+lives in the Nix profile, which the login database does not know about, and `setup` prints
+these two lines when it finishes:
 
 ```sh
 echo "$HOME/.nix-profile/bin/fish" | sudo tee -a /etc/shells
@@ -111,44 +145,9 @@ chsh -s "$HOME/.nix-profile/bin/fish"
 ```
 
 Log in again. fish puts the Nix profile on the PATH itself, so a login shell, a `fish -c`
-and a program spawned by the compositor all see the same tools.
-
-**4. On Linux with pacman,** give the distro its list. The configuration computes it: for
-Shell it is `base-devel` alone, the toolchain the AUR builds need; for Desktop it adds the
-compositor, the bar, the greeter and the portals, which pacman keeps so they move with the
-drivers. Run these from the checkout, naming the configuration you switched to, `shell-linux`
-or `desktop-linux`:
-
-```sh
-sudo pacman -S --needed $(nix eval --impure --raw \
-  '.#homeConfigurations.desktop-linux.config.sms.distro.pacman' \
-  --apply 'l: builtins.concatStringsSep " " l')
-```
-
-Desktop also has an AUR list, 1Password and its CLI, which paru installs. CachyOS ships paru;
-on plain Arch build it from the AUR first, which is what `base-devel` above is for:
-
-```sh
-paru -S --needed $(nix eval --impure --raw \
-  '.#homeConfigurations.desktop-linux.config.sms.distro.aur' \
-  --apply 'l: builtins.concatStringsSep " " l')
-```
-
-`mise run tiers` shows the same lists, one row per program plus a `platforms/linux` row for
-what belongs to no program. A Linux without pacman (Debian, say) has nothing to run here.
-
-On a Desktop, once the pacman list is in, the login screen. It is root's and stays a separate
-step that asks for sudo:
-
-```sh
-mise run greeter
-```
-
-It installs the greetd config, switches the display manager from sddm and syncs Noctalia's
-look into the greeter. Reboot to log in through it. Run before the pacman step, it refuses.
-
-**5. The pieces the configuration does not own.** Fish and tmux plugins are fetched by their
-own managers, and git's identity and signing key are yours, never committed:
+and a program spawned by the compositor all see the same tools. Fish and tmux plugins are
+fetched by their own managers, and git's identity and signing key are yours, never
+committed:
 
 ```sh
 mise run plugins
@@ -156,14 +155,14 @@ ggh
 ```
 
 fish reminds you about `ggh` until the identity is set. `mise run memory` links the portable
-Claude Code memories into this checkout's project directory, if you use Claude Code here.
+Claude Code memories into this checkout's project directory; `setup` has run it already.
 
 ### An Existing machine
 
 A machine that already has some of these programs, or its own files at the paths the
-configuration manages, is set up the same way. The preview before the switch lists every file
-in the way and the name it will be backed up under (`<path>.bak`, or a timestamped suffix if
-that name is taken); nothing is lost. Software installed by other means is left alone: the
+configuration manages, is set up the same way, by the one command or by hand. The preview
+before the switch lists every file in the way and the name it will be backed up under
+(`<path>.bak`, or a timestamped suffix if that name is taken); nothing is lost. Software installed by other means is left alone: the
 Nix profile goes in front of it on the PATH and the two coexist.
 
 One case is refused rather than backed up. home-manager backs up files and never links, so a
@@ -210,11 +209,13 @@ backups the switch made are still beside them with their original contents.
 | `mise run check --tier shell` | Build one configuration and touch nothing. A broken change is caught here. |
 | `mise run switch --tier shell` | Build, preview the change to this home, ask once, activate. |
 | `mise run update --tier shell` | Pull the checkout, then switch. |
+| `mise run setup --tier shell` | One plan and one question for the switch, pacman, the greeter and the memories, where each applies. |
+| `mise run pacman --tier shell` | Preview the derived pacman and AUR lists against what is installed, ask once, install. Linux with pacman only. |
 | `mise run tiers` | Print what Shell and Desktop contain on each platform, with each program's source. |
 
-`check`, `switch` and `update` take `--tier shell` or `--tier desktop` and an optional
-`--platform`; the platform is detected when not given. `tiers` takes nothing and prints every
-platform.
+`check`, `switch`, `update`, `setup` and `pacman` take `--tier shell` or `--tier desktop`
+and an optional `--platform`; the platform is detected when not given. `tiers` takes nothing
+and prints every platform.
 
 **Editing a config** needs no step: the file under `~` is a link to the file in the checkout,
 so the program sees the edit at once. Only an applied file waits for the next switch.
@@ -255,7 +256,7 @@ with itself.
    `mise run tiers` to see it in place, then `switch`.
 
 A program whose source is `pacman` or `aur` is declared the same way; the switch links its
-config and the derived list gains a line for you to install as in step 4 of the setup. A program
+config and the derived list gains a line, which `mise run pacman` installs. A program
 nixpkgs does not carry gets a `package.nix` in its directory and `install.<platform>.repo =
 "<name>"`; ccstatusline is the example.
 

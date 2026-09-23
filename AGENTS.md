@@ -17,7 +17,9 @@ SMS_CHECKOUT=$PWD nix flake check --impure
 
 `flake.nix` lists the rest of the commands. The front door is the mise tasks, which set
 `SMS_CHECKOUT` to the checkout they run from: `mise run check --tier shell` builds one
-configuration and touches nothing, `switch` previews and activates it, `update` pulls first.
+configuration and touches nothing, `switch` previews and activates it, `update` pulls first,
+`setup` runs the switch and the distro's steps on one question, and `pacman` installs the
+derived list. `bootstrap.sh` takes a Fresh machine to `setup` from nothing.
 
 ## Agent skills
 
