@@ -4,7 +4,8 @@
 #   nix flake check --impure                                                 # build + assertions
 #
 # --impure because the username and home directory are read from the environment; nothing
-# person-specific is committed.
+# person-specific is committed. SMS_CHECKOUT, when set, is where the live links point
+# instead of the checkout under ~ (a worktree under test, say).
 {
   description = "SMS Supercharge-My-Shell: one tier on one platform, from one lock file";
 

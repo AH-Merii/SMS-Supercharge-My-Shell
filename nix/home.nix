@@ -9,6 +9,9 @@ let
     let value = builtins.getEnv name;
     in if value == "" then throw "${name} is not set: evaluate with --impure" else value;
   home = env "HOME";
+  # SMS_CHECKOUT points a build at a checkout other than the one under ~, such as a
+  # worktree while a branch is being tested; unset, the usual location applies.
+  checkoutEnv = builtins.getEnv "SMS_CHECKOUT";
 
   programs = import ./linker.nix {
     inherit lib pkgs;
@@ -25,7 +28,7 @@ in {
       # A string, never a path: a path would copy the checkout into the store and every
       # live file would point at the copy.
       type = types.str;
-      default = "${home}/SMS-Supercharge-My-Shell";
+      default = if checkoutEnv != "" then checkoutEnv else "${home}/SMS-Supercharge-My-Shell";
       description = "Where the repo is checked out; every live file links into it.";
     };
   };
