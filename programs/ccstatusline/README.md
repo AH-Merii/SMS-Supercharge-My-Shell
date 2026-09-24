@@ -23,7 +23,7 @@ ccstatusline/
 `settings.json` is live: ccstatusline's own TUI rewrites it, resolving the symlink so the
 edit lands in the checkout. `context-bar.sh` is the repo's one applied file -- nothing but
 an edit here changes it, so it is copied into the store and rolls back with the package
-that runs it. Changing it therefore needs a switch, unlike every other config in the repo.
+that runs it. Changing it therefore needs an activation, unlike every other config in the repo.
 
 ## Setup
 

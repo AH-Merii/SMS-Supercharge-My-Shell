@@ -2,7 +2,7 @@
 
 Dotfiles for fish, neovim, tmux, git and a niri desktop, one directory per program under
 `programs/`. `CONTEXT.md` holds the vocabulary and `docs/adr/` the decisions; `README.md` is
-a placeholder until the rebuild (#123) is done.
+the setup walkthrough and the guide to adding, removing and moving programs.
 
 ## Building the Nix configurations
 
@@ -17,7 +17,9 @@ SMS_CHECKOUT=$PWD nix flake check --impure
 
 `flake.nix` lists the rest of the commands. The front door is the mise tasks, which set
 `SMS_CHECKOUT` to the checkout they run from: `mise run check --tier shell` builds one
-configuration and touches nothing, `switch` previews and activates it, `update` pulls first.
+configuration and touches nothing, `activate` previews and activates it, `update` pulls first,
+`setup` runs the activation and the distro's steps on one question, and `pacman` installs the
+derived list. `bootstrap.sh` takes a Fresh machine to `setup` from nothing.
 
 ## Agent skills
 
@@ -33,5 +35,5 @@ The five canonical triage labels, unchanged: `needs-triage`, `needs-info`,
 
 ### Domain docs
 
-Single-context: one `CONTEXT.md` at the repo root and ADRs under `docs/adr/`, neither
-created yet. See `docs/agents/domain.md`.
+Single-context: one `CONTEXT.md` at the repo root and ADRs under `docs/adr/`. See
+`docs/agents/domain.md`.
