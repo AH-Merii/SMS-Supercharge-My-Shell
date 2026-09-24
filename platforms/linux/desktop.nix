@@ -8,6 +8,12 @@
   # nix.sh paths are not where NixOS keeps them. This writes the data dirs into environment.d.
   targets.genericLinux.enable = true;
 
+  # genericLinux's GPU module would point Nix-built graphical programs at the host's drivers
+  # through /run/opengl-driver, and until that is set up by hand it prints a sudo command at
+  # every activation. Nothing Nix-built in either tier draws with the GPU: niri, ghostty and
+  # Noctalia come from pacman. Off until a Nix-built GUI program joins.
+  targets.genericLinux.gpu.enable = false;
+
   # genericLinux writes the data dirs and leaves the PATH alone. The profile first, then the
   # daemon's default profile that carries nix itself, in front of what the session had.
   systemd.user.sessionVariables.PATH =

@@ -58,8 +58,13 @@ if ! command -v nix >/dev/null 2>&1; then
   # container has no init to own the daemon, so there the installer is told not to look
   # for one and nix runs daemonless.
   set -- install
-  if [ "$(uname -s)" = Linux ] && [ ! -d /run/systemd/system ]; then
-    set -- install linux --init none
+  if [ "$(uname -s)" = Linux ]; then
+    if [ ! -d /run/systemd/system ]; then set -- install linux --init none; fi
+    # The daemon's 32 build users are system accounts from uid 30001 up, inside the range
+    # sddm lists on its login screen (uid 1000 to 60513 on CachyOS): until the reboot into
+    # greetd, a Fresh desktop would offer "Nix build user 1" to "32" as accounts to log in
+    # as. From 61000 the pool sits above that and below systemd's dynamic users (61184 up).
+    set -- "$@" --nix-build-user-id-base 61000 --nix-build-user-count 32
   fi
   if [ -n "$SMS_YES" ]; then set -- "$@" --no-confirm; fi
   curl -fsSL https://install.determinate.systems/nix | sh -s -- "$@"

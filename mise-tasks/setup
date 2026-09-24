@@ -50,8 +50,11 @@ if ! sms_confirm 'Set up?'; then
 fi
 
 # One password prompt at a predictable moment rather than partway through pacman, which
-# asks again itself if this one was declined or mistyped.
-[[ $distro == 0 || ${#pacman_want[@]} -eq 0 ]] || sudo -v || true
+# asks again itself if this one was declined or mistyped; said, so the lecture pacman then
+# prints is not the first sign that this one went unanswered.
+if [[ $distro == 1 && ${#pacman_want[@]} -gt 0 ]] && ! sms_sudo_v; then
+  sms_warn 'sudo not authenticated here; pacman asks itself'
+fi
 
 export SMS_PLAN_CONFIRMED=1
 
@@ -65,21 +68,36 @@ fi
 
 # Sequential `mise run`s: the greeter needs pacman's packages in place, and memory links into
 # a directory named after this checkout, which the activation may just have created.
+#
+# The greeter is the one step that can stop for want of a password (no terminal, none
+# given); memory does not depend on it, so it runs regardless and the failure is carried
+# to the end, where it is the exit status.
+greeter_status=0
 if [[ $greeter == 1 ]]; then
   sms_header '==> greeter'
-  mise run greeter
+  mise run greeter || greeter_status=$?
 fi
 sms_header '==> memory'
 mise run memory
 
-printf '\n  %sset up as %s%s\n' "$c_bold$c_green" "$configuration" "$c_reset"
+if [[ $greeter_status -eq 0 ]]; then
+  printf '\n  %sset up as %s%s\n' "$c_bold$c_green" "$configuration" "$c_reset"
+else
+  printf '\n  %sset up as %s, except the login screen%s\n' "$c_bold$c_yellow" "$configuration" "$c_reset"
+  sms_err "the greeter step failed (exit $greeter_status); run \`mise run greeter\` from a terminal"
+fi
 
 # What still needs you, printed here rather than in bootstrap.sh so it lands however setup
 # was reached, and never after a declined plan.
-if [[ $(basename "${SHELL:-}") != fish ]]; then
+#
+# The path, not the name: a distro may ship fish as the login shell already (CachyOS does),
+# and that is the distro's fish, not the profile's, which is the one the configuration wants.
+if [[ ${SHELL:-} != "$HOME/.nix-profile/bin/fish" ]]; then
   # shellcheck disable=SC2016  # literal text for the user to copy, not to expand here
   sms_note 'make fish the login shell:  echo "$HOME/.nix-profile/bin/fish" | sudo tee -a /etc/shells; chsh -s "$HOME/.nix-profile/bin/fish"'
 fi
-sms_note 'then, from fish:  mise run plugins  (fish and tmux plugins)  and  ggh  (git identity and signing)'
+# The tasks are the checkout's, so `mise run` finds them from inside it only.
+sms_note 'then, from fish in this checkout:  mise run plugins  (fish and tmux plugins)  and  ggh  (git identity and signing)'
 [[ $greeter == 0 ]] || sms_note 'reboot to log in through the greeter'
 echo
+exit "$greeter_status"

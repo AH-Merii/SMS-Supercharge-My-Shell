@@ -78,6 +78,13 @@ sms_confirm() {
   esac
 }
 
+# Refresh sudo's credential, through the askpass helper when one is named: sudo honours
+# SUDO_ASKPASS only when told to with -A, and that is how a run with no terminal to ask on
+# (a driven VM, a pipeline) answers at all.
+sms_sudo_v() {
+  if [[ -n ${SUDO_ASKPASS:-} ]]; then sudo -A -v; else sudo -v; fi
+}
+
 # Print a plan and confirm it -- unless `setup` already showed the combined plan and got
 # an answer, in which case showing the same section again would just be noise.
 sms_preview() {

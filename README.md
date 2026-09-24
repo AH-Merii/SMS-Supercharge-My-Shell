@@ -139,11 +139,15 @@ distro the pacman step is skipped and only the Nix packages of the tier are inst
 on a Desktop or by hand as `mise run greeter`. It installs the greetd config, switches the
 display manager from sddm and syncs Noctalia's look into the greeter. Reboot to log in
 through it. Run before the pacman step, it stops: the packages it configures are not there
-yet.
+yet. With no terminal to ask on it stops too, `setup` finishes the rest and says so; a run
+that is driven rather than typed at names an askpass helper in `SUDO_ASKPASS`. On the first
+login through it, Noctalia offers to sync its look into the greeter and asks for the
+password on screen; dismissed, `mise run greeter` applies what Noctalia staged.
 
 **Then, the pieces the configuration does not own.** Make fish the login shell first: it
 lives in the Nix profile, which the login database does not know about, and `setup` prints
-these two lines when it finishes:
+these two lines when it finishes. They apply on CachyOS too, where fish is the login shell
+already: that one is the distro's, not the profile's.
 
 ```sh
 echo "$HOME/.nix-profile/bin/fish" | sudo tee -a /etc/shells
@@ -153,7 +157,7 @@ chsh -s "$HOME/.nix-profile/bin/fish"
 Log in again. fish puts the Nix profile on the PATH itself, so a login shell, a `fish -c`
 and a program spawned by the compositor all see the same tools. Fish and tmux plugins are
 fetched by their own managers, and git's identity and signing key are yours, never
-committed:
+committed. The tasks are the checkout's, so both from inside it:
 
 ```sh
 mise run plugins

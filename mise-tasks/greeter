@@ -31,10 +31,10 @@ if [[ -n $missing ]]; then
 fi
 
 # Root's files, so the password is asked here whatever came before: a cached credential
-# from an earlier step is dropped first, and without a terminal to ask on this stops rather
-# than writing to /etc unattended.
+# from an earlier step is dropped first, and without a terminal to ask on (nor an askpass
+# helper) this stops rather than writing to /etc unattended.
 sudo -k
-sudo -v
+sms_sudo_v
 
 # --- files ----------------------------------------------------------------------------
 
@@ -89,6 +89,11 @@ fi
 # The greeter-sync handler only exists in a Noctalia that started after noctalia-greeter
 # was installed. On a fresh machine it was up long before pacman ran, and the reply is then
 # "unknown command": restart Noctalia once (the bar blinks) and try again.
+#
+# A hand-off that was started and never finished (the prompt dismissed, no agent to show
+# it) latches: every later greeter-sync answers "already in progress" for as long as that
+# Noctalia runs, and nothing new is staged. The staged tree is still there, so it is
+# applied through sudo, the same as an unanswered prompt.
 
 synced_at() { sudo stat -c %Y /var/lib/noctalia-greeter/sync.toml 2>/dev/null || echo 0; }
 
@@ -115,6 +120,11 @@ sync_appearance() {
     fi
     out=$(noctalia msg greeter-sync 2>&1) || true
   fi
+  if [[ $out == *'already in progress'* ]]; then
+    sms_note 'Noctalia has a hand-off pending that never finished'
+    apply_staged "$staging"
+    return 0
+  fi
   if [[ $out != ok* ]]; then
     sms_warn "appearance sync failed: $out"
     return 0
@@ -131,14 +141,18 @@ sync_appearance() {
     sleep 1
   done
   if [[ $(synced_at) == "$before" ]]; then
-    if [[ -d $staging ]]; then
-      sudo noctalia-greeter-apply-appearance "$staging"
-      sms_note 'synced Noctalia appearance to the greeter (sudo)'
-    else
-      sms_warn 'Noctalia staged nothing to sync; re-run this task from the desktop'
-    fi
+    apply_staged "$staging"
   else
     sms_note 'synced Noctalia appearance to the greeter'
+  fi
+}
+
+apply_staged() { # apply_staged <staging dir>
+  if [[ -d $1 ]]; then
+    sudo noctalia-greeter-apply-appearance "$1"
+    sms_note 'synced Noctalia appearance to the greeter (sudo)'
+  else
+    sms_warn 'Noctalia staged nothing to sync; re-run this task from the desktop'
   fi
 }
 
