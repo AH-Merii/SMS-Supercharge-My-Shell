@@ -3,7 +3,7 @@
 #MISE raw=true
 #
 # The derived pacman and AUR lists of a configuration, previewed against what is installed,
-# one question, then the install. What the switch installs itself is not here, and nothing
+# one question, then the install. What the activation installs itself is not here, and nothing
 # the distro installed is ever removed: a program that leaves the list is yours to `pacman -Rs`.
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE description="Set a machine up, one question: switch, then pacman, greeter and memory where they apply (same flags as switch)"
+#MISE description="Set a machine up, one question: activate, then pacman, greeter and memory where they apply (same flags as activate)"
 #MISE raw=true
 #
 # One plan for every step that applies to this configuration, one question, then the steps
@@ -12,8 +12,8 @@
 # pacman exists, the greeter on the Linux Desktop, memory everywhere.
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
-# shellcheck source=lib/switch.sh
-source lib/switch.sh
+# shellcheck source=lib/activate.sh
+source lib/activate.sh
 # shellcheck source=lib/distro.sh
 source lib/distro.sh
 # shellcheck source=lib/plan.sh
@@ -34,11 +34,11 @@ if [[ $tier == desktop ]]; then DOTFILES_PROFILE=desktop; fi
 profile=$DOTFILES_PROFILE
 
 sms_build
-sms_switch_scan
+sms_activate_scan
 [[ $distro == 0 ]] || sms_distro_lists
 
 sms_header "set up as $configuration"
-sms_switch_show
+sms_activate_show
 [[ $distro == 0 ]] || sms_distro_show
 [[ $greeter == 0 ]] || plan_greeter
 plan_memory
@@ -55,8 +55,8 @@ fi
 
 export SMS_PLAN_CONFIRMED=1
 
-sms_header '==> switch'
-sms_switch_activate
+sms_header '==> activate'
+sms_activate_run
 
 if [[ $distro == 1 ]]; then
   sms_header '==> pacman'
@@ -64,7 +64,7 @@ if [[ $distro == 1 ]]; then
 fi
 
 # Sequential `mise run`s: the greeter needs pacman's packages in place, and memory links into
-# a directory named after this checkout, which the switch may just have created.
+# a directory named after this checkout, which the activation may just have created.
 if [[ $greeter == 1 ]]; then
   sms_header '==> greeter'
   mise run greeter

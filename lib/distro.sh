@@ -5,7 +5,7 @@
 #
 # Linux with pacman only. The lists are computed from the declarations (CONTEXT.md, "Distro
 # list"), so a program is added to them by declaring `install.linux.pacman` or `.aur` and
-# never by editing a list; what the switch installs itself is not here.
+# never by editing a list; what the activation installs itself is not here.
 
 [ -n "${_SMS_DISTRO:-}" ] && return 0
 _SMS_DISTRO=1

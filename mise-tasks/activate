@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#MISE description="Build, preview and activate one configuration: --tier shell|desktop [--platform linux|darwin|wsl]"
+#MISE raw=true
+#
+# Build, then a preview of what the activation will do to this home, one question, and
+# home-manager's own activation with backups on. The preview and the activation are
+# lib/activate.sh, shared with setup, which shows the preview in its combined plan and asks its
+# one question; the preview is then not shown again here.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=lib/activate.sh
+source lib/activate.sh
+
+sms_configuration "$@"
+sms_build
+sms_activate_scan
+
+if ! sms_preview sms_activate_show 'Activate?'; then
+  # Exit 0: declining is an answer, not a failure.
+  printf '\n  aborted, nothing changed\n\n'
+  exit 0
+fi
+
+sms_activate_run

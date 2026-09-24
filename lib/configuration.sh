@@ -1,9 +1,9 @@
 # shellcheck shell=bash
-# Which configuration a task works on, and its build. Sourced by check and switch, never run.
+# Which configuration a task works on, and its build. Sourced by check and activate, never run.
 #
 # A configuration is one tier on one platform (CONTEXT.md). The tier is a flag; the platform
 # is a flag too, detected from the machine when not given. The build is home-manager's
-# activation package for that pair, which `switch` then runs.
+# activation package for that pair, which `activate` then runs.
 
 [ -n "${_SMS_CONFIGURATION:-}" ] && return 0
 _SMS_CONFIGURATION=1
@@ -13,7 +13,7 @@ source "${MISE_PROJECT_ROOT:?}/lib/ui.sh"
 
 # Every evaluation reads the username and home from the environment, hence --impure on
 # every nix command, and the checkout the live links point at is this one: a worktree under
-# test links into itself, and a switch from the main checkout brings a home that was moved
+# test links into itself, and an activation from the main checkout brings a home that was moved
 # to a worktree back.
 export SMS_CHECKOUT=$MISE_PROJECT_ROOT
 

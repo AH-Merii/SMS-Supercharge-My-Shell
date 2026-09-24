@@ -3,7 +3,7 @@
 # strings green, numbers orange, comments grey), see themes/ansi-roles.tmTheme. delta
 # reads the same theme for diffs, and the fzf and hints previews get it through here.
 # bat loads custom themes from its cache, and refuses a cache a different bat built, so
-# `mise run switch` rebuilds it after every switch; edit the theme and `bat cache --build`
+# `mise run activate` rebuilds it after every activation; edit the theme and `bat cache --build`
 # by hand.
 --theme="ansi-roles"
 

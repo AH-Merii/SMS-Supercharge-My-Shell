@@ -20,7 +20,7 @@ platforms/<platform>/
   <tier>.nix              a home-manager module for that tier on that platform, if any
 nix/                      the linker, the module and the flake checks
 flake.nix, flake.lock     the configurations and the versions of everything in them
-mise-tasks/               the front door: check, switch, update, setup, pacman, tiers
+mise-tasks/               the front door: check, activate, update, setup, pacman, tiers
 bootstrap.sh              a Fresh machine, from nothing to setup
 ```
 
@@ -68,8 +68,8 @@ when a configuration is built, so nothing in the repo names a person or a machin
 Two rules cut across all of this. Every tool on a machine, language runtimes included, is
 installed by the configuration from `flake.lock`; mise is kept only to honour a project's own
 pin, and its global config is deliberately empty. And every file a program ships is live, a
-link into the checkout, unless the program names it as applied, in which case a switch copies
-it and the copy rolls back together with the packages.
+link into the checkout, unless the program names it as applied, in which case an activation
+copies it and the copy rolls back together with the packages.
 
 ## Setting up a machine
 
@@ -90,35 +90,47 @@ For a Linux desktop, the same with the Desktop tier. The script's own flags go a
 curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh -s -- --tier desktop
 ```
 
-It installs Nix, clones this repo to `~/SMS-Supercharge-My-Shell` and sets the machine up
-as the tier you chose: the packages, the configs, and on a Desktop the distro's packages and
-the login screen. Every step shows what it is about to change and asks before doing it, so
-follow the prompts. Each step is skipped when already done, so the command is safe to run
-again, and `--help` lists the flags.
+It installs Nix, clones this repo to `~/SMS-Supercharge-My-Shell` and runs `mise run setup`
+for the tier you chose. `setup` is everything a machine needs, in order: the activation,
+which installs every package of the tier and links every config; on Arch the packages the
+distro installs; on a Desktop the login screen; and the Claude Code memories. It shows one
+plan of all of that and asks once. Every step is skipped when already done, so the command
+is safe to run again, and `--help` lists the flags.
 
-### Piece by piece
+`setup` is four tasks run back to back. Each can be run on its own, with its own preview and
+question, on a machine that has Nix and the clone, from inside the clone:
 
-If you want to adopt specific parts of the setup instead of installing all of it, run the
-tasks that `mise run setup` is made of, one at a time. Each shows a preview and asks before
-changing anything, so you can mix and match. They need Nix and the clone in place, and run
-from inside the clone. The smallest part is a tier: a single program is added or removed by
-editing its declaration (see "Changing what a machine has"), not by an install command of
-its own.
-
-```sh
-mise run switch --tier shell    # the packages and the configs of Shell, nothing else
-```
-
-The other parts, each taking the same `--tier`:
-
+- `mise run activate --tier shell`: the packages and the configs of a tier.
 - `mise run pacman --tier shell`: the packages the distro installs, on Arch.
 - `mise run greeter`: the login screen, on a Desktop.
 - `mise run memory`: the portable Claude Code memories, linked into this checkout's Claude
   Code project directory.
 
+Running the activation alone, say, gives a machine the whole of Shell and nothing the
+distro would have installed. The tier is the smallest thing an activation installs: it has
+no flag for one program.
+
+### Adopting specific configs
+
+A single program is taken by hand, on any machine and with none of the tooling above. Each
+program's config tree under `programs/` is plain files shaped like `~`, so neovim alone is
+its directory linked into place, and neovim installed however that machine installs things:
+
+```sh
+git clone https://github.com/AH-Merii/SMS-Supercharge-My-Shell.git ~/SMS-Supercharge-My-Shell
+ln -s ~/SMS-Supercharge-My-Shell/programs/neovim/.config/nvim ~/.config/nvim
+```
+
+The config stays live: an edit in the checkout is seen by neovim at once. Remove the link
+before an activation on that machine. The activation backs up files in the way, and the
+files it would find here are the checkout's own, seen through the directory link, so the
+backup would rename them inside the checkout. Which programs have a config tree, and what
+each one is installed as, is a look at `programs/`: each directory's `program.nix` names the
+package.
+
 **What the distro installs.** On an Arch-based distro, some of a Desktop is handed to pacman
-and the AUR rather than installed by the switch: the compositor, the greeter and the portals,
-which move with the drivers, and 1Password. `mise run tiers` shows exactly what, and
+and the AUR rather than installed by the activation: the compositor, the greeter and the
+portals, which move with the drivers, and 1Password. `mise run tiers` shows exactly what, and
 `mise run pacman` installs it after a preview. This is tested on CachyOS, which ships paru
 for the AUR; on plain Arch, paru is built from the AUR first. On any other non-Arch Linux
 distro the pacman step is skipped and only the Nix packages of the tier are installed.
@@ -153,19 +165,20 @@ fish reminds you about `ggh` until the identity is set.
 ### An Existing machine
 
 A machine that already has some of these programs, or its own files at the paths the
-configuration manages, is set up the same way, by the one command or piece by piece. The preview
-before the switch lists every file in the way and the name it will be backed up under
-(`<path>.bak`, or a timestamped suffix if that name is taken); nothing is lost. Software installed by other means is left alone: the
-Nix profile goes in front of it on the PATH and the two coexist.
+configuration manages, is set up the same way, by the one command or piece by piece. The
+preview before the activation lists every file in the way and the name it will be backed up
+under (`<path>.bak`, or a timestamped suffix if that name is taken); nothing is lost.
+Software installed by other means is left alone: the Nix profile goes in front of it on the
+PATH and the two coexist.
 
 One case is refused rather than backed up. home-manager backs up files and never links, so a
-link at a managed path that does not already point at the same content stops the switch with
-the offending paths listed. Move them aside and run the switch again.
+link at a managed path that does not already point at the same content stops the activation
+with the offending paths listed. Move them aside and run the activation again.
 
 ### A Set-up machine
 
-Catching up is one command: a fast-forward pull, then the same preview and confirmation as a
-switch.
+Catching up is one command: a fast-forward pull, then the same preview and confirmation as
+an activation.
 
 ```sh
 mise run update --tier shell
@@ -174,9 +187,9 @@ mise run update --tier shell
 The lock file only moves when a commit moves it, so a pull is the whole of an update and two
 machines on the same commit have the same versions.
 
-### Undoing a switch
+### Undoing an activation
 
-Every switch is a generation, kept beside the earlier ones. The home-manager command is not
+Every activation is a generation, kept beside the earlier ones. The home-manager command is not
 installed, so a rollback is the earlier generation's own activation script:
 
 ```sh
@@ -193,32 +206,32 @@ ls ~/.local/state/nix/profiles/
 ```
 
 removes Nix, the store and the daemon. The links under `~` then dangle and can be deleted; the
-backups the switch made are still beside them with their original contents.
+backups the activation made are still beside them with their original contents.
 
 ## Day to day
 
 | Command | What it does |
 | --- | --- |
 | `mise run check --tier shell` | Build one configuration and touch nothing. A broken change is caught here. |
-| `mise run switch --tier shell` | Build, preview the change to this home, ask once, activate. |
-| `mise run update --tier shell` | Pull the latest commits from GitHub, then switch. |
-| `mise run setup --tier shell` | One plan and one question for the switch, pacman, the greeter and the memories, where each applies. |
+| `mise run activate --tier shell` | Build, preview the change to this home, ask once, activate. |
+| `mise run update --tier shell` | Pull the latest commits from GitHub, then activate. |
+| `mise run setup --tier shell` | One plan and one question for the activation, pacman, the greeter and the memories, where each applies. |
 | `mise run pacman --tier shell` | Preview the derived pacman and AUR lists against what is installed, ask once, install. Arch-based distros only. |
 | `mise run tiers` | Print what Shell and Desktop contain on each platform, with each program's source. |
 
-`check`, `switch`, `update`, `setup` and `pacman` take `--tier shell` or `--tier desktop`
+`check`, `activate`, `update`, `setup` and `pacman` take `--tier shell` or `--tier desktop`
 and an optional `--platform`; the platform is detected when not given. `tiers` takes nothing
 and prints every platform.
 
 **Editing a config** needs no step: the file under `~` is a link to the file in the checkout,
-so the program sees the edit at once. Only an applied file waits for the next switch.
+so the program sees the edit at once. Only an applied file waits for the next activation.
 
 **Updating the versions** is a deliberate act, done on one machine and pushed from it; the
 other machines request nothing, they take what was pushed. On the machine you update from,
 `nix flake update` moves `flake.lock` to the newest versions (there is no mise task for it).
 Then build each configuration you use to see that it still does, `mise run check --tier
 desktop` and `mise run check --tier shell` on the laptop (a macOS configuration only builds
-on a Mac), and `mise run switch` to take the versions on this machine. Commit and push
+on a Mac), and `mise run activate` to take the versions on this machine. Commit and push
 `flake.lock`. Every other machine picks the new versions up on its next `mise run update`,
 and until then keeps the old ones.
 
@@ -231,9 +244,9 @@ CI) set `SMS_CHECKOUT` to the checkout the live links should point at, or the bu
 SMS_CHECKOUT=$PWD nix flake check --impure
 ```
 
-The mise tasks set it to the checkout they run from, so a switch from a worktree links the
-home into that worktree to try a change live, and a switch from the main checkout brings it
-back.
+The mise tasks set it to the checkout they run from, so an activation from a worktree links
+the home into that worktree to try a change live, and an activation from the main checkout
+brings it back.
 
 ## Changing what a machine has
 
@@ -252,24 +265,24 @@ with itself.
 3. `git add` the directory. The flake sees only tracked files, and an untracked one reads as
    missing.
 4. `mise run check --tier <tier>`, then `SMS_CHECKOUT=$PWD nix flake check --impure`, then
-   `mise run tiers` to see it in place, then `switch`.
+   `mise run tiers` to see it in place, then `activate`.
 
-A program whose source is `pacman` or `aur` is declared the same way; the switch links its
-config and the derived list gains a line, which `mise run pacman` installs. A program
+A program whose source is `pacman` or `aur` is declared the same way; the activation links
+its config and the derived list gains a line, which `mise run pacman` installs. A program
 nixpkgs does not carry gets a `package.nix` in its directory and `install.<platform>.repo =
 "<name>"`; ccstatusline is the example.
 
 A file the program never rewrites itself and that should roll back with the packages, a
 script the package runs say, is named in `applied = [ ".config/<name>/<file>" ]` in the
-declaration; the switch copies it into place instead of linking. Anything a program rewrites
+declaration; the activation copies it into place instead of linking. Anything a program rewrites
 on its own (fish's variables, the Claude settings, Noctalia's state) has to stay live.
 
 ### Remove a program
 
-Delete `programs/<name>/` and switch. The preview lists the package as removed and every link
-it owned as unlinked; there is no list anywhere else to edit. A `pacman` or `aur` program is
-removed from the derived list the same way, and the installed package is yours to remove with
-`pacman -Rs`, since the configuration never uninstalls what the distro installed.
+Delete `programs/<name>/` and activate. The preview lists the package as removed and every
+link it owned as unlinked; there is no list anywhere else to edit. A `pacman` or `aur`
+program is removed from the derived list the same way, and the installed package is yours to
+remove with `pacman -Rs`, since the configuration never uninstalls what the distro installed.
 
 Six runtimes (`bun`, `cargo`, `go`, `node`, `rustc`, `uv`) are held by a check that names
 them, so that deleting one is a refusal and not a silent change to what a Shell machine has.

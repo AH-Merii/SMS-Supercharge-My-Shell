@@ -2,7 +2,7 @@
 
 Global settings, linked live into `~` by home-manager from `programs/claude/` in the
 checkout. An edit here is seen by the next Claude Code session with no apply step: the
-switch links the file, and the file is this one. Claude Code rewrites `settings.json`
+activation links the file, and the file is this one. Claude Code rewrites `settings.json`
 itself as preferences change in a session, which is why it is live and not applied.
 
 ## Directory Structure
@@ -142,7 +142,7 @@ jq -r '.env | keys[]' programs/claude/.config/claude/settings.json |
   done
 ```
 
-To see what the switch would link without touching `~`:
+To see what an activation would link without touching `~`:
 
 ```bash
 nix build --impure .#homeConfigurations.shell-linux.activationPackage

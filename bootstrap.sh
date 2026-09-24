@@ -9,7 +9,7 @@
 # 1. Nix, by the Determinate installer, unless nix is already here
 # 2. the clone at ~/SMS-Supercharge-My-Shell, unless this runs from a checkout already
 # 3. `mise run setup`, in a shell that borrows git, mise and bash from nixpkgs: the machine
-#    has none of them yet, and after the first switch it has them from the configuration
+#    has none of them yet, and after the first activation it has them from the configuration
 #
 # The installer asks its own question and setup asks one for every step it runs; this script
 # asks nothing. -y (or SMS_YES=1) answers all of them.
@@ -79,7 +79,7 @@ if [ -n "$script_dir" ] && [ -f "$script_dir/mise.toml" ]; then
 fi
 
 # Borrowed from nixpkgs for this one run. The configuration installs its own git, mise and
-# bash on the first switch; on macOS the system bash is too old for the tasks either way.
+# bash on the first activation; on macOS the system bash is too old for the tasks either way.
 borrow() { nix shell nixpkgs#git nixpkgs#mise nixpkgs#bash --command "$@"; }
 
 if [ ! -e "$DEST/.git" ]; then
