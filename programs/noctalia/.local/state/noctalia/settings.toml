@@ -218,14 +218,12 @@ password_style = "random"
 polkit_agent = true
 settings_show_advanced = true
 telemetry_enabled = true
-ui_scale = 1.1500000096857548
 
     [shell.greeter_sync]
     auto_sync = true
 
     [shell.launcher]
     app_grid = true
-    session_search = true
 
     [shell.panel]
     control_center_position = "top_right"
