@@ -1,8 +1,9 @@
 # What the Desktop session on Linux gets from home-manager and no program owns: the fonts, the
-# cursor theme, and the environment the compositor's session runs in. greetd starts the
-# compositor, not fish, so nothing fish puts on the PATH reaches it; environment.d is what
-# the systemd user session reads, and everything niri spawns inherits it.
-{ config, pkgs, ... }:
+# cursor theme, the environment the compositor's session runs in, and the one file niri
+# includes that Noctalia writes. greetd starts the compositor, not fish, so nothing fish puts
+# on the PATH reaches it; environment.d is what the systemd user session reads, and
+# everything niri spawns inherits it.
+{ config, lib, pkgs, ... }:
 {
   # Not NixOS: the profile's share/ has to be named to XDG_DATA_DIRS, and the terminfo and
   # nix.sh paths are not where NixOS keeps them. This writes the data dirs into environment.d.
@@ -44,4 +45,16 @@
     name = "phinger-cursors-dark";
     size = 48;
   };
+
+  # Empty until Noctalia writes it, so niri's include resolves on the first start; never
+  # touched once there. $HOME, not the literal home, so the niri-includes check can run it.
+  home.activation.noctaliaKdl = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    if [[ ! -e $HOME/.config/niri/noctalia.kdl ]]; then
+      if [[ -L $HOME/.config/niri/noctalia.kdl ]]; then
+        run rm "$HOME/.config/niri/noctalia.kdl"
+      fi
+      run mkdir -p "$HOME/.config/niri"
+      run touch "$HOME/.config/niri/noctalia.kdl"
+    fi
+  '';
 }
