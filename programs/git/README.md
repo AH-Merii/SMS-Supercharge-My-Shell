@@ -234,10 +234,15 @@ Settings in `config` grouped by impact.
 
 | Setting                  | Value  | Description                              |
 | ------------------------ | ------ | ---------------------------------------- |
-| `core.fsmonitor`         | `true` | OS file system monitor for faster status |
 | `core.untrackedCache`    | `true` | Cache untracked files                    |
 | `fetch.all`              | `true` | Fetch from all remotes                   |
 | `fetch.writeCommitGraph` | `true` | Speeds up log/blame/merge-base           |
+
+`core.fsmonitor` is left off on purpose: with it on, starship's git modules run the git binary at
+every prompt, and git's first call in a repo starts the daemon and waits for it, longer than the
+prompt's timeout on a cold disk (#144). Setting it in a repo's own config brings that back for
+that repo. `core.untrackedCache` does most of the daemon's work: on a 54k-file checkout
+`git status` takes about 200 ms either way once the cache is warm.
 
 ### Workflow
 

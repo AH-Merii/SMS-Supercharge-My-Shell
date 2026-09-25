@@ -146,6 +146,12 @@
             fixturesDir = ./nix/checks/fixtures;
             inherit (self.homeConfigurations.shell-linux.config.sms) checkout;
           };
+
+          # Not one of the pairs either: the prompt reads a repo the same way on every system,
+          # and what it asserts is the shipped starship and git configs.
+          prompt-reads-repo-itself = pkgs.callPackage ./nix/checks/prompt-reads-repo-itself.nix {
+            programsDir = ./programs;
+          };
         });
     };
 }

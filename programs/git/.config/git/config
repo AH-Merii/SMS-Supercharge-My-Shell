@@ -42,7 +42,8 @@
 [core]
   editor = nvim
   pager = sh -c 'test $(tput cols) -ge 160 && exec delta --features side-by-side || exec delta'
-  fsmonitor = true
+  # No fsmonitor: it puts a git process, and the daemon's start, in front of every prompt.
+  # README.md, Settings reference, has the account (#144).
   untrackedCache = true
 
 [delta]
