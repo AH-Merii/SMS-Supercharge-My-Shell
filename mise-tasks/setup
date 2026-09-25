@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE description="Set a machine up, one question: activate, then pacman, greeter and memory where they apply (same flags as activate)"
+#MISE description="Set a machine up, one question: activate, then pacman, aur, greeter and memory where they apply (same flags as activate)"
 #MISE raw=true
 #
 # One plan for every step that applies to this configuration, one question, then the steps
@@ -8,8 +8,8 @@
 # it writes root's files and asks for the password itself, whatever was answered here and
 # whatever pacman's sudo left cached.
 #
-# Which steps apply is the configuration's to say, not the machine's: pacman on Linux where
-# pacman exists, the greeter on the Linux Desktop, memory everywhere.
+# Which steps apply is the configuration's to say, not the machine's: pacman and aur on Linux
+# where pacman exists, the greeter on the Linux Desktop, memory everywhere.
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
 # shellcheck source=lib/activate.sh
@@ -52,7 +52,7 @@ fi
 # One password prompt at a predictable moment rather than partway through pacman, which
 # asks again itself if this one was declined or mistyped; said, so the lecture pacman then
 # prints is not the first sign that this one went unanswered.
-if [[ $distro == 1 && ${#pacman_want[@]} -gt 0 ]] && ! sms_sudo_v; then
+if [[ $distro == 1 && $(( ${#pacman_want[@]} + ${#aur_want[@]} )) -gt 0 ]] && ! sms_sudo_v; then
   sms_warn 'sudo not authenticated here; pacman asks itself'
 fi
 
@@ -63,7 +63,11 @@ sms_activate_run
 
 if [[ $distro == 1 ]]; then
   sms_header '==> pacman'
-  sms_distro_install
+  sms_distro_install_pacman
+  if [[ ${#aur_all[@]} -gt 0 ]]; then
+    sms_header '==> aur'
+    sms_distro_install_aur
+  fi
 fi
 
 # Sequential `mise run`s: the greeter needs pacman's packages in place, and memory links into

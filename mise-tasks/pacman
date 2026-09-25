@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-#MISE description="Install the distro's share of one configuration through pacman and paru: --tier shell|desktop"
+#MISE description="Install the pacman list of one configuration: --tier shell|desktop"
 #MISE raw=true
 #
-# The derived pacman and AUR lists of a configuration, previewed against what is installed,
-# one question, then the install. What the activation installs itself is not here, and nothing
-# the distro installed is ever removed: a program that leaves the list is yours to `pacman -Rs`.
+# The derived pacman list of a configuration, previewed, one question, then the install.
+# Nothing the distro installed is ever removed.
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
 # shellcheck source=lib/distro.sh
@@ -18,10 +17,10 @@ fi
 sms_distro_lists
 sms_header "pacman for $configuration"
 
-if ! sms_preview sms_distro_show 'Install these?'; then
+if ! sms_preview sms_distro_show_pacman 'Install these?'; then
   # Exit 0: declining is an answer, not a failure.
   printf '\n  aborted, nothing installed\n\n'
   exit 0
 fi
 
-sms_distro_install
+sms_distro_install_pacman
