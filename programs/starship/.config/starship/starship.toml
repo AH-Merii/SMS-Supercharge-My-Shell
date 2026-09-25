@@ -2,7 +2,7 @@
 
 add_newline = false
 scan_timeout = 20
-command_timeout = 1000
+command_timeout = 5000
 
 format = """
 $username\
@@ -26,11 +26,13 @@ $cpp\
 $custom\
 $direnv\
 $line_break\
-$status\
-$character\
 """
 
 right_format = """$docker_context${custom.podman_connection}$kubernetes$aws$azure$jobs$cmd_duration"""
+
+# The bottom line, which fish's conf.d/08-prompt.fish renders in place, the rest in the background.
+[profiles]
+bottom = "$status$character"
 
 # ----------------------------
 # SSH identity (built-in; no custom commands)
