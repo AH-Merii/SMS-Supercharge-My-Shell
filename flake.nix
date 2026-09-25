@@ -155,6 +155,11 @@
             fixturesDir = ./nix/checks/fixtures;
             inherit (self.homeConfigurations.shell-linux.config.sms) checkout;
           };
+
+          # Not one of the pairs either: the prompt is the same shell on every system.
+          prompt-never-waits-on-git = pkgs.callPackage ./nix/checks/prompt-never-waits-on-git.nix {
+            programsDir = ./programs;
+          };
         });
     };
 }
