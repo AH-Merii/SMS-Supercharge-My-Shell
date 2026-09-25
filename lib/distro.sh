@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # The distro's share of a configuration: the lists it expects pacman and the AUR to install,
 # read off the configuration, previewed against what is installed and handed over. Shared by
-# pacman and setup. Sourced, never run.
+# pacman, aur and setup. Sourced, never run.
 #
 # Linux with pacman only. The lists are computed from the declarations (CONTEXT.md, "Distro
 # list"), so a program is added to them by declaring `install.linux.pacman` or `.aur` and
@@ -46,30 +46,40 @@ sms_distro_lists() {
   done
 }
 
-sms_distro_show() {
+sms_distro_show_pacman() {
   sms_section pacman "${#pacman_want[@]} of ${#pacman_all[@]} to install, from the $configuration list"
   [[ ${#pacman_have[@]} -gt 0 ]] && sms_have "${pacman_have[@]}"
   [[ ${#pacman_want[@]} -gt 0 ]] && sms_want "${pacman_want[@]}"
   [[ ${#pacman_all[@]} -gt 0 ]] || sms_note 'nothing for pacman'
+  return 0
+}
 
+sms_distro_show_aur() {
   [[ ${#aur_all[@]} -gt 0 ]] || return 0
   sms_section aur "${#aur_want[@]} of ${#aur_all[@]} to install, through paru"
   [[ ${#aur_have[@]} -gt 0 ]] && sms_have "${aur_have[@]}"
   [[ ${#aur_want[@]} -gt 0 ]] && sms_want "${aur_want[@]}"
   if [[ ${#aur_want[@]} -gt 0 ]] && ! command -v paru >/dev/null 2>&1; then
-    sms_warn 'paru is not installed; the AUR list will be printed for you to install by hand'
+    sms_note 'paru is installed first: from the repos where they carry it, else built from the AUR'
   fi
   return 0
 }
 
-sms_distro_install() {
-  # Once the plan is confirmed there is nothing left for pacman to ask that the plan did not
-  # already show, so its prompt is skipped. paru is different: the plan never showed you a
-  # PKGBUILD, so its review survives everything short of an explicit SMS_YES.
-  local confirm_pacman='' confirm_paru=''
+sms_distro_show() {
+  sms_distro_show_pacman
+  sms_distro_show_aur
+}
+
+# A confirmed plan skips pacman's prompt; paru's PKGBUILD review needs an explicit SMS_YES.
+_sms_distro_confirm() {
+  confirm_pacman='' confirm_paru=''
   if [[ -n ${SMS_YES:-} || -n ${SMS_PLAN_CONFIRMED:-} ]]; then confirm_pacman=--noconfirm; fi
   if [[ -n ${SMS_YES:-} ]]; then confirm_paru='--noconfirm --skipreview'; fi
+}
 
+sms_distro_install_pacman() {
+  local confirm_pacman confirm_paru
+  _sms_distro_confirm
   if [[ ${#pacman_want[@]} -gt 0 ]]; then
     # -Syu: sync the database and upgrade first; a plain -S against a stale database 404s on
     # the mirrors, and a partial -Sy install is unsupported on Arch.
@@ -78,15 +88,42 @@ sms_distro_install() {
   else
     sms_note 'pacman: all present'
   fi
+}
 
-  [[ ${#aur_want[@]} -gt 0 ]] || return 0
-  if ! command -v paru >/dev/null 2>&1; then
-    sms_warn "paru is not installed; from the AUR, by hand: ${aur_want[*]}"
-    return 0
+_sms_distro_paru() {
+  command -v paru >/dev/null 2>&1 && return 0
+  local confirm_pacman confirm_paru
+  _sms_distro_confirm
+  if pacman -Si paru >/dev/null 2>&1; then
+    sms_note 'installing paru from the repos'
+    # shellcheck disable=SC2086
+    sudo pacman -Syu --needed $confirm_pacman paru
+    return
   fi
+  sms_note 'paru is not packaged here; building paru-bin from the AUR'
+  # shellcheck disable=SC2086
+  sudo pacman -Syu --needed $confirm_pacman base-devel git || return 1
+  local build
+  build=$(mktemp -d) || return 1
+  # Not `makepkg -i`: it runs `sudo -k` and prompts again.
+  # shellcheck disable=SC2086
+  (cd "$build" && git clone -q https://aur.archlinux.org/paru-bin.git && cd paru-bin &&
+    makepkg $confirm_pacman && sudo pacman -U --needed $confirm_pacman ./paru-bin-*.pkg.tar.zst)
+  local status=$?
+  rm -rf "$build"
+  return $status
+}
+
+sms_distro_install_aur() {
+  [[ ${#aur_all[@]} -gt 0 ]] || return 0
+  [[ ${#aur_want[@]} -gt 0 ]] || { sms_note 'aur: all present'; return 0; }
+  _sms_distro_paru || return 1
+  local confirm_pacman confirm_paru
+  _sms_distro_confirm
   # paru imports PKGBUILD signing keys with gpg, which fails when $GNUPGHOME (fish sets it
   # to ~/.local/share/gnupg) does not exist yet.
   install -d -m 700 "${GNUPGHOME:-$HOME/.gnupg}"
+  # The default keyserver serves 1Password's key without user IDs, which gpg rejects.
   # shellcheck disable=SC2086
-  paru -S --needed $confirm_paru "${aur_want[@]}"
+  paru -S --needed $confirm_paru --gpgflags '--keyserver hkps://keyserver.ubuntu.com' "${aur_want[@]}"
 }

@@ -97,11 +97,12 @@ distro installs; on a Desktop the login screen; and the Claude Code memories. It
 plan of all of that and asks once. Every step is skipped when already done, so the command
 is safe to run again, and `--help` lists the flags.
 
-`setup` is four tasks run back to back. Each can be run on its own, with its own preview and
+`setup` is five tasks run back to back. Each can be run on its own, with its own preview and
 question, on a machine that has Nix and the clone, from inside the clone:
 
 - `mise run activate --tier shell`: the packages and the configs of a tier.
 - `mise run pacman --tier shell`: the packages the distro installs, on Arch.
+- `mise run aur --tier shell`: the packages the AUR installs, on Arch, through paru.
 - `mise run greeter`: the login screen, on a Desktop.
 - `mise run memory`: the portable Claude Code memories, linked into this checkout's Claude
   Code project directory.
@@ -131,9 +132,10 @@ package.
 **What the distro installs.** On an Arch-based distro, some of a Desktop is handed to pacman
 and the AUR rather than installed by the activation: the compositor, the greeter and the
 portals, which move with the drivers, and 1Password. `mise run tiers` shows exactly what, and
-`mise run pacman` installs it after a preview. This is tested on CachyOS, which ships paru
-for the AUR; on plain Arch, paru is built from the AUR first. On any other non-Arch Linux
-distro the pacman step is skipped and only the Nix packages of the tier are installed.
+`mise run pacman` and `mise run aur` install it after a preview. The aur step installs paru
+first when it is missing: from the repos on CachyOS, where this is tested and which packages
+it, and built from the AUR on plain Arch. On any other non-Arch Linux distro both steps are
+skipped and only the Nix packages of the tier are installed.
 
 **The login screen** is root's and stays a separate step that asks for sudo, run by `setup`
 on a Desktop or by hand as `mise run greeter`. It installs the greetd config, switches the
@@ -219,11 +221,12 @@ backups the activation made are still beside them with their original contents.
 | `mise run check --tier shell` | Build one configuration and touch nothing. A broken change is caught here. |
 | `mise run activate --tier shell` | Build, preview the change to this home, ask once, activate. |
 | `mise run update --tier shell` | Pull the latest commits from GitHub, then activate. |
-| `mise run setup --tier shell` | One plan and one question for the activation, pacman, the greeter and the memories, where each applies. |
-| `mise run pacman --tier shell` | Preview the derived pacman and AUR lists against what is installed, ask once, install. Arch-based distros only. |
+| `mise run setup --tier shell` | One plan and one question for the activation, pacman, aur, the greeter and the memories, where each applies. |
+| `mise run pacman --tier shell` | Preview the derived pacman list against what is installed, ask once, install. Arch-based distros only. |
+| `mise run aur --tier shell` | Preview the derived AUR list against what is installed, ask once, install through paru, installing paru first when missing. Arch-based distros only. |
 | `mise run tiers` | Print what Shell and Desktop contain on each platform, with each program's source. |
 
-`check`, `activate`, `update`, `setup` and `pacman` take `--tier shell` or `--tier desktop`
+`check`, `activate`, `update`, `setup`, `pacman` and `aur` take `--tier shell` or `--tier desktop`
 and an optional `--platform`; the platform is detected when not given. `tiers` takes nothing
 and prints every platform.
 
@@ -272,7 +275,7 @@ with itself.
    `mise run tiers` to see it in place, then `activate`.
 
 A program whose source is `pacman` or `aur` is declared the same way; the activation links
-its config and the derived list gains a line, which `mise run pacman` installs. A program
+its config and the derived list gains a line, which `mise run pacman` or `mise run aur` installs. A program
 nixpkgs does not carry gets a `package.nix` in its directory and `install.<platform>.repo =
 "<name>"`; ccstatusline is the example.
 
