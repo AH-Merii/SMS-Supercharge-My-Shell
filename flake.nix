@@ -125,6 +125,15 @@
               }))
             (lib.filter (pair: pair.tier == "desktop" && pair.platform == "linux") ours));
 
+          # Linux's alone as well: niri is the Desktop compositor there and nowhere else yet.
+          niriIncludes = lib.listToAttrs (map
+            (pair: lib.nameValuePair "${nameOf pair}-niri-includes"
+              (pkgs.callPackage ./nix/checks/niri-includes.nix {
+                configuration = self.homeConfigurations.${nameOf pair};
+                programsDir = ./programs;
+              }))
+            (lib.filter (pair: pair.tier == "desktop" && pair.platform == "linux") ours));
+
           containsShell = lib.listToAttrs (map
             (platform: lib.nameValuePair "desktop-${platform}-contains-shell"
               (pkgs.callPackage ./nix/checks/desktop-contains-shell.nix {
@@ -132,7 +141,7 @@
                 desktop = self.homeConfigurations."desktop-${platform}";
               }))
             (lib.filter (platform: self.homeConfigurations ? "desktop-${platform}") platforms));
-        in builds // fileChecks // runtimeChecks // distroLists // sessions // containsShell // {
+        in builds // fileChecks // runtimeChecks // distroLists // sessions // niriIncludes // containsShell // {
           declared-membership = pkgs.callPackage ./nix/checks/declared-membership.nix {
             configurations = self.homeConfigurations;
             programsDir = ./programs;
