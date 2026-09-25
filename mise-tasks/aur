@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#MISE description="Install the AUR list of one configuration, through paru: --tier shell|desktop"
+#MISE raw=true
+#
+# The derived AUR list of a configuration, previewed, one question, then paru, installed
+# first when missing. Nothing the distro installed is ever removed.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=lib/distro.sh
+source lib/distro.sh
+
+sms_configuration "$@"
+if [[ $platform != linux ]] || ! sms_distro_here; then
+  sms_note "no pacman for $configuration on this machine; nothing to install here"
+  exit 0
+fi
+sms_distro_lists
+if [[ ${#aur_all[@]} -eq 0 ]]; then
+  sms_note "nothing from the AUR for $configuration"
+  exit 0
+fi
+sms_header "aur for $configuration"
+
+if ! sms_preview sms_distro_show_aur 'Install these?'; then
+  # Exit 0: declining is an answer, not a failure.
+  printf '\n  aborted, nothing installed\n\n'
+  exit 0
+fi
+
+sms_distro_install_aur

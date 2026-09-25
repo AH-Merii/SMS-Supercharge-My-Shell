@@ -24,7 +24,11 @@ pkgs() { grep -hv '^#' "$@" | grep -v '^$'; }
 # Stow package names in a layer.
 layer_pkgs() { ls -1 "$1"; }
 
-_n() { [[ $1 == 1 ]] && printf '1 %s' "$2" || printf '%d %ss' "$1" "$2"; }
+_n() { # _n <count> <singular>: "1 index line", "3 index lines", "5 portable memories"
+  local plural=${2}s
+  [[ $2 == *y ]] && plural=${2%y}ies
+  [[ $1 == 1 ]] && printf '1 %s' "$2" || printf '%d %s' "$1" "$plural"
+}
 
 # How many `will back up` lines to print before collapsing to a count.
 _SMS_BACKUP_MAX=${SMS_BACKUP_MAX:-12}
@@ -324,7 +328,7 @@ plan_greeter() {
   missing=$(pacman -T greetd noctalia-greeter 2>/dev/null) || true
   _split_by_missing "$missing" greetd noctalia-greeter
   _show_split
-  [[ ${#_want[@]} -gt 0 ]] && sms_note 'deps installs those; greeter runs after it'
+  [[ ${#_want[@]} -gt 0 ]] && sms_note 'pacman installs those; greeter runs after it'
 
   local f
   for f in etc/greetd/config.toml etc/pam.d/greetd; do

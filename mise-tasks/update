@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#MISE description="Catch a set-up machine up: pull the checkout, then activate (same flags as activate)"
+#MISE raw=true
+#
+# --ff-only: a machine's checkout follows the branch and never merges; anything else is a
+# hand edit to settle first. The lock file moves only with a commit, so a pull is the whole
+# of an update.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+
+git pull --ff-only
+exec mise run activate -- "$@"

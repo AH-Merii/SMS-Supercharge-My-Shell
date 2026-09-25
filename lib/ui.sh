@@ -1,9 +1,6 @@
 # shellcheck shell=bash
-# Colours and prompts for the install tasks. Sourced, never run.
-#
-# bootstrap.sh does not use this file -- when curl-piped it runs before the repo is
-# cloned, so it inlines its own minimal copy of the colour vars and sms_confirm.
-# Keep the two in step.
+# Colours and prompts for the tasks. Sourced, never run. bootstrap.sh runs before the clone
+# and asks nothing of its own, so it does without this file.
 
 [ -n "${_SMS_UI:-}" ] && return 0
 _SMS_UI=1
@@ -48,6 +45,8 @@ sms_have() { _sms_list "$c_dim$c_green" 'already installed' "$@"; }
 sms_want() { _sms_list "$c_yellow" 'will install' "$@"; }
 sms_drop() { _sms_list "$c_yellow" 'will remove' "$@"; }
 sms_backup() { _sms_list "$c_yellow" 'will back up' "$@"; }
+sms_link() { _sms_list "$c_yellow" 'will link' "$@"; }
+sms_unlink() { _sms_list "$c_yellow" 'will unlink' "$@"; }
 
 # Ask a Y/n question, default yes. Keep this small: called from an `if`, its body runs
 # with errexit disabled, so a bug in here would be swallowed rather than reported.
@@ -56,7 +55,7 @@ sms_confirm() {
 
   # Open the tty once as fd 3 rather than redirecting each read: `read < /dev/tty` on an
   # unopenable tty under `set -e` behaves differently across bash versions. Prompt on
-  # fd 3 too, so `mise run setup | tee log` cannot swallow the question.
+  # fd 3 too, so `mise run setup ... | tee log` cannot swallow the question.
   #
   # Probed in a subshell rather than attempted directly. `exec` is a special builtin, so
   # a failed redirection on it kills the whole shell in POSIX mode instead of returning
@@ -77,6 +76,13 @@ sms_confirm() {
     '' | y | yes) return 0 ;;
     *) return 1 ;;
   esac
+}
+
+# Refresh sudo's credential, through the askpass helper when one is named: sudo honours
+# SUDO_ASKPASS only when told to with -A, and that is how a run with no terminal to ask on
+# (a driven VM, a pipeline) answers at all.
+sms_sudo_v() {
+  if [[ -n ${SUDO_ASKPASS:-} ]]; then sudo -A -v; else sudo -v; fi
 }
 
 # Print a plan and confirm it -- unless `setup` already showed the combined plan and got

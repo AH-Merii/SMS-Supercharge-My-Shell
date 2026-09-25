@@ -1,0 +1,9 @@
+# Global mise config, identical on every machine, and deliberately empty of tools.
+#
+# home-manager owns every tool a machine has, language runtimes included, from one lock file.
+# mise stays for one job: honouring a project's pin, inside that project and nowhere else. A
+# [tools] block here would install a second copy of something the lock file already pins and
+# put it ahead of the Nix profile in every directory.
+#
+# Shell activation is kept and shims are not used (see fish's conf.d/05-mise.fish), so a
+# project's pin shadows the machine's tool only while the shell is inside the project.

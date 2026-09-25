@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#MISE description="Build one configuration without activating it: --tier shell|desktop [--platform linux|darwin|wsl]"
+#MISE raw=true
+#
+# A broken change is caught here before it touches a home: the build is the same one activate
+# starts from, and nothing under ~ is read or written.
+set -euo pipefail
+cd "$MISE_PROJECT_ROOT"
+# shellcheck source=lib/configuration.sh
+source lib/configuration.sh
+
+sms_configuration "$@"
+sms_build
+sms_note "built $configuration: $generation"

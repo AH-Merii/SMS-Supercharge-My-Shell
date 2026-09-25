@@ -1,211 +1,325 @@
 # SMS Supercharge-My-Shell
 
-Dotfiles for fish, neovim, tmux, git and a niri desktop. Configs are linked into `~` with
-[GNU Stow](https://www.gnu.org/software/stow/); tools are installed with
-[mise](https://mise.jdx.dev). Runs on Arch (CachyOS), macOS, WSL2 and headless Linux servers.
+My working/development environment, carried onto any machine I am handed: a Linux desktop,
+a Mac, a Windows box through WSL2, or a bare server. Every tool comes from one committed lock
+file through Nix home-manager; every config is a plain file in this checkout that `~` reaches
+through a link, so an edit is seen by the program at once.
 
-## Layout
+The vocabulary used below (tier, platform, program, live file, applied file, and the rest)
+is defined in `CONTEXT.md`. The reasons behind the shape are in `docs/adr/`.
+
+## The shape
 
 ```
-base/        stow packages every machine gets: fish git nvim tmux starship lazygit ghostty
-             herdr claude ccstatusline mise sesh
-desktop/     Linux desktop only: niri noctalia (v5, ~/.local/state/noctalia/settings.toml)
-macos/       macOS only: karabiner
-plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)
-memory/      Claude Code memories that hold on any machine; linked by `mise run memory`,
-             not stowed, since the target path is derived from the checkout's location
-system/      root-owned files, mirroring /: greetd config, its PAM stack, the greeter's
-             greeter.toml. Installed by `mise run greeter`, not stowed
-pkglist/     pacman / AUR / apt package lists
-Brewfile     Homebrew packages for macOS and WSL
-mise.toml    tasks (see below); mise-tasks/ holds the scripts
-lib/         ui.sh (colours, Y/n prompt) and plan.sh (what a task would do), sourced by
-             the tasks; bootstrap.sh inlines its own copy since it runs before the clone
-bootstrap.sh     the one command: OS packages, clone, then `mise run setup`
-.stowrc      --target=$HOME --no-folding --dir=base
+programs/<name>/          one directory per program
+  program.nix             its declaration: tier, and how it is installed on each platform
+  .config/...             its config tree, shaped like ~, linked live into the home
+  package.nix             only for a program nixpkgs does not carry
+platforms/<platform>/
+  platform.nix            packages the distro installs that belong to no one program
+  <tier>.nix              a home-manager module for that tier on that platform, if any
+nix/                      the linker, the module and the flake checks
+flake.nix, flake.lock     the configurations and the versions of everything in them
+mise-tasks/               the front door: check, activate, update, setup, pacman, tiers
+bootstrap.sh              a Fresh machine, from nothing to setup
 ```
 
-Each package mirrors `~`: `base/fish/.config/fish/...` links to `~/.config/fish/...`.
-Package READMEs: [claude](base/claude/README.md), [ccstatusline](base/ccstatusline/README.md),
-[memory](memory/README.md),
-[git](base/git/README.md), [nvim](base/nvim/README.md), [karabiner](macos/karabiner/README.md).
+Everything a machine has is placed by answering four questions: which program it belongs to,
+which tier that program is in, which platforms it exists on, and where it is installed from
+on each.
 
-## Profiles
+**A program** is the unit. `programs/fish/` holds fish's config tree and a declaration:
 
-A profile is the set of layers a machine links. It is detected automatically and can be
-forced with `DOTFILES_PROFILE=`.
-
-| Profile   | Layers           | Detected when                          |
-| --------- | ---------------- | -------------------------------------- |
-| `base`    | base             | Linux without niri (servers), WSL      |
-| `desktop` | base + desktop   | Linux with niri installed              |
-| `macos`   | base + macos     | macOS                                  |
-
-## Install
-
-One command, on a fresh machine or an existing checkout, and safe to re-run:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh   # fresh machine
-./bootstrap.sh                                                                                          # existing checkout
+```nix
+{
+  tier = "shell";
+  install = {
+    linux.nixpkgs = "fish";
+    darwin.nixpkgs = "fish";
+    wsl.nixpkgs = "fish";
+  };
+}
 ```
 
-`bootstrap.sh` installs git, stow, fish and mise with the OS package manager (Homebrew on
-macOS and WSL), clones the repo to `~/SMS-Supercharge-My-Shell` if needed, and runs
-`mise run setup`: OS packages, symlinks, tools, plugins and, on the Arch desktop, the login
-screen. Files already sitting where a link belongs are moved to `<name>.bak`, never
-overwritten.
+The tier says which machines get it. The `install` set says on which platforms it exists at
+all, and for each one the install source it comes from and the package name there. A
+platform not named means the program is absent on that platform, config tree included.
 
-Nothing installs before you have seen it. Both steps print what they are about to do —
-packages split into what is already installed and what is not, the stow layers and any
-files that would be backed up, the missing mise tools — and ask `Proceed? [Y/n]`, default
-yes. `setup` asks once for all its steps; answering yes there also skips pacman's and
-apt's own prompts, since the plan already named every package. paru is the exception: its
-PKGBUILD review survives, because the plan never showed you a PKGBUILD.
+**A tier** is what a machine gets. `shell` is the layer every machine has in common: fish,
+neovim, tmux, git and the command-line tools. `desktop` is the graphical session on top of it,
+so a Desktop machine has every Shell program too. What a tier contains is never written down
+as a list; it is computed from the declarations, and `mise run tiers` prints it.
 
-```bash
-./bootstrap.sh -y                     # accept everything, including paru's review
-SMS_YES=1 mise run setup              # same, for the setup half only
-curl -fsSL <url> | sh -s -- -y        # unattended, piped
-mise run deps                         # any single task previews and asks too
-NO_COLOR=1 mise run setup             # plain text
+**A platform** is how a program is installed and which ones exist there: `linux`, `darwin` or
+`wsl`. The platform directory holds what belongs to the platform rather than to any program:
+on Linux, the session stack pacman installs and the fonts, cursor and session environment
+home-manager adds for Desktop. macOS and WSL2 are present and empty.
+
+**An install source** is where a program comes from on one platform. `nixpkgs` and `repo`
+(a `package.nix` in the program's own directory) are installed by the configuration itself.
+`pacman` and `aur` are handed to the distro: the configuration computes the list and you run
+the install. `brew` may be declared for macOS but nothing reads it yet.
+
+A **configuration** is one tier on one platform. Four exist: `shell-linux`, `desktop-linux`,
+`shell-darwin` and `shell-wsl`. Desktop on macOS waits for nix-darwin, and WSL2 has no
+graphical session of ours. The username and home directory are read from the environment
+when a configuration is built, so nothing in the repo names a person or a machine.
+
+Two rules cut across all of this. Every tool on a machine, language runtimes included, is
+installed by the configuration from `flake.lock`; mise is kept only to honour a project's own
+pin, and its global config is deliberately empty. And every file a program ships is live, a
+link into the checkout, unless the program names it as applied, in which case an activation
+copies it and the copy rolls back together with the packages.
+
+## Setting up a machine
+
+### A Fresh machine
+
+You need `curl` and, on Linux, `sudo`. Nothing else. One command takes the machine from
+nothing to set up; it is `bootstrap.sh` at the root of this repo, so read it first if you
+would rather know what you are running:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh
 ```
 
-Two things stay manual because they need you: `chsh -s "$(command -v fish)"` for the login
-shell, and `ggh op init` (or `ggh init`) for git identity and commit signing. fish prints a
-reminder until the latter is done.
+For a Linux desktop, the same with the Desktop tier. The script's own flags go after
+`sh -s --`, which is how a piped script takes arguments:
 
-## Tasks
-
-| Task      | What it does                                                        |
-| --------- | ------------------------------------------------------------------- |
-| `setup`   | `deps`, `link`, `tools`, `plugins`, `greeter`, `memory` in order    |
-| `deps`    | OS packages: pacman/paru on Arch, apt on Debian, `brew bundle` on macOS/WSL |
-| `link`    | Stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run) |
-| `unlink`  | Remove those symlinks                                               |
-| `check`   | Dry-run `link`                                                      |
-| `tools`   | `mise install` everything in the global mise config                 |
-| `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
-| `greeter` | Arch desktop: greetd + noctalia-greeter as the login screen, synced to the Noctalia theme; a no-op elsewhere |
-| `memory`  | Link the portable Claude Code memories into this checkout's project directory, and add any missing `MEMORY.md` lines |
-| `profile` | Print the detected profile                                          |
-
-Run with `mise run <task>`; `mise tasks` lists them. Every task except `check` and
-`profile` previews what it would do and asks first; `SMS_YES=1` skips the asking. The
-preview code lives in `lib/plan.sh` and is shared, so a task's own preview and the
-combined one `setup` prints cannot disagree.
-
-## Where a dependency goes
-
-1. **mise** (`base/mise/.config/mise/config.toml`) for anything `mise registry <tool>` or a
-   `github:`/`npm:`/`cargo:` backend can install: runtimes (node, bun, go, rust, uv) and CLI
-   tools (neovim, starship, ripgrep, fzf, ...). Same versions on every OS, no root needed.
-   `mise use -g <tool>` edits the stowed file, so commit the result.
-2. **`pkglist/`** on Arch and Debian, **`Brewfile`** on macOS and WSL, for what mise cannot
-   build: fish, stow, tmux, gnupg, luarocks, GUI apps and fonts. Desktop-only packages go in
-   `pkglist/arch-desktop.txt`; AUR packages in `pkglist/aur.txt`.
-
-Homebrew is not installed on Arch: `brew shellenv` would put its own python, perl and git in
-front of pacman's.
-
-## Stow
-
-`.stowrc` sets the target to `~`, defaults the package dir to `base/`, and turns off folding
-so directories in `~` stay real directories and runtime files (fish history, tmux plugins,
-Noctalia's generated files) never land in the repo.
-
-```bash
-stow fish                 # link one base package
-stow -d desktop niri      # link a package from another layer
-stow -D fish              # unlink
-stow -n fish              # dry-run
+```sh
+curl -fsSL https://raw.githubusercontent.com/AH-Merii/SMS-Supercharge-My-Shell/main/bootstrap.sh | sh -s -- --tier desktop
 ```
 
-Stow refuses to overwrite a real file. `mise run link` moves such files to `<name>.bak`
-first; when calling `stow` by hand, move them aside yourself. Do not use `--adopt`, it copies
-the old file into the repo.
+It installs Nix, clones this repo to `~/SMS-Supercharge-My-Shell` and runs `mise run setup`
+for the tier you chose. `setup` is everything a machine needs, in order: the activation,
+which installs every package of the tier and links every config; on Arch the packages the
+distro installs; on a Desktop the login screen; and the Claude Code memories. It shows one
+plan of all of that and asks once. Every step is skipped when already done, so the command
+is safe to run again, and `--help` lists the flags.
 
-## Machine notes
+`setup` is five tasks run back to back. Each can be run on its own, with its own preview and
+question, on a machine that has Nix and the clone, from inside the clone:
 
-- **Arch desktop (CachyOS niri + Noctalia).** GPU drivers come from the installer (`chwd`);
-  enable persistence with `sudo systemctl enable nvidia-persistenced` if wanted.
-  Noctalia v5 keeps its settings in `~/.local/state/noctalia/settings.toml`, which the
-  settings UI writes to; that file is a symlink into `desktop/noctalia`, so GUI changes show
-  up in `git status` and you commit the ones you mean to keep (`noctalia config validate`
-  checks it). Monitor names, wallpaper paths and battery device paths in it are
-  machine-specific. niri includes `noctalia.kdl`, which Noctalia generates from the theme
-  templates; `mise run link` creates an empty placeholder for the first login.
-  The login screen is [greetd](https://sr.ht/~kennylevinsen/greetd/) running
-  [noctalia-greeter](https://github.com/noctalia-dev/noctalia-greeter) (Wayland, no Xorg)
-  instead of the installer's sddm. `mise run greeter` installs the files from `system/`,
-  flips the enabled display manager (effective at the next boot; sddm stays installed as
-  the way back), and runs `noctalia msg greeter-sync` so the wallpaper, palette and monitor
-  layout match the desktop (restarting Noctalia once if it started before the greeter was
-  installed, as it has on a fresh machine). `settings.toml` keeps that sync automatic and turns on
-  Noctalia's polkit agent, which is what puts the sync's password prompt on screen.
-  `/etc/pam.d/greetd` carries `pam_gnome_keyring`, so the login password still unlocks the
-  keyring.
-- **macOS.** Homebrew installs the casks in the `Brewfile` (ghostty, karabiner-elements,
-  1password, fonts). Add `$(command -v fish)` to `/etc/shells` before `chsh`.
-- **WSL2.** apt covers the base packages, Homebrew supplies mise and a current fish. The
-  clipboard goes through `clip.exe` in fish and tmux automatically.
-- **Servers.** `base` profile only; nothing desktop-related is linked or installed.
+- `mise run activate --tier shell`: the packages and the configs of a tier.
+- `mise run pacman --tier shell`: the packages the distro installs, on Arch.
+- `mise run aur --tier shell`: the packages the AUR installs, on Arch, through paru.
+- `mise run greeter`: the login screen, on a Desktop.
+- `mise run memory`: the portable Claude Code memories, linked into this checkout's Claude
+  Code project directory.
 
-## Shell
+Running the activation alone, say, gives a machine the whole of Shell and nothing the
+distro would have installed. The tier is the smallest thing an activation installs: it has
+no flag for one program.
 
-fish, with [starship](https://starship.rs) for the prompt and [fisher](https://github.com/jorgebucaran/fisher)
-plugins from `fish_plugins`. Some commands are replaced outright:
+### Adopting specific configs
 
-| Command | Replacement                                      |
-| ------- | ------------------------------------------------ |
-| `cat`   | [bat](https://github.com/sharkdp/bat)            |
-| `grep`  | [ripgrep](https://github.com/BurntSushi/ripgrep) |
-| `ls`    | [eza](https://github.com/eza-community/eza)      |
-| `diff`  | [delta](https://github.com/dandavison/delta)     |
+A single program is taken by hand, on any machine and with none of the tooling above. Each
+program's config tree under `programs/` is plain files shaped like `~`, so neovim alone is
+its directory linked into place, and neovim installed however that machine installs things:
 
-`--help` anywhere on a command line pipes that tool's help through bat, so it is coloured.
+```sh
+git clone https://github.com/AH-Merii/SMS-Supercharge-My-Shell.git ~/SMS-Supercharge-My-Shell
+ln -s ~/SMS-Supercharge-My-Shell/programs/neovim/.config/nvim ~/.config/nvim
+```
 
-### Colours
+The config stays live: an edit in the checkout is seen by neovim at once. Remove the link
+before an activation on that machine. The activation backs up files in the way, and the
+files it would find here are the checkout's own, seen through the directory link, so the
+backup would rename them inside the checkout. Which programs have a config tree, and what
+each one is installed as, is a look at `programs/`: each directory's `program.nix` names the
+package.
 
-One scheme, One Dark, defined once: `ghostty/themes/OneDark` is the terminal's palette, and
-every shell tool names its colours by palette slot rather than by hex. fish
-(`conf.d/07-theme.fish`), fzf, starship, tmux, bat and delta all resolve through the
-terminal, and eza, ripgrep, fd and git already did. Changing the scheme means changing that
-one file (and neovim's colorscheme, which keeps its own truecolor palette). The slots carry
-these roles:
+**What the distro installs.** On an Arch-based distro, some of a Desktop is handed to pacman
+and the AUR rather than installed by the activation: the compositor, the greeter and the
+portals, which move with the drivers, and 1Password. `mise run tiers` shows exactly what, and
+`mise run pacman` and `mise run aur` install it after a preview. The aur step installs paru
+first when it is missing: from the repos on CachyOS, where this is tested and which packages
+it, and built from the AUR on plain Arch. On any other non-Arch Linux distro both steps are
+skipped and only the Nix packages of the tier are installed.
 
-| Slot   | Role                                                          |
-| ------ | ------------------------------------------------------------- |
-| 0      | surface grey, a step above the background: selection, current line |
-| 8      | comment grey: comments, autosuggestions, fzf chrome           |
-| 9–15   | lighter tints of 1–7, so "bright" still reads as emphasis     |
-| 16     | orange: numbers and constants, starship's stash and rebase marks |
-| 17–20  | diff backgrounds: removed, added, and the changed words in each |
-| 21     | the background, for dark text on a coloured tmux tab          |
+**The login screen** is root's and stays a separate step that asks for sudo, run by `setup`
+on a Desktop or by hand as `mise run greeter`. It installs the greetd config, switches the
+display manager from sddm and syncs Noctalia's look into the greeter. Reboot to log in
+through it. Run before the pacman step, it stops: the packages it configures are not there
+yet. With no terminal to ask on it stops too, `setup` finishes the rest and says so; a run
+that is driven rather than typed at names an askpass helper in `SUDO_ASKPASS`. On the first
+login through it, Noctalia offers to sync its look into the greeter and asks for the
+password on screen; dismissed, `mise run greeter` applies what Noctalia staged.
 
-bat's `ansi-roles.tmTheme` maps token roles to those slots and delta reads the same theme, so
-`cat`, previews and diffs share the prompt's colours. bat only sees it through its cache,
-which `mise run link` builds and mise rebuilds whenever it installs bat. Slots 16–21 exist only
-in the ghostty theme: another terminal shows xterm's black and blues there.
+**Then, the pieces the configuration does not own.** Make fish the login shell first: it
+lives in the Nix profile, which the login database does not know about, and `setup` prints
+these two lines when it finishes. They apply on CachyOS too, where fish is the login shell
+already: that one is the distro's, not the profile's.
 
-### hints
+```sh
+echo "$HOME/.nix-profile/bin/fish" | sudo tee -a /etc/shells
+chsh -s "$HOME/.nix-profile/bin/fish"
+```
 
-`hints` (or `Ctrl+?`) opens a searchable cheatsheet of key bindings, abbreviations, aliases
-and functions, all at once or one group per hotkey inside the picker; `hints GROUP` and
-`keys` open on one group. Enter puts the highlighted name on the command line (a key binding
-runs instead), Alt+Enter runs it.
+Log in again. fish puts the Nix profile on the PATH itself, so a login shell, a `fish -c`
+and a program spawned by the compositor all see the same tools. Fish and tmux plugins are
+fetched by their own managers, and git's identity and signing key are yours, never
+committed. The tasks are the checkout's, so both from inside it:
 
-Nothing is written by hand except the key bindings. Abbreviations show their expansion,
-aliases their body, functions their description, and the preview adds the `--help` of what an
-entry runs when that is safe to fetch on every cursor move. Bindings are read live from
-`bind --user`, so the list cannot go stale; `keys_bind KEY COMMAND LABEL [DETAIL...]` binds
-and describes in one call, and anything bound another way still shows, marked "no
-description" and sorted first. fzf.fish's defaults are disabled in `conf.d/20-fzf.fish` and
-re-bound there through `keys_bind`, as are fzf's own `Ctrl+T` and `Alt+C`. Each group is a
-`_hints_rows_GROUP` function emitting the same row format, so a new group is one more of those.
+```sh
+mise run plugins
+ggh
+```
 
-### Environment
+fish reminds you about `ggh` until the identity is set.
 
-`$OS_KIND` (`linux`, `macos`, `wsl`) is set once in `conf.d/00-os.fish`; Homebrew, the
-1Password SSH agent socket and the clipboard command branch on it. `conf.d/01-env.fish` moves
-gpg to `~/.local/share/gnupg` and creates it, since gpg only auto-creates `~/.gnupg`.
+### An Existing machine
+
+A machine that already has some of these programs, or its own files at the paths the
+configuration manages, is set up the same way, by the one command or piece by piece. The
+preview before the activation lists every file in the way and the name it will be backed up
+under (`<path>.bak`, or a timestamped suffix if that name is taken); nothing is lost.
+Software installed by other means is left alone: the Nix profile goes in front of it on the
+PATH and the two coexist.
+
+One case is refused rather than backed up. home-manager backs up files and never links, so a
+link at a managed path that does not already point at the same content stops the activation
+with the offending paths listed. Move them aside and run the activation again.
+
+### A Set-up machine
+
+Catching up is one command: a fast-forward pull, then the same preview and confirmation as
+an activation.
+
+```sh
+mise run update --tier shell
+```
+
+The lock file only moves when a commit moves it, so a pull is the whole of an update and two
+machines on the same commit have the same versions.
+
+### Undoing an activation
+
+Every activation is a generation, kept beside the earlier ones. The home-manager command is not
+installed, so a rollback is the earlier generation's own activation script:
+
+```sh
+ls ~/.local/state/nix/profiles/
+~/.local/state/nix/profiles/home-manager-<N>-link/activate
+```
+
+(`~/.local/state` is `XDG_STATE_HOME` when that is set.)
+
+### Giving the machine back
+
+```sh
+/nix/nix-installer uninstall
+```
+
+removes Nix, the store and the daemon. The links under `~` then dangle and can be deleted; the
+backups the activation made are still beside them with their original contents.
+
+## Day to day
+
+| Command | What it does |
+| --- | --- |
+| `mise run check --tier shell` | Build one configuration and touch nothing. A broken change is caught here. |
+| `mise run activate --tier shell` | Build, preview the change to this home, ask once, activate. |
+| `mise run update --tier shell` | Pull the latest commits from GitHub, then activate. |
+| `mise run setup --tier shell` | One plan and one question for the activation, pacman, aur, the greeter and the memories, where each applies. |
+| `mise run pacman --tier shell` | Preview the derived pacman list against what is installed, ask once, install. Arch-based distros only. |
+| `mise run aur --tier shell` | Preview the derived AUR list against what is installed, ask once, install through paru, installing paru first when missing. Arch-based distros only. |
+| `mise run tiers` | Print what Shell and Desktop contain on each platform, with each program's source. |
+
+`check`, `activate`, `update`, `setup`, `pacman` and `aur` take `--tier shell` or `--tier desktop`
+and an optional `--platform`; the platform is detected when not given. `tiers` takes nothing
+and prints every platform.
+
+**Editing a config** needs no step: the file under `~` is a link to the file in the checkout,
+so the program sees the edit at once. Only an applied file waits for the next activation.
+
+**Updating the versions** is a deliberate act, done on one machine and pushed from it; the
+other machines request nothing, they take what was pushed. On the machine you update from,
+`nix flake update` moves `flake.lock` to the newest versions (there is no mise task for it).
+Then build each configuration you use to see that it still does, `mise run check --tier
+desktop` and `mise run check --tier shell` on the laptop (a macOS configuration only builds
+on a Mac), and `mise run activate` to take the versions on this machine. Commit and push
+`flake.lock`. Every other machine picks the new versions up on its next `mise run update`,
+and until then keeps the old ones.
+
+**Running nix directly**, which is how a change is tested before it reaches a machine. Every
+`nix` command here takes `--impure`, because the username and home are read from the
+environment. From anywhere other than `~/SMS-Supercharge-My-Shell` (a worktree, a container,
+CI) set `SMS_CHECKOUT` to the checkout the live links should point at, or the build refuses:
+
+```sh
+SMS_CHECKOUT=$PWD nix flake check --impure
+```
+
+The mise tasks set it to the checkout they run from, so an activation from a worktree links
+the home into that worktree to try a change live, and an activation from the main checkout
+brings it back.
+
+## Changing what a machine has
+
+Every change is to one program directory, and the checks say whether the tree still agrees
+with itself.
+
+### Add a program
+
+1. Create `programs/<name>/` with a `program.nix` naming the tier and, for each platform the
+   program exists on, exactly one install source and the package name there. A program with
+   nothing to configure (1Password) is the declaration alone.
+2. Put its config beside the declaration, shaped like `~`: `programs/<name>/.config/<name>/...`
+   lands at `~/.config/<name>/...`. Every file becomes a live link. Directories under `~` are
+   always real directories, never links, so the program's own runtime files beside ours are
+   untouched.
+3. `git add` the directory. The flake sees only tracked files, and an untracked one reads as
+   missing.
+4. `mise run check --tier <tier>`, then `SMS_CHECKOUT=$PWD nix flake check --impure`, then
+   `mise run tiers` to see it in place, then `activate`.
+
+A program whose source is `pacman` or `aur` is declared the same way; the activation links
+its config and the derived list gains a line, which `mise run pacman` or `mise run aur` installs. A program
+nixpkgs does not carry gets a `package.nix` in its directory and `install.<platform>.repo =
+"<name>"`; ccstatusline is the example.
+
+A file the program never rewrites itself and that should roll back with the packages, a
+script the package runs say, is named in `applied = [ ".config/<name>/<file>" ]` in the
+declaration; the activation copies it into place instead of linking. Anything a program rewrites
+on its own (fish's variables, the Claude settings, Noctalia's state) has to stay live.
+
+### Remove a program
+
+Delete `programs/<name>/` and activate. The preview lists the package as removed and every
+link it owned as unlinked; there is no list anywhere else to edit. A `pacman` or `aur`
+program is removed from the derived list the same way, and the installed package is yours to
+remove with `pacman -Rs`, since the configuration never uninstalls what the distro installed.
+
+Six runtimes (`bun`, `cargo`, `go`, `node`, `rustc`, `uv`) are held by a check that names
+them, so that deleting one is a refusal and not a silent change to what a Shell machine has.
+
+### Move a program, or change where it comes from
+
+Change `tier` to move a program between Shell and Desktop. Change `install.<platform>` to
+change its source on one platform, or remove the platform's entry to take the program off that
+platform altogether. `mise run tiers` shows the result and the flake checks hold it to the
+declaration: each program appears in exactly the tiers and platforms it names, Desktop
+contains all of Shell, and each derived list equals its declarations.
+
+### Add something that belongs to a platform
+
+Some things belong to a platform rather than to any one program, the session wiring on
+Linux for one. They go in the platform directory.
+`platforms/<platform>/platform.nix` lists distro packages per tier and source, and joins the
+derived list. `platforms/<platform>/<tier>.nix` is an ordinary home-manager module for what
+home-manager adds to that tier there: fonts, the cursor theme and the session environment for
+the Linux Desktop today. A platform whose directory holds only an empty `platform.nix` still
+builds; that is how macOS and WSL2 exist.
+
+Adding a tier or a platform is rarer: `nix/vocabulary.nix` names them once, and the pairs that
+build are listed in `flake.nix`.
+
+### What the checks refuse
+
+The build refuses rather than installing something nowhere: a tier or platform the vocabulary
+does not have, a source that is not one of the known ones, an applied file the program does
+not ship, a `repo` package with no `package.nix`, a path two programs both claim, and a
+checkout that is not there or holds no `programs/`. `nix flake check` adds the assertions
+above, builds every configuration for the machine's system, and checks that every live link
+points into the checkout and every applied file into the store.
