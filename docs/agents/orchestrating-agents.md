@@ -41,6 +41,8 @@ migration, 2026-10-05). Each rule is general; the "e.g." shows the incident it c
     E.g. with the cap written only in their briefs, several agents ran to 250-370k.
     - Measure each agent's context from the last usage record in its transcript: input +
       cache-read + cache-creation tokens.
+    - Agents spawn their own subagents, so measure every transcript being written, not only
+      those of the agents you launched.
     - The watchdog trips a little before the handoff point (e.g. 180k for a 200k handoff), so
       there is room to write the handoff. Then tell the agent to write it and stop.
 - **A fresh critique agent continues from the handoff.**
