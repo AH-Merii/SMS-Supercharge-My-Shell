@@ -51,8 +51,8 @@ nvim/
 ### Two-Tier System
 
 **Tier 1: Automatic Setup** (`lua/plugins/mason.lua`)
-- Mason-LSPConfig handles installation and basic configuration
-- Mason-Tool-Installer manages formatters, linters, and debuggers
+- Opening a file installs the Mason packages its filetype needs and lacks: the servers in `servers`, the formatters in conform's `formatters_by_ft`, the linters in nvim-lint's `linters_by_ft` and anything in `extra_packages`. A filetype never opened installs nothing, and nothing installs headless
+- Mason-LSPConfig enables every installed server, so a server attaches to open buffers once its install lands
 - Servers auto-launch when filetypes are detected
 
 **Tier 2: Custom Configuration** (`after/lsp/[server].lua`)
@@ -62,7 +62,7 @@ nvim/
 
 ### Adding a New LSP Server
 
-1. Add server name to `ensure_installed` in `lua/plugins/mason.lua`, or to `path_lsps` when the binary comes from outside Mason
+1. Add server name to `servers` in `lua/plugins/mason.lua`, or to `path_lsps` when the binary comes from outside Mason
 2. Optionally create `after/lsp/[server].lua` for custom settings
 3. Add formatters to `lua/plugins/conform.lua` under `formatters_by_ft`
 4. Add linters to `lua/plugins/nvim-lint.lua` under `linters_by_ft`
@@ -245,7 +245,7 @@ For each language, the tooling chain is:
 Configure in:
 - `lua/plugins/conform.lua` - Add to `formatters_by_ft`
 - `lua/plugins/nvim-lint.lua` - Add to `linters_by_ft`
-- `lua/plugins/mason.lua` - Add tools to `ensure_installed`
+- `lua/plugins/mason.lua` - Nothing, unless the Mason package has another name (`package_names`) or no filetype list names the tool (`extra_packages`)
 
 ### Mason Tool Paths
 
@@ -272,7 +272,7 @@ After modifying configuration:
 ## Common Tasks
 
 **Update plugins**: `:Lazy update`
-**Install missing tools**: `:Mason` (press `U` to update all)
+**Install missing tools**: Open a file of that filetype; `:Mason` shows them (press `U` to update all)
 **Check LSP logs**: `:LspLog` (`:LspInfo` shows the path)
 **Reload config**: Restart Neovim (changes to `init.lua` and core modules require restart)
 **Format file**: Handled automatically on save via Conform
