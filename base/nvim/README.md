@@ -54,6 +54,7 @@ nvim/
 - Opening a file offers to install the Mason packages its filetype needs and lacks: the servers in `servers`, the formatters in conform's `formatters_by_ft`, the linters in nvim-lint's `linters_by_ft` and anything in `extra_packages`. A filetype never opened installs nothing, and nothing installs headless
 - The offer is a prompt, "Install X, Y for <filetype>?", with Yes, Not now and Never. Not now lasts for the session; Never is kept per filetype in `install_tools_never.json` under `stdpath("state")` (`~/.local/state/nvim/`), and removing the filetype from it brings the prompt back. Several files opened at once get one prompt at a time, one per filetype
 - `vim.g.install_tools` sets the behaviour: `"ask"` (default), `"auto"` to install without asking, or `"off"`. Set it in `lua/config/options.lua`
+- Mason's pip packages need a `python3` that can make a venv; without one, `uv` installs a managed Python first and Neovim puts it on its `PATH`
 - Mason-LSPConfig enables every installed server, so a server attaches to open buffers once its install lands
 - Servers auto-launch when filetypes are detected
 

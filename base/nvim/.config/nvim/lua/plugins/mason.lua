@@ -98,6 +98,56 @@ local function missing_packages(ft)
   return missing
 end
 
+--- Calls back once a python3 that can make a venv is on PATH, putting a uv-managed one first if there is none.
+---@param callback fun(err?: string)
+local function ensure_python(callback)
+  local cwd = vim.fn.stdpath("data") -- uv reads .python-version and .venv from its cwd upward
+  local function run(cmd, on_exit)
+    if not pcall(vim.system, cmd, { cwd = cwd, text = true }, vim.schedule_wrap(on_exit)) then
+      on_exit({ code = -1, stderr = cmd[1] .. ": not found" })
+    end
+  end
+  run({ "python3", "-c", "import ensurepip, venv" }, function(probe)
+    if probe.code == 0 then
+      return callback()
+    end
+    vim.notify("No python3 that can make a venv, so uv installs one", vim.log.levels.INFO, { title = "Mason" })
+    run({ "uv", "python", "install", "--no-bin" }, function(installed)
+      if installed.code ~= 0 then
+        return callback("uv python install: " .. (installed.stderr or ""))
+      end
+      run({ "uv", "python", "find", "--managed-python" }, function(found)
+        if found.code ~= 0 then
+          return callback("uv python find: " .. (found.stderr or ""))
+        end
+        local bin = vim.fs.dirname(vim.trim(found.stdout))
+        if not vim.list_contains(vim.split(vim.env.PATH, ":", { plain = true }), bin) then
+          vim.env.PATH = bin .. ":" .. vim.env.PATH
+        end
+        callback()
+      end)
+    end)
+  end)
+end
+
+---@param pkg Package
+local function install_package(pkg)
+  -- Another filetype may have started it while Python was being set up
+  if pkg:is_installed() or pkg:is_installing() then
+    return
+  end
+  pkg:install(
+    {},
+    vim.schedule_wrap(function(success)
+      if success then
+        vim.notify("Installed " .. pkg.name, vim.log.levels.INFO, { title = "Mason" })
+      else
+        vim.notify(("Could not install %s, see :MasonLog"):format(pkg.name), vim.log.levels.ERROR, { title = "Mason" })
+      end
+    end)
+  )
+end
+
 ---@param ft string
 local function install(ft)
   local missing = missing_packages(ft)
@@ -106,17 +156,25 @@ local function install(ft)
   end
   local registry = require("mason-registry")
   vim.notify(("Installing %s for %s"):format(table.concat(missing, ", "), ft), vim.log.levels.INFO, { title = "Mason" })
+  local pip = {} -- pip packages need a python3 that can make a venv
   for _, name in ipairs(missing) do
-    registry.get_package(name):install(
-      {},
-      vim.schedule_wrap(function(success)
-        if success then
-          vim.notify("Installed " .. name, vim.log.levels.INFO, { title = "Mason" })
-        else
-          vim.notify(("Could not install %s, see :MasonLog"):format(name), vim.log.levels.ERROR, { title = "Mason" })
-        end
-      end)
-    )
+    local pkg = registry.get_package(name)
+    if pkg.spec.source.id:match("^pkg:pypi/") then
+      table.insert(pip, pkg)
+    else
+      install_package(pkg)
+    end
+  end
+  if #pip > 0 then
+    ensure_python(function(err)
+      if err then
+        local names = table.concat(vim.tbl_map(function(pkg) return pkg.name end, pip), ", ")
+        return vim.notify(("Could not install %s without Python: %s"):format(names, err), vim.log.levels.ERROR, { title = "Mason" })
+      end
+      for _, pkg in ipairs(pip) do
+        install_package(pkg)
+      end
+    end)
   end
 end
 
