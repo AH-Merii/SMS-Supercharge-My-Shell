@@ -100,25 +100,47 @@ local function disable_on_large(lang, buf)
   return is_disabled
 end
 
+--- Maps each textobject whose capture is in `captures`, and removes ours whose capture is not.
+---@param buf integer
+---@param captures table<string, true>
+local function map_textobjects(buf, captures)
+  local function set(modes, lhs, obj, rhs)
+    if captures[obj.query] then
+      vim.keymap.set(modes, lhs, rhs, { buf = buf, desc = obj.desc })
+      return
+    end
+    for _, mode in ipairs(modes) do
+      for _, held in ipairs(vim.api.nvim_buf_get_keymap(buf, mode)) do
+        if held.lhs == lhs and held.desc == obj.desc then
+          vim.keymap.del(mode, lhs, { buf = buf })
+        end
+      end
+    end
+  end
+  local select = require("nvim-treesitter-textobjects.select")
+  for lhs, obj in pairs(select_textobjects) do
+    set({ "x", "o" }, lhs, obj, function() select.select_textobject(obj.query, "textobjects") end)
+  end
+  local move = require("nvim-treesitter-textobjects.move")
+  for fn, maps in pairs(move_textobjects) do
+    for lhs, obj in pairs(maps) do
+      set({ "n", "x", "o" }, lhs, obj, function() move[fn](obj.query, "textobjects") end)
+    end
+  end
+end
+
 local function set_keymaps(buf, lang)
   -- incremental selection, on the core `an` (parent node) and `in` (child node)
   vim.keymap.set("n", "<leader>vv", "van", { buf = buf, remap = true, desc = "Start incremental selection" })
   vim.keymap.set("x", "+", "an", { buf = buf, remap = true, desc = "Grow selection to parent node" })
   vim.keymap.set("x", "-", "in", { buf = buf, remap = true, desc = "Shrink selection to child node" })
 
-  if not vim.treesitter.query.get(lang, "textobjects") then
-    return
+  local query = vim.treesitter.query.get(lang, "textobjects")
+  local captures = {}
+  for _, name in ipairs(query and query.captures or {}) do
+    captures["@" .. name] = true
   end
-  local select = require("nvim-treesitter-textobjects.select")
-  for lhs, obj in pairs(select_textobjects) do
-    vim.keymap.set({ "x", "o" }, lhs, function() select.select_textobject(obj.query, "textobjects") end, { buf = buf, desc = obj.desc })
-  end
-  local move = require("nvim-treesitter-textobjects.move")
-  for fn, maps in pairs(move_textobjects) do
-    for lhs, obj in pairs(maps) do
-      vim.keymap.set({ "n", "x", "o" }, lhs, function() move[fn](obj.query, "textobjects") end, { buf = buf, desc = obj.desc })
-    end
-  end
+  map_textobjects(buf, captures)
 end
 
 local function attach(buf, lang)
@@ -189,12 +211,12 @@ return {
         group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true }),
         callback = function(args)
           local lang = vim.treesitter.language.get_lang(args.match)
-          if not lang then
+          if lang and vim.treesitter.language.add(lang) then
+            attach(args.buf, lang)
             return
           end
-          if vim.treesitter.language.add(lang) then
-            attach(args.buf, lang)
-          elseif vim.list_contains(ts.get_available(), lang) then
+          map_textobjects(args.buf, {})
+          if lang and vim.list_contains(ts.get_available(), lang) then
             ts.install(lang):await(function()
               vim.schedule(function() attach(args.buf, lang) end)
             end)
