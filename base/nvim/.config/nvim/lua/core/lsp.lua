@@ -25,6 +25,23 @@ local M = {}
 ---@field [2]? string|fun() rhs, or nil until a Snacks toggle supplies it through M.map
 ---@field mode? string
 ---@field method string|string[] the buffer gets the map while an attached client supports any of these
+---@field when? fun(buf: integer, clients: vim.lsp.Client[]): boolean the buffer also gets the map while this holds
+
+-- A formatter set for the filetype in conform counts before its tool is installed
+---@param buf integer
+local function has_formatter(buf)
+  local by_ft = require("conform").formatters_by_ft
+  local ft = vim.bo[buf].filetype
+  for _, name in ipairs(vim.list_extend({ ft, "_", "*" }, vim.split(ft, ".", { plain = true }))) do
+    local formatters = by_ft[name]
+    if type(formatters) == "function" or (type(formatters) == "table" and next(formatters)) then
+      return true
+    end
+  end
+  return false
+end
+
+local function format() require("conform").format_buffer({ async = true, quiet = false }) end
 
 ---@type core.lsp.Key[]
 M.keys = {
@@ -53,6 +70,9 @@ M.keys = {
     },
   },
   { "<leader>Th", method = "textDocument/inlayHint" },
+  { "<leader>lf", format, desc = "Format buffer", method = "textDocument/formatting", when = has_formatter },
+  { "<leader>lf", format, mode = "v", desc = "Format buffer", method = "textDocument/rangeFormatting", when = has_formatter },
+  { "<leader>Tf", method = "textDocument/formatting", when = has_formatter },
 }
 
 -- Neovim maps its LSP defaults globally; move them into the table so they are gated too
@@ -75,7 +95,7 @@ for _, builtin in ipairs({
 end
 pcall(vim.keymap.del, "n", "grr")
 
-local not_opts = { mode = true, method = true }
+local not_opts = { mode = true, method = true, when = true }
 
 ---@param key core.lsp.Key
 ---@param buf integer
@@ -89,7 +109,7 @@ local function supported(key, buf, clients)
       end
     end
   end
-  return false
+  return key.when ~= nil and key.when(buf, clients)
 end
 
 --- Adds or deletes each gated map in buf, leaving buffer-local maps of the same lhs from ftplugins alone.
@@ -145,7 +165,7 @@ function M.map(mode, lhs, rhs, opts)
 end
 
 local group = vim.api.nvim_create_augroup("core.lsp.keys", { clear = true })
-vim.api.nvim_create_autocmd("LspAttach", {
+vim.api.nvim_create_autocmd({ "FileType", "LspAttach" }, {
   group = group,
   callback = function(ev)
     vim.schedule(function() sync(ev.buf) end)

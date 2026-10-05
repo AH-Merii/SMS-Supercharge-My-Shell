@@ -303,6 +303,7 @@ return {
               name = "Format on Save",
               get = function() return vim.g.snacks_format_on_save end,
               set = function(state) vim.g.snacks_format_on_save = state end,
+              map = require("core.lsp").map,
             })
             :map("<leader>Tf")
         end

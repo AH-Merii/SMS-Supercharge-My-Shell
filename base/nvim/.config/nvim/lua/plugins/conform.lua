@@ -2,14 +2,6 @@ return {
   "stevearc/conform.nvim",
   event = { "BufWritePre" },
   cmd = { "ConformInfo", "FormatWithConform" },
-  keys = {
-    {
-      "<leader>lf",
-      function() require("conform").format_buffer({ async = true, quiet = false }) end,
-      mode = { "n", "v" },
-      desc = "Format buffer",
-    },
-  },
 
   opts = {
     formatters = {
