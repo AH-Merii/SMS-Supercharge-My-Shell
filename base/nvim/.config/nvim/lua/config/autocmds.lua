@@ -127,7 +127,7 @@ function M.setup()
     callback = function(event)
       vim.bo[event.buf].buflisted = false
       vim.keymap.set("n", "q", "<cmd>close<cr>", {
-        buffer = event.buf,
+        buf = event.buf,
         silent = true,
         desc = "Close window",
       })

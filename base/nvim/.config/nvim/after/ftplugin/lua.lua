@@ -1,5 +1,5 @@
 local function set_keymaps()
-  local opts = { noremap = true, silent = false, buffer = true } -- buffer = true, ensures that it is only applied for current buffer
+  local opts = { noremap = true, silent = false, buf = 0 } -- buf = 0 applies it only to the current buffer
   local keymap = vim.keymap.set
 
   keymap("n", "<space>!", ":.lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current line" }))
