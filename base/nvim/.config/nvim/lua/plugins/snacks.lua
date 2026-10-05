@@ -12,6 +12,10 @@ local git_file_logs = {
   { "<leader>gL", function() Snacks.picker.git_log_line() end, desc = "Log (Line)" },
   { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Log (File)" },
 }
+-- This needs a remote on the buffer's repo
+local git_browse = {
+  { "<leader>GB", function() Snacks.gitbrowse() end, desc = "Open in Git Browser" },
+}
 
 ---@param keys table[]
 ---@param on boolean
@@ -31,7 +35,19 @@ local function map_git_pickers() set_keys(git_pickers, Snacks.git.get_root(vim.f
 ---@param buf integer
 local function map_git_file_keys(buf)
   local file = vim.api.nvim_buf_get_name(buf)
-  set_keys(git_file_logs, vim.bo[buf].buftype == "" and file ~= "" and Snacks.git.get_root(file) ~= nil, buf)
+  local root = vim.bo[buf].buftype == "" and file ~= "" and Snacks.git.get_root(file) or nil
+  set_keys(git_file_logs, root ~= nil, buf)
+  if not root then
+    set_keys(git_browse, false, buf)
+    return
+  end
+  vim.system({ "git", "-C", root, "remote" }, { text = true }, function(out)
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(buf) then
+        set_keys(git_browse, out.code == 0 and vim.trim(out.stdout) ~= "", buf)
+      end
+    end)
+  end)
 end
 
 return {
@@ -132,7 +148,6 @@ return {
     { "<C-W>Z", function() Snacks.zen.zoom() end, desc = "Toggle Zoom" },
     { "<leader>.", function() Snacks.scratch({ ft = "markdown" }) end, desc = "Toggle Scratch Buffer" },
     { "<leader>lR", function() Snacks.rename.rename_file() end, desc = "Rename File" },
-    { "<leader>GB", function() Snacks.gitbrowse() end, desc = "Open in Git Browser" },
 
     -- Profiler
     { "<leader>pp", function() Snacks.profiler.toggle() end, desc = "Toggle Profiler" },
@@ -227,7 +242,7 @@ return {
         { "<C-W>Z", icon = { icon = "󰘖", color = "yellow" } },
         { "<leader>.", icon = { icon = "󰎕", color = "grey" } },
         { "<leader>lR", icon = { icon = "󰑕", color = "green" } },
-        { "<leader>GB", icon = { icon = "󰖟", color = "grey" } },
+        { "<leader>GB", icon = { icon = "󰖟", color = "grey" }, real = true },
         { "]]", icon = { icon = "", color = "grey" }, real = true },
         { "[[", icon = { icon = "", color = "grey" }, real = true },
       })
