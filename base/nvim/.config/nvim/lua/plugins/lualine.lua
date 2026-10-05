@@ -434,6 +434,11 @@ return {
       macro_recording,
       color = { fg = colors.yellow, gui = "bold" },
     })
+    -- Pending keys (e.g. a count), shown here since 'cmdheight' is 0
+    ins_right({
+      function() return "%S" end,
+      color = { fg = colors.fg },
+    })
 
     ---------------------------------------------------------------------------
     -- go live
