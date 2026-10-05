@@ -22,6 +22,10 @@ came from.
 - **Every launcher must:**
   - point the config, data, state and cache dirs at the sandbox, and strip live tool dirs from
     PATH;
+  - point toolchain caches at the sandbox too, because they ignore XDG. Go writes `GOPATH` and
+    `GOMODCACHE`, and npm its cache, into the real home. Set `GOPATH`, `GOMODCACHE`,
+    `npm_config_cache` and `GOFLAGS=-modcacherw`. Go's module files are read-only, so without
+    the flag the sandbox can't be deleted;
   - reach host tools through their real bin dirs (e.g. `~/.cargo/bin`), not shims. mise's
     shims fail under a sandbox `XDG_STATE_HOME`, because its trust state lives there;
   - switch off global tool settings with side effects by env, never by editing the user's
@@ -44,13 +48,16 @@ came from.
   leaked live tool proves nothing.
   - A check that expects a server fails when the server doesn't attach, rather than passing
     vacuously.
+- **Run GUI checks on a VM, never on the user's desktop,** even for a terminal app run in a
+  sandbox. Do every check headless when possible. On the desktop:
+  - a test window can take keyboard focus, and the user's typing then lands in it: the test is
+    corrupted and the input is lost. E.g. a stray space appeared in a fixture file;
+  - a compositor screenshot action can overwrite the clipboard, even when told to write a file;
+  - a region crop catches the user's own windows.
 - **Run GUI checks in a separate window with its own identity.**
   - Use a unique window class and no single-instance reuse.
   - Drive the app over its remote socket and capture the window by id.
   - Close the window afterwards.
   - Never touch the live session's own services.
-  - Prefer headless checks. A test window can take keyboard focus, and the user's typing then
-    lands in it: the test is corrupted and the input is lost. E.g. a stray space appeared in
-    a fixture file.
   - When a GUI capture is unavoidable, check that the content under test is unmodified before
     each keypress, and retake the capture if it is not.

@@ -37,6 +37,9 @@ migration, 2026-10-05). Each rule is general; the "e.g." shows the incident it c
     losing work.
   - Past about 200k, the agent writes a handoff covering: task, decisions, commits, what
     failed, what was skipped, what is left, how to verify, and doubts. Then it stops.
+  - When an agent near the cap has subagents running, they report straight to the
+    orchestrator and the agent ends its turn. Otherwise a subagent's hand-back wakes the agent
+    and pushes it past the cap.
   - The orchestrator enforces the cap, because an agent cannot see its own context size.
     E.g. with the cap written only in their briefs, several agents ran to 250-370k.
     - Measure each agent's context from the last usage record in its transcript: input +
@@ -49,6 +52,11 @@ migration, 2026-10-05). Each rule is general; the "e.g." shows the incident it c
   - It critiques fairly: real defects only, not critique for its own sake. Then it fixes and
     carries on with the task.
   - E.g. two critiques found five real defects that the original agents had missed.
+- **Split work into small tickets with one outcome each.**
+  - A handoff that asks the next agent to re-review all prior work costs about half that
+    agent's budget before its first edit.
+  - Each ticket runs its own targeted checks. The full review and the full test run happen
+    once, at merge.
 - **Push a newly found sandbox hazard to every running agent at once,** not only into your own
   scripts.
   - E.g. the orchestrator's launcher was already fixed, but the agents' launchers kept the
