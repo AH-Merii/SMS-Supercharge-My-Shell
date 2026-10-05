@@ -11,6 +11,18 @@ return {
         set = function(state) gs.toggle_signs(state) end,
       })
 
+      local hunk_keys = {
+        { "[g", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end, desc = "Prev Hunk" },
+        { "]g", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end, desc = "Next Hunk" },
+        { "<leader>gb", function() require("gitsigns").blame_line() end, desc = "Blame" },
+        { "<leader>gd", function() require("gitsigns").preview_hunk() end, desc = "Diff (Preview)" },
+        { "<leader>Gr", function() require("gitsigns").reset_hunk() end, desc = "Reset Hunk" },
+        { "<leader>GR", function() require("gitsigns").reset_buffer() end, desc = "Reset Buffer" },
+        { "<leader>Gs", function() require("gitsigns").stage_hunk() end, desc = "Stage Hunk" },
+        { "<leader>Gu", function() require("gitsigns").undo_stage_hunk() end, desc = "Undo Stage Hunk" },
+        { "<leader>Gd", function() vim.cmd("Gitsigns diffthis HEAD") end, desc = "Diff (vs HEAD)" },
+      }
+
       gs.setup({
         signs = {
           add = { text = "" }, -- added line
@@ -56,17 +68,25 @@ return {
           col = 1,
         },
         on_attach = function(buf)
-          local function map(lhs, rhs, desc) vim.keymap.set("n", lhs, rhs, { buf = buf, desc = desc }) end
-          map("[g", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end, "Prev Hunk")
-          map("]g", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end, "Next Hunk")
-          map("<leader>gb", function() require("gitsigns").blame_line() end, "Blame")
-          map("<leader>gd", function() require("gitsigns").preview_hunk() end, "Diff (Preview)")
-          map("<leader>Gr", function() require("gitsigns").reset_hunk() end, "Reset Hunk")
-          map("<leader>GR", function() require("gitsigns").reset_buffer() end, "Reset Buffer")
-          map("<leader>Gs", function() require("gitsigns").stage_hunk() end, "Stage Hunk")
-          map("<leader>Gu", function() require("gitsigns").undo_stage_hunk() end, "Undo Stage Hunk")
-          map("<leader>Gd", function() vim.cmd("Gitsigns diffthis HEAD") end, "Diff (vs HEAD)")
+          for _, key in ipairs(hunk_keys) do
+            vim.keymap.set("n", key[1], key[2], { buf = buf, desc = key.desc })
+          end
           signs_column:map("<leader>TG", { buf = buf })
+        end,
+      })
+
+      -- gitsigns clears the status dict when it detaches, e.g. after the file is renamed out of the repo
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "GitSignsUpdate",
+        group = vim.api.nvim_create_augroup("GitsignsKeys", { clear = true }),
+        callback = function(ev)
+          local buf = ev.data and ev.data.buffer
+          if buf and vim.api.nvim_buf_is_valid(buf) and vim.b[buf].gitsigns_status_dict == nil then
+            for _, key in ipairs(hunk_keys) do
+              pcall(vim.keymap.del, "n", key[1], { buf = buf })
+            end
+            pcall(vim.keymap.del, "n", "<leader>TG", { buf = buf })
+          end
         end,
       })
 
