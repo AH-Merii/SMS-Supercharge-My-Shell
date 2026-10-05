@@ -19,7 +19,7 @@ return {
         { "<leader>Gr", function() require("gitsigns").reset_hunk() end, desc = "Reset Hunk" },
         { "<leader>GR", function() require("gitsigns").reset_buffer() end, desc = "Reset Buffer" },
         { "<leader>Gs", function() require("gitsigns").stage_hunk() end, desc = "Stage Hunk" },
-        { "<leader>Gu", function() require("gitsigns").undo_stage_hunk() end, desc = "Undo Stage Hunk" },
+        { "<leader>Gu", function() require("gitsigns").stage_hunk() end, desc = "Unstage Hunk" },
         { "<leader>Gd", function() vim.cmd("Gitsigns diffthis HEAD") end, desc = "Diff (vs HEAD)" },
       }
 
@@ -100,7 +100,7 @@ return {
 
           -- actions
           { "<leader>Gs", icon = { icon = "", color = "green" }, real = true }, -- stage hunk
-          { "<leader>Gu", icon = { icon = "", color = "yellow" }, real = true }, -- undo stage
+          { "<leader>Gu", icon = { icon = "", color = "yellow" }, real = true }, -- unstage hunk
           { "<leader>Gr", icon = { icon = "󰁯", color = "orange" }, real = true }, -- reset hunk
           { "<leader>GR", icon = { icon = "󱄍", color = "red" }, real = true }, -- reset buffer
           { "<leader>Gd", icon = { icon = "", color = "purple" }, real = true }, -- diff (HEAD)
