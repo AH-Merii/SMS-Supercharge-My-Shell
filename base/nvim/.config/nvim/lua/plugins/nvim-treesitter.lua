@@ -100,11 +100,12 @@ local function disable_on_large(lang, buf)
   return is_disabled
 end
 
---- Maps each textobject whose capture is in `captures`, and removes ours whose capture is not.
+--- Maps each select and move textobject whose capture is in its set, and removes ours whose capture is not.
 ---@param buf integer
----@param captures table<string, true>
-local function map_textobjects(buf, captures)
-  local function set(modes, lhs, obj, rhs)
+---@param selects table<string, true>
+---@param moves table<string, true>
+local function map_textobjects(buf, selects, moves)
+  local function set(captures, modes, lhs, obj, rhs)
     if captures[obj.query] then
       vim.keymap.set(modes, lhs, rhs, { buf = buf, desc = obj.desc })
       return
@@ -119,15 +120,42 @@ local function map_textobjects(buf, captures)
   end
   local select = require("nvim-treesitter-textobjects.select")
   for lhs, obj in pairs(select_textobjects) do
-    set({ "x", "o" }, lhs, obj, function() select.select_textobject(obj.query, "textobjects") end)
+    set(selects, { "x", "o" }, lhs, obj, function() select.select_textobject(obj.query, "textobjects") end)
   end
   local move = require("nvim-treesitter-textobjects.move")
   for fn, maps in pairs(move_textobjects) do
     for lhs, obj in pairs(maps) do
-      set({ "n", "x", "o" }, lhs, obj, function() move[fn](obj.query, "textobjects") end)
+      set(moves, { "n", "x", "o" }, lhs, obj, function() move[fn](obj.query, "textobjects") end)
     end
   end
 end
+
+---@param into table<string, true>
+---@param lang string
+local function add_captures(into, lang)
+  local query = vim.treesitter.query.get(lang, "textobjects")
+  for _, name in ipairs(query and query.captures or {}) do
+    into["@" .. name] = true
+  end
+  return into
+end
+
+-- selects also search the languages injected into the buffer, e.g. a code block in markdown; moves do not
+---@param buf integer
+---@param parser vim.treesitter.LanguageTree
+local function map_parser_textobjects(buf, parser)
+  local selects = {}
+  local function walk(tree)
+    add_captures(selects, tree:lang())
+    for _, child in pairs(tree:children()) do
+      walk(child)
+    end
+  end
+  walk(parser)
+  map_textobjects(buf, selects, add_captures({}, parser:lang()))
+end
+
+local watched_parsers = setmetatable({}, { __mode = "k" })
 
 local function set_keymaps(buf, lang)
   -- incremental selection, on the core `an` (parent node) and `in` (child node)
@@ -136,12 +164,21 @@ local function set_keymaps(buf, lang)
   vim.keymap.set("x", "-", "in", { buf = buf, remap = true, desc = "Shrink selection to child node" })
   Snacks.toggle.treesitter():map("<leader>TT", { buf = buf })
 
-  local query = vim.treesitter.query.get(lang, "textobjects")
-  local captures = {}
-  for _, name in ipairs(query and query.captures or {}) do
-    captures["@" .. name] = true
+  local parser = vim.treesitter.get_parser(buf, lang)
+  map_parser_textobjects(buf, parser)
+  if watched_parsers[parser] then
+    return
   end
-  map_textobjects(buf, captures)
+  watched_parsers[parser] = true
+  -- injected languages come and go as parses cover other rows
+  local function remap()
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(buf) and vim.treesitter.language.get_lang(vim.bo[buf].filetype) == parser:lang() then
+        map_parser_textobjects(buf, parser)
+      end
+    end)
+  end
+  parser:register_cbs({ on_child_added = remap, on_child_removed = remap }, true)
 end
 
 local function attach(buf, lang)
@@ -216,7 +253,7 @@ return {
             attach(args.buf, lang)
             return
           end
-          map_textobjects(args.buf, {})
+          map_textobjects(args.buf, {}, {})
           pcall(vim.keymap.del, "n", "<leader>TT", { buf = args.buf })
           if lang and vim.list_contains(ts.get_available(), lang) then
             ts.install(lang):await(function()
