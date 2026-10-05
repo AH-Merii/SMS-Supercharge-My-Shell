@@ -58,7 +58,7 @@ nvim/
 **Tier 2: Custom Configuration** (`after/lsp/[server].lua`)
 - Each LSP server can have a custom config file that returns server-specific options
 - These files are late-loaded after Neovim understands filetypes
-- Example servers with custom configs: `gopls.lua`, `rust_analyzer.lua`, `ts_ls.lua`, `pyrefly.lua`, `intelephense.lua`, `zls.lua`
+- Example servers with custom configs: `gopls.lua`, `rust_analyzer.lua`, `ts_ls.lua`, `pyrefly.lua`, `intelephense.lua`
 
 ### Adding a New LSP Server
 

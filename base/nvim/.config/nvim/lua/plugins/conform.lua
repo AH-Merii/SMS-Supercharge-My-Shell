@@ -44,7 +44,6 @@ return {
       go = { "goimports" },
       lua = { "stylua" },
       rust = { "rustfmt" },
-      zig = { "zigfmt" },
 
       terraform = { "terraform_fmt" },
       tf = { "terraform_fmt" },

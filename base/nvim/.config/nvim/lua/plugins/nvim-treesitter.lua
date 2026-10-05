@@ -24,7 +24,6 @@ local ensure_installed = {
   "gosum",
   "terraform",
   "proto",
-  "zig",
 }
 
 -- TS indent can misbehave for these:

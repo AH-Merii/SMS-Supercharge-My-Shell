@@ -58,7 +58,7 @@ local ensure_installed_lsps = {
 }
 
 -- Servers used when their binary is on PATH, installed outside Mason
-local path_lsps = { "clangd", "gopls", "zls", "intelephense", "yamlls" }
+local path_lsps = { "clangd", "gopls", "intelephense", "yamlls" }
 
 return {
   ---------------------------------------------------------------------------
