@@ -43,7 +43,7 @@ local function map_git_file_keys(buf)
   end
   vim.system({ "git", "-C", root, "remote" }, { text = true }, function(out)
     vim.schedule(function()
-      if vim.api.nvim_buf_is_valid(buf) then
+      if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_name(buf) == file then
         set_keys(git_browse, out.code == 0 and vim.trim(out.stdout) ~= "", buf)
       end
     end)
