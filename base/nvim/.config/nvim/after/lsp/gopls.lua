@@ -1,7 +1,5 @@
 return {
-  cmd = { "gopls" },
   filetypes = { "go", "gomod", "gowork", "gotmpl", "gosum" },
-  root_markers = { "go.mod", "go.work", ".git" },
   settings = {
     gopls = {
       gofumpt = true,
@@ -41,7 +39,6 @@ return {
         cgocall = true,
         composite = true,
         contextcheck = true,
-        deba = true,
         atomicalign = true,
         composites = true,
         copylocks = true,
