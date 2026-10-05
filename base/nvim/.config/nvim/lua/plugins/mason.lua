@@ -10,10 +10,11 @@ local servers = {
   "tinymist", -- Typst
   "rust_analyzer",
   "terraformls",
+  "gopls",
+  "intelephense",
+  "yamlls",
+  "clangd",
 }
-
--- Servers used when their binary is on PATH, installed outside Mason
-local path_lsps = { "clangd", "gopls", "intelephense", "yamlls" }
 
 -- conform formatters and nvim-lint linters whose Mason package has another name
 local package_names = {
@@ -21,6 +22,8 @@ local package_names = {
   ruff_format = "ruff",
   ruff_organize_imports = "ruff",
   golangcilint = "golangci-lint",
+  clang_format = "clang-format",
+  terraform_fmt = "terraform",
 }
 
 -- Mason packages a filetype needs that no formatter, linter or server above names
@@ -209,12 +212,6 @@ return {
       vim.api.nvim_create_autocmd("FileType", { group = group, callback = install_tools })
       vim.api.nvim_create_autocmd("VimEnter", { group = group, once = true, callback = vim.schedule_wrap(ask_next) })
       require("mason-lspconfig").setup(opts)
-      for _, server in ipairs(path_lsps) do
-        local cmd = vim.lsp.config[server] and vim.lsp.config[server].cmd
-        if type(cmd) == "table" and vim.fn.executable(cmd[1]) == 1 then
-          vim.lsp.enable(server)
-        end
-      end
     end,
   },
 
