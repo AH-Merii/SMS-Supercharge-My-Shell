@@ -149,9 +149,9 @@ return {
     { "<leader>lR", function() Snacks.rename.rename_file() end, desc = "Rename File" },
 
     -- Profiler
-    { "<leader>pp", function() Snacks.profiler.toggle() end, desc = "Toggle Profiler" },
-    { "<leader>ps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch" },
-    { "<leader>ph", function() Snacks.profiler.highlight() end, desc = "Profiler Highlight" },
+    { "<leader>Pp", function() Snacks.profiler.toggle() end, desc = "Toggle Profiler" },
+    { "<leader>Ps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch" },
+    { "<leader>Ph", function() Snacks.profiler.highlight() end, desc = "Profiler Highlight" },
   },
 
   config = function(_, opts)
@@ -180,7 +180,7 @@ return {
         { "<leader>G", group = "Git (Actions)", icon = { icon = "", color = "cyan" } },
         { "<leader>g", group = "Git (Inspect)", icon = { icon = "", color = "cyan" } },
         { "<leader>T", group = "Toggle Features", icon = { icon = "", color = "yellow" } },
-        { "<leader>p", group = "Profiler", icon = { icon = "󰓅", color = "orange" } },
+        { "<leader>P", group = "Profiler", icon = { icon = "󰓅", color = "orange" } },
 
         -- find
         { "<leader>ff", icon = { icon = "󰈞", color = "blue" } },
