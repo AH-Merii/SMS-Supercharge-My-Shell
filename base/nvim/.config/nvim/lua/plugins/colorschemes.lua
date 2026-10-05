@@ -37,7 +37,6 @@ return {
           aerial = true,
           fidget = true,
           mason = true,
-          neotest = true,
           dap_ui = true,
           noice = true,
           snacks = {
