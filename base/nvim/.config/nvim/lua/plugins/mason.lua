@@ -93,7 +93,7 @@ return {
       -- LSP *server* names (not Mason package names)
       ensure_installed = ensure_installed_lsps,
       -- Automatically enable installed servers
-      automatic_installation = true,
+      automatic_enable = true,
     },
   },
 
