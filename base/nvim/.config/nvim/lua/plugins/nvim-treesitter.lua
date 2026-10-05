@@ -125,7 +125,12 @@ local function map_textobjects(buf, selects, moves)
   local move = require("nvim-treesitter-textobjects.move")
   for fn, maps in pairs(move_textobjects) do
     for lhs, obj in pairs(maps) do
-      set(moves, { "n", "x", "o" }, lhs, obj, function() move[fn](obj.query, "textobjects") end)
+      set(moves, { "n", "x", "o" }, lhs, obj, function()
+        if vim.wo.diff and (lhs == "]c" or lhs == "[c") then
+          return vim.cmd("normal! " .. vim.v.count1 .. lhs)
+        end
+        move[fn](obj.query, "textobjects")
+      end)
     end
   end
 end
