@@ -268,15 +268,12 @@ return {
             rule:with_pair(function(_)
               -- If current filetype isn't in the target list → no change
               if not vim.tbl_contains(langs, vim.bo.filetype) then
-                print("true")
                 return true
               end
               -- Inside specified nodes → disable built-in rule
               if in_nodes(_) then
-                print("false")
                 return false
               end
-              print("true 2")
               return true
             end)
           end
