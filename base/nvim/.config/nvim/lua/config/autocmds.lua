@@ -97,7 +97,8 @@ function M.setup()
   -- Highlight on yank
   autocmd("TextYankPost", {
     group = user_group,
-    callback = function() vim.highlight.on_yank({ higroup = "Search", timeout = 200 }) end,
+    -- on_yank is the 0.12 name of hl_op
+    callback = function() (vim.hl.hl_op or vim.hl.on_yank)({ higroup = "Search", timeout = 200 }) end,
   })
 
   -- Close specific filetypes with 'q'
