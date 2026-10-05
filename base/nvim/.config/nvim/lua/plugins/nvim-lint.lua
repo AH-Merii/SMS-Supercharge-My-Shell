@@ -52,8 +52,8 @@ return {
     autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
       group = user_group,
       pattern = {
-        ".github/workflows/*.yml",
-        ".github/workflows/*.yaml",
+        "*/.github/workflows/*.yml",
+        "*/.github/workflows/*.yaml",
       },
       callback = function() lint.try_lint("actionlint") end,
     })
