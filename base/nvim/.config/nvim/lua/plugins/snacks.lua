@@ -173,7 +173,7 @@ return {
         -- LSP
         { "gd", icon = { icon = "󰊕", color = "purple" }, real = true },
         { "gD", icon = { icon = "󱈸", color = "purple" }, real = true },
-        { "gr", icon = { icon = "", color = "purple" }, real = true },
+        { "grr", icon = { icon = "", color = "purple" }, real = true },
         { "gI", icon = { icon = "󰡱", color = "purple" }, real = true },
         { "gt", icon = { icon = "", color = "purple" }, real = true },
 

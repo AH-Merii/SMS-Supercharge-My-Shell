@@ -31,7 +31,7 @@ M.keys = {
   { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Definition", method = "textDocument/definition" },
   { "gD", function() Snacks.picker.lsp_declarations() end, desc = "Declaration", method = "textDocument/declaration" },
   { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Implementations", method = "textDocument/implementation" },
-  { "gr", function() Snacks.picker.lsp_references() end, desc = "References", nowait = true, method = "textDocument/references" },
+  { "grr", function() Snacks.picker.lsp_references() end, desc = "References", method = "textDocument/references" },
   { "gt", function() Snacks.picker.lsp_type_definitions() end, desc = "Type Definition", method = "textDocument/typeDefinition" },
   { "gCi", function() Snacks.picker.lsp_incoming_calls() end, desc = "Incoming Calls", method = "textDocument/prepareCallHierarchy" },
   { "gCo", function() Snacks.picker.lsp_outgoing_calls() end, desc = "Outgoing Calls", method = "textDocument/prepareCallHierarchy" },
@@ -54,6 +54,26 @@ M.keys = {
   },
   { "<leader>Th", method = "textDocument/inlayHint" },
 }
+
+-- Neovim maps its LSP defaults globally; move them into the table so they are gated too
+for _, builtin in ipairs({
+  { "grn", "textDocument/rename" },
+  { "gra", "textDocument/codeAction" },
+  { "gri", "textDocument/implementation" },
+  { "grt", "textDocument/typeDefinition" },
+  { "grx", "textDocument/codeLens" },
+  { "gO", "textDocument/documentSymbol" },
+}) do
+  local lhs, method = builtin[1], builtin[2]
+  for _, mode in ipairs({ "n", "x" }) do
+    local map = vim.fn.maparg(lhs, mode, false, true)
+    if map.callback then
+      vim.keymap.del(mode, lhs)
+      table.insert(M.keys, { lhs, map.callback, mode = mode, desc = map.desc, method = method })
+    end
+  end
+end
+pcall(vim.keymap.del, "n", "grr")
 
 local not_opts = { mode = true, method = true }
 
