@@ -29,7 +29,7 @@ return {
     dependencies = {
       "rafamadriz/friendly-snippets",
     },
-    version = "*",
+    version = "1.*",
     config = function()
       require("blink.cmp").setup({
         snippets = { preset = "luasnip" },
