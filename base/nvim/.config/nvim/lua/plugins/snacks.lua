@@ -99,15 +99,6 @@ return {
     { "<leader>sC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
     { "<leader>ss", function() Snacks.scratch.select() end, desc = "Scratch Buffers" },
 
-    -- 󰒕  LSP: Language features (symbols, definitions, references)
-    { "gD", function() Snacks.picker.lsp_declarations() end, desc = "Declaration" },
-    { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Definition" },
-    { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Implementations" },
-    { "gr", function() Snacks.picker.lsp_references() end, desc = "References", nowait = true },
-    { "gt", function() Snacks.picker.lsp_type_definitions() end, desc = "Type Definition" },
-    { "gCi", function() Snacks.picker.lsp_incoming_calls() end, desc = "Incoming Calls" },
-    { "gCo", function() Snacks.picker.lsp_outgoing_calls() end, desc = "Outgoing Calls" },
-
     -- Misc
     { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     { "<C-W>z", function() Snacks.zen() end, desc = "Toggle Zen Mode" },
@@ -115,8 +106,6 @@ return {
     { "<leader>.", function() Snacks.scratch({ ft = "markdown" }) end, desc = "Toggle Scratch Buffer" },
     { "<leader>lR", function() Snacks.rename.rename_file() end, desc = "Rename File" },
     { "<leader>GB", function() Snacks.gitbrowse() end, desc = "Open in Git Browser" },
-    { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Reference (word)" },
-    { "[[", function() Snacks.words.jump(-vim.v.count1) end, desc = "Reference (word)" },
 
     -- Profiler
     { "<leader>pp", function() Snacks.profiler.toggle() end, desc = "Toggle Profiler" },
@@ -182,15 +171,15 @@ return {
         { "<leader>ss", icon = { icon = "󰎕", color = "grey" } },
 
         -- LSP
-        { "gd", icon = { icon = "󰊕", color = "purple" } },
-        { "gD", icon = { icon = "󱈸", color = "purple" } },
-        { "gr", icon = { icon = "", color = "purple" } },
-        { "gI", icon = { icon = "󰡱", color = "purple" } },
-        { "gt", icon = { icon = "", color = "purple" } },
+        { "gd", icon = { icon = "󰊕", color = "purple" }, real = true },
+        { "gD", icon = { icon = "󱈸", color = "purple" }, real = true },
+        { "gr", icon = { icon = "", color = "purple" }, real = true },
+        { "gI", icon = { icon = "󰡱", color = "purple" }, real = true },
+        { "gt", icon = { icon = "", color = "purple" }, real = true },
 
         { "gC", group = "calls", icon = { icon = "󰃻", color = "yellow" } },
-        { "gCi", icon = { icon = "󰃺", color = "cyan" } },
-        { "gCo", icon = { icon = "󰃷", color = "orange" } },
+        { "gCi", icon = { icon = "󰃺", color = "cyan" }, real = true },
+        { "gCo", icon = { icon = "󰃷", color = "orange" }, real = true },
 
         -- Misc
         { "<leader>n", icon = { icon = "󰂚", color = "yellow" } },
@@ -199,8 +188,8 @@ return {
         { "<leader>.", icon = { icon = "󰎕", color = "grey" } },
         { "<leader>lR", icon = { icon = "󰑕", color = "green" } },
         { "<leader>GB", icon = { icon = "󰖟", color = "grey" } },
-        { "]]", icon = { icon = "", color = "grey" } },
-        { "[[", icon = { icon = "", color = "grey" } },
+        { "]]", icon = { icon = "", color = "grey" }, real = true },
+        { "[[", icon = { icon = "", color = "grey" }, real = true },
       })
     else
       vim.notify("which-key.nvim not found. Install it for enhanced keymap icons and descriptions.", vim.log.levels.WARN, { title = "Snacks Config" })
@@ -329,6 +318,7 @@ return {
         Snacks.toggle
           .inlay_hints({
             wk_desc = { enabled = "Hide ", disabled = "Show " },
+            map = require("core.lsp").map,
           })
           :map("<leader>Th")
         Snacks.toggle.indent():map("<leader>Tg")
