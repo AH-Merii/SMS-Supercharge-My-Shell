@@ -77,36 +77,36 @@ return {
         { "[", group = "Jump to Previous", icon = { icon = "󰒮", color = "orange" } },
 
         -- Previous starts
-        { "[f", icon = { icon = "󰊕", color = "orange" }, desc = "function" },
-        { "[c", icon = { icon = "", color = "orange" }, desc = "class" },
-        { "[p", icon = { icon = "", color = "orange" }, desc = "parameter" },
-        { "[b", icon = { icon = "", color = "orange" }, desc = "block" },
-        { "[i", icon = { icon = "󰙁", color = "orange" }, desc = "conditional" },
-        { "[l", icon = { icon = "󰑖", color = "orange" }, desc = "loop" },
-        { "[a", icon = { icon = "󰡱", color = "grey" }, desc = "function call" },
-        { "[r", icon = { icon = "", color = "orange" }, desc = "return" },
-        { "[/", icon = { icon = "󰅺", color = "grey" }, desc = "comment" },
+        { "[f", icon = { icon = "󰊕", color = "orange" }, real = true },
+        { "[c", icon = { icon = "", color = "orange" }, real = true },
+        { "[p", icon = { icon = "", color = "orange" }, real = true },
+        { "[b", icon = { icon = "", color = "orange" }, real = true },
+        { "[i", icon = { icon = "󰙁", color = "orange" }, real = true },
+        { "[l", icon = { icon = "󰑖", color = "orange" }, real = true },
+        { "[a", icon = { icon = "󰡱", color = "grey" }, real = true },
+        { "[r", icon = { icon = "", color = "orange" }, real = true },
+        { "[/", icon = { icon = "󰅺", color = "grey" }, real = true },
 
         -- Next starts
-        { "]f", icon = { icon = "󰊕", color = "purple" }, desc = " function" },
-        { "]c", icon = { icon = "", color = "purple" }, desc = " class" },
-        { "]p", icon = { icon = "", color = "purple" }, desc = " parameter" },
-        { "]b", icon = { icon = "", color = "purple" }, desc = " block" },
-        { "]i", icon = { icon = "󰙁", color = "purple" }, desc = " conditional" },
-        { "]l", icon = { icon = "󰑖", color = "purple" }, desc = " loop" },
-        { "]a", icon = { icon = "󰡱", color = "grey" }, desc = " function call" },
-        { "]r", icon = { icon = "", color = "purple" }, desc = " return" },
-        { "]/", icon = { icon = "󰅺", color = "grey" }, desc = " comment" },
+        { "]f", icon = { icon = "󰊕", color = "purple" }, real = true },
+        { "]c", icon = { icon = "", color = "purple" }, real = true },
+        { "]p", icon = { icon = "", color = "purple" }, real = true },
+        { "]b", icon = { icon = "", color = "purple" }, real = true },
+        { "]i", icon = { icon = "󰙁", color = "purple" }, real = true },
+        { "]l", icon = { icon = "󰑖", color = "purple" }, real = true },
+        { "]a", icon = { icon = "󰡱", color = "grey" }, real = true },
+        { "]r", icon = { icon = "", color = "purple" }, real = true },
+        { "]/", icon = { icon = "󰅺", color = "grey" }, real = true },
 
         -- Previous ends
-        { "[F", icon = { icon = "󰡱", color = "cyan" }, desc = "function end" },
-        { "[C", icon = { icon = "󰒕", color = "cyan" }, desc = "class end" },
-        { "[B", icon = { icon = "", color = "cyan" }, desc = "block end" },
+        { "[F", icon = { icon = "󰡱", color = "cyan" }, real = true },
+        { "[C", icon = { icon = "󰒕", color = "cyan" }, real = true },
+        { "[B", icon = { icon = "", color = "cyan" }, real = true },
 
         --  ends
-        { "]F", icon = { icon = "󰡱", color = "cyan" }, desc = " function end" },
-        { "]C", icon = { icon = "󰒕", color = "cyan" }, desc = " class end" },
-        { "]B", icon = { icon = "", color = "cyan" }, desc = " block end" },
+        { "]F", icon = { icon = "󰡱", color = "cyan" }, real = true },
+        { "]C", icon = { icon = "󰒕", color = "cyan" }, real = true },
+        { "]B", icon = { icon = "", color = "cyan" }, real = true },
 
         -- Diagnostics
         { "]d", icon = { icon = "", color = "orange" }, desc = " diagnostic" },
@@ -123,10 +123,6 @@ return {
         -- Folds
         { "]z", icon = { icon = "", color = "yellow" }, desc = " fold end" },
         { "[z", icon = { icon = "", color = "yellow" }, desc = "fold start" },
-
-        -- Location list
-        { "]l", icon = { icon = "", color = "yellow" }, desc = " loclist item" },
-        { "[l", icon = { icon = "", color = "yellow" }, desc = "loclist item" },
 
         -- Quickfix list
         { "]q", icon = { icon = "", color = "yellow" }, desc = " quickfix item" },
