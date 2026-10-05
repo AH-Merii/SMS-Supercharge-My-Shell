@@ -137,7 +137,11 @@ function M.setup()
   -- Resize windows equally when Neovim is resized
   autocmd("VimResized", {
     group = user_group,
-    callback = function() vim.cmd("tabdo wincmd =") end,
+    callback = function()
+      local current_tab = vim.api.nvim_get_current_tabpage()
+      vim.cmd("tabdo wincmd =")
+      vim.api.nvim_set_current_tabpage(current_tab)
+    end,
   })
 
   -- Show cursor line only in active window
