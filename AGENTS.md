@@ -19,3 +19,14 @@ The five canonical triage labels, unchanged: `needs-triage`, `needs-info`,
 
 Single-context: one `CONTEXT.md` at the repo root and ADRs under `docs/adr/`, neither
 created yet. See `docs/agents/domain.md`.
+
+## Agents and tests
+
+Lessons from multi-agent jobs. Read the file whose row matches before you start.
+
+| When you | Read |
+|---|---|
+| run background agents (briefs, integration, watchdog, waiting) | `docs/agents/orchestrating-agents.md` |
+| test on the live machine (launchers, leaks, post-run checks) | `docs/agents/sandbox-isolation.md` |
+| add, run or keep checks in a suite | `docs/agents/test-suites.md` |
+| test Neovim headless or in a GUI | `docs/agents/neovim-testing-notes.md` |
