@@ -74,6 +74,3 @@ keymap("n", "<A-c>", '"_c', silent_desc("Change to black hole register"))
 
 -- Delete using black hole register
 keymap("n", "<A-d>", '"_d', silent_desc("Delete to black hole register"))
-
--- Run commands and source files without restarting neovim
-keymap("n", "<space>%", "<cmd>source %<CR>", desc("Source current file"))

@@ -5,10 +5,11 @@ local function set_keymaps()
   keymap("n", "<space>!", ":.lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current line" }))
   keymap("v", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
   keymap("v", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
+  keymap("n", "<space>%", "<cmd>source %<CR>", vim.tbl_extend("force", opts, { desc = "Source current file" }))
   local ok, wk = pcall(require, "which-key")
   if ok then
     wk.add({
-      { "<space>!", icon = { icon = "", color = "red" } },
+      { "<space>!", icon = { icon = "", color = "red" }, real = true },
     })
   end
 end
