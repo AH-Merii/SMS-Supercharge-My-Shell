@@ -140,6 +140,7 @@ The `lua/config/helpers.lua` file provides LSP debugging commands:
 - `:LspInfo` - Comprehensive LSP information
 - `:LspCapabilities` - Detailed capability list
 - `:LspDiagnostics` - Diagnostic summary
+- `:LspLog` - Open the LSP log in a new tab
 - `:Status` - Full tooling status (LSP, formatters, linters, treesitter)
 
 The `lua/config/utils.lua` file provides utilities:
@@ -272,7 +273,7 @@ After modifying configuration:
 
 **Update plugins**: `:Lazy update`
 **Install missing tools**: `:Mason` (press `U` to update all)
-**Check LSP logs**: `:LspInfo` shows log path
+**Check LSP logs**: `:LspLog` (`:LspInfo` shows the path)
 **Reload config**: Restart Neovim (changes to `init.lua` and core modules require restart)
 **Format file**: Handled automatically on save via Conform
 **Lint file**: Handled automatically on events via nvim-lint

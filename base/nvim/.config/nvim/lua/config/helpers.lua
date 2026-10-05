@@ -334,6 +334,8 @@ function M.lsp_diagnostics() echo_lines(M.build_lsp_diagnostics()) end
 
 function M.status() echo_lines(M.build_status()) end
 
+function M.lsp_log() vim.cmd.tabnew(vim.lsp.log.get_filename()) end
+
 -- ============================================================================
 -- Register Commands
 -- ============================================================================
@@ -343,5 +345,6 @@ vim.api.nvim_create_user_command("LspInfo", M.lsp_info, { desc = "Comprehensive 
 vim.api.nvim_create_user_command("LspCapabilities", M.lsp_capabilities, { desc = "Detailed capability list" })
 vim.api.nvim_create_user_command("LspDiagnostics", M.lsp_diagnostics, { desc = "Diagnostics summary" })
 vim.api.nvim_create_user_command("Status", M.status, { desc = "Full tooling status" })
+vim.api.nvim_create_user_command("LspLog", M.lsp_log, { desc = "Open the LSP log in a new tab" })
 
 return M
