@@ -53,6 +53,7 @@ local ensure_installed_lsps = {
   "marksman",
   "ts_ls",
   "tinymist", -- Typst
+  "rust_analyzer",
   "terraformls",
 }
 
