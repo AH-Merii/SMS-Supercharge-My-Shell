@@ -113,20 +113,51 @@ return {
       end)
     )
 
-    -- Manual linting command
-    vim.keymap.set("n", "<leader>ll", function()
-      lint_buffer()
-      vim.notify("Linting...", vim.log.levels.INFO, { title = "nvim-lint" })
-    end, { desc = "Trigger linting for current file" })
-
-    -- Show linter status
-    vim.keymap.set("n", "<leader>li", function()
-      local linters = lint.linters_by_ft[vim.bo.filetype] or {}
-      if #linters == 0 then
-        print("No linters configured for filetype: " .. vim.bo.filetype)
-      else
-        print("Linters for " .. vim.bo.filetype .. ": " .. table.concat(linters, ", "))
+    ---@param buf integer
+    local function map_lint_keys(buf)
+      pcall(vim.keymap.del, "n", "<leader>ll", { buffer = buf })
+      pcall(vim.keymap.del, "n", "<leader>li", { buffer = buf })
+      -- The lookup try_lint does when lint_buffer() names no linters
+      local names = lint._resolve_linter_by_ft(vim.bo[buf].filetype)
+      if #names == 0 then
+        return
       end
-    end, { desc = "Show available linters for current filetype" })
+
+      -- Manual linting command, while lint_buffer() would run at least one linter
+      if vim.iter(names):any(function(name) return not covered(name, buf) end) then
+        vim.keymap.set("n", "<leader>ll", function()
+          lint_buffer()
+          vim.notify("Linting...", vim.log.levels.INFO, { title = "nvim-lint" })
+        end, { buffer = buf, desc = "Trigger linting for current file" })
+      end
+
+      -- Show linter status
+      vim.keymap.set("n", "<leader>li", function()
+        local linters = lint.linters_by_ft[vim.bo.filetype] or {}
+        if #linters == 0 then
+          print("No linters configured for filetype: " .. vim.bo.filetype)
+        else
+          print("Linters for " .. vim.bo.filetype .. ": " .. table.concat(linters, ", "))
+        end
+      end, { buffer = buf, desc = "Show available linters for current filetype" })
+    end
+
+    autocmd({ "FileType", "LspAttach" }, { group = user_group, callback = function(ev) map_lint_keys(ev.buf) end })
+    autocmd("LspDetach", {
+      group = user_group,
+      callback = function(ev)
+        -- The detaching client still counts as attached while LspDetach runs
+        vim.schedule(function()
+          if vim.api.nvim_buf_is_valid(ev.buf) then
+            map_lint_keys(ev.buf)
+          end
+        end)
+      end,
+    })
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(buf) then
+        map_lint_keys(buf)
+      end
+    end
   end,
 }

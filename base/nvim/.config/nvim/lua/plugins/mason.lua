@@ -253,14 +253,6 @@ return {
       "mason-org/mason.nvim",
       "neovim/nvim-lspconfig",
     },
-    keys = {
-      {
-        "<leader>lr",
-        function() vim.lsp.buf.rename() end,
-        mode = "n",
-        desc = "LSP Rename",
-      },
-    },
     opts = {
       -- Automatically enable installed servers
       automatic_enable = true,
