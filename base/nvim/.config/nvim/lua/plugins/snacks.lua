@@ -1,3 +1,39 @@
+--   Git Tools: Interact with branches, logs, and diffs
+-- These act on the repo of the cwd
+local git_pickers = {
+  { "<leader>gB", function() Snacks.picker.git_branches() end, desc = "Branches" },
+  { "<leader>gl", function() Snacks.picker.git_log() end, desc = "Log" },
+  { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Status" },
+  { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Stashes" },
+  { "<leader>gD", function() Snacks.picker.git_diff() end, desc = "Diff (Hunks)" },
+}
+-- These act on the buffer's file
+local git_file_logs = {
+  { "<leader>gL", function() Snacks.picker.git_log_line() end, desc = "Log (Line)" },
+  { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Log (File)" },
+}
+
+---@param keys table[]
+---@param on boolean
+---@param buf? integer
+local function set_keys(keys, on, buf)
+  for _, key in ipairs(keys) do
+    if on then
+      vim.keymap.set("n", key[1], key[2], { buf = buf, desc = key.desc })
+    else
+      pcall(vim.keymap.del, "n", key[1], { buf = buf })
+    end
+  end
+end
+
+local function map_git_pickers() set_keys(git_pickers, Snacks.git.get_root(vim.fn.getcwd()) ~= nil) end
+
+---@param buf integer
+local function map_git_file_keys(buf)
+  local file = vim.api.nvim_buf_get_name(buf)
+  set_keys(git_file_logs, vim.bo[buf].buftype == "" and file ~= "" and Snacks.git.get_root(file) ~= nil, buf)
+end
+
 return {
   "folke/snacks.nvim",
   priority = 1000,
@@ -62,15 +98,6 @@ return {
     { "<leader>fp", function() Snacks.picker.projects() end, desc = "Projects" },
     { "<leader>fr", function() Snacks.picker.recent() end, desc = "Recent Files" },
 
-    --   Git Tools: Interact with branches, logs, and diffs
-    { "<leader>gB", function() Snacks.picker.git_branches() end, desc = "Branches" },
-    { "<leader>gl", function() Snacks.picker.git_log() end, desc = "Log" },
-    { "<leader>gL", function() Snacks.picker.git_log_line() end, desc = "Log (Line)" },
-    { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Status" },
-    { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Stashes" },
-    { "<leader>gD", function() Snacks.picker.git_diff() end, desc = "Diff (Hunks)" },
-    { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Log (File)" },
-
     -- 󰞷  Search: Grep and search across files and buffers
     { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep" },
     { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep (Open Buffers)" },
@@ -116,6 +143,19 @@ return {
   config = function(_, opts)
     require("snacks").setup(opts)
 
+    local git_group = vim.api.nvim_create_augroup("SnacksGitKeys", { clear = true })
+    vim.api.nvim_create_autocmd("DirChanged", { group = git_group, callback = map_git_pickers })
+    vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile", "BufFilePost" }, {
+      group = git_group,
+      callback = function(ev) map_git_file_keys(ev.buf) end,
+    })
+    map_git_pickers()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(buf) then
+        map_git_file_keys(buf)
+      end
+    end
+
     -- Try to register icons with which-key
     local ok, wk = pcall(require, "which-key")
     if ok then
@@ -134,13 +174,13 @@ return {
         { "<leader>fr", icon = { icon = "", color = "yellow" } },
 
         -- git
-        { "<leader>gB", icon = { icon = "", color = "grey" } },
-        { "<leader>gl", icon = { icon = "", color = "orange" } },
-        { "<leader>gL", icon = { icon = "", color = "yellow" } },
-        { "<leader>gf", icon = { icon = "", color = "blue" } },
-        { "<leader>gs", icon = { icon = "󰊢", color = "cyan" } },
-        { "<leader>gS", icon = { icon = "󰀼", color = "grey" } },
-        { "<leader>gD", icon = { icon = "", color = "cyan" } },
+        { "<leader>gB", icon = { icon = "", color = "grey" }, real = true },
+        { "<leader>gl", icon = { icon = "", color = "orange" }, real = true },
+        { "<leader>gL", icon = { icon = "", color = "yellow" }, real = true },
+        { "<leader>gf", icon = { icon = "", color = "blue" }, real = true },
+        { "<leader>gs", icon = { icon = "󰊢", color = "cyan" }, real = true },
+        { "<leader>gS", icon = { icon = "󰀼", color = "grey" }, real = true },
+        { "<leader>gD", icon = { icon = "", color = "cyan" }, real = true },
 
         -- Grep-in
         { "<leader>/", icon = { icon = "󰞷", color = "cyan" } },
