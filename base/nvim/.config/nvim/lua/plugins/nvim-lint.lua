@@ -38,6 +38,12 @@ return {
     local augroup = vim.api.nvim_create_augroup
     local user_group = augroup("UserAutocmdsNvimLint", { clear = true })
 
+    -- Skip linters Mason has not installed yet instead of reporting ENOENT
+    local function installed(linter)
+      local cmd = type(linter.cmd) == "function" and linter.cmd() or linter.cmd
+      return vim.fn.executable(cmd) == 1
+    end
+
     -- Linters whose findings a language server also reports, by server name; each runs only where its server is not attached
     local covering_server = { ruff = "ruff", biomejs = "biome", tflint = "tflint", clippy = "rust_analyzer" }
 
@@ -47,9 +53,10 @@ return {
     end
 
     ---@param names? string|string[]
-    local function lint_buffer(names)
+    ---@param filter? fun(linter: lint.Linter): boolean
+    local function lint_buffer(names, filter)
       lint.try_lint(names, {
-        filter = function(linter) return not covered(linter.name, 0) end,
+        filter = function(linter) return not covered(linter.name, 0) and (not filter or filter(linter)) end,
         wrap_linter = function(linter)
           local parse = linter.parser
           if covering_server[linter.name] and type(parse) == "function" then
@@ -79,7 +86,7 @@ return {
       callback = function()
         local linters = lint.linters_by_ft[vim.bo.filetype]
         if linters and #linters > 0 then
-          lint_buffer()
+          lint_buffer(nil, installed)
         end
       end,
     })
@@ -91,8 +98,20 @@ return {
         "*/.github/workflows/*.yml",
         "*/.github/workflows/*.yaml",
       },
-      callback = function() lint_buffer("actionlint") end,
+      callback = function() lint_buffer("actionlint", installed) end,
     })
+
+    -- Lint every loaded buffer again when Mason installs a package; BufWritePost runs both autocmds above
+    require("mason-registry"):on(
+      "package:install:success",
+      vim.schedule_wrap(function()
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.api.nvim_buf_is_loaded(buf) then
+            vim.api.nvim_buf_call(buf, function() vim.api.nvim_exec_autocmds("BufWritePost", { group = user_group, buffer = buf, modeline = false }) end)
+          end
+        end
+      end)
+    )
 
     -- Manual linting command
     vim.keymap.set("n", "<leader>ll", function()
