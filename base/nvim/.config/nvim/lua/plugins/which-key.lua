@@ -76,10 +76,7 @@ return {
         { "[f", icon = { icon = "󰊕", color = "orange" }, real = true },
         { "[c", icon = { icon = "", color = "orange" }, real = true },
         { "[p", icon = { icon = "", color = "orange" }, real = true },
-        { "[b", icon = { icon = "", color = "orange" }, real = true },
         { "[i", icon = { icon = "󰙁", color = "orange" }, real = true },
-        { "[l", icon = { icon = "󰑖", color = "orange" }, real = true },
-        { "[a", icon = { icon = "󰡱", color = "grey" }, real = true },
         { "[r", icon = { icon = "", color = "orange" }, real = true },
         { "[/", icon = { icon = "󰅺", color = "grey" }, real = true },
 
@@ -87,10 +84,7 @@ return {
         { "]f", icon = { icon = "󰊕", color = "purple" }, real = true },
         { "]c", icon = { icon = "", color = "purple" }, real = true },
         { "]p", icon = { icon = "", color = "purple" }, real = true },
-        { "]b", icon = { icon = "", color = "purple" }, real = true },
         { "]i", icon = { icon = "󰙁", color = "purple" }, real = true },
-        { "]l", icon = { icon = "󰑖", color = "purple" }, real = true },
-        { "]a", icon = { icon = "󰡱", color = "grey" }, real = true },
         { "]r", icon = { icon = "", color = "purple" }, real = true },
         { "]/", icon = { icon = "󰅺", color = "grey" }, real = true },
 
