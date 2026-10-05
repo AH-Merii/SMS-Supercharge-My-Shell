@@ -80,8 +80,8 @@ return {
               components = {
                 -- customize the drawing of kind icons
                 kind_icon = {
-                  text = function(ctx) text_color(ctx) end,
-                  highlight = function(ctx) highlight_color(ctx) end,
+                  text = text_color,
+                  highlight = highlight_color,
                 },
               },
               columns = {
