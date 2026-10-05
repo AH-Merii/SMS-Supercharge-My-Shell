@@ -187,6 +187,10 @@ local group = vim.api.nvim_create_augroup("core.lsp.keys", { clear = true })
 vim.api.nvim_create_autocmd({ "FileType", "LspAttach" }, {
   group = group,
   callback = function(ev)
+    -- Buffers vim.lsp.enable skips, like lazy's first-start install window, where requiring conform, even in a pcall, breaks the install
+    if vim.bo[ev.buf].buftype ~= "" and vim.bo[ev.buf].buftype ~= "help" then
+      return
+    end
     vim.schedule(function() sync(ev.buf) end)
   end,
 })
