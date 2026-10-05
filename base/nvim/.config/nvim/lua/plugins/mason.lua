@@ -57,6 +57,9 @@ local ensure_installed_lsps = {
   "terraformls",
 }
 
+-- Servers used when their binary is on PATH, installed outside Mason
+local path_lsps = { "clangd", "gopls", "zls", "intelephense", "yamlls" }
+
 return {
   ---------------------------------------------------------------------------
   -- Mason core
@@ -96,6 +99,15 @@ return {
       -- Automatically enable installed servers
       automatic_enable = true,
     },
+    config = function(_, opts)
+      require("mason-lspconfig").setup(opts)
+      for _, server in ipairs(path_lsps) do
+        local cmd = vim.lsp.config[server] and vim.lsp.config[server].cmd
+        if type(cmd) == "table" and vim.fn.executable(cmd[1]) == 1 then
+          vim.lsp.enable(server)
+        end
+      end
+    end,
   },
 
   ---------------------------------------------------------------------------

@@ -62,7 +62,7 @@ nvim/
 
 ### Adding a New LSP Server
 
-1. Add server name to `ensure_installed` in `lua/plugins/mason.lua`
+1. Add server name to `ensure_installed` in `lua/plugins/mason.lua`, or to `path_lsps` when the binary comes from outside Mason
 2. Optionally create `after/lsp/[server].lua` for custom settings
 3. Add formatters to `lua/plugins/conform.lua` under `formatters_by_ft`
 4. Add linters to `lua/plugins/nvim-lint.lua` under `linters_by_ft`
