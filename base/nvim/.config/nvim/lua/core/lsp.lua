@@ -24,7 +24,7 @@ local M = {}
 ---@field [1] string lhs
 ---@field [2]? string|fun() rhs, or nil until a Snacks toggle supplies it through M.map
 ---@field mode? string
----@field method string|string[] the buffer gets the map while an attached client supports any of these
+---@field method? string|string[] the buffer gets the map while an attached client supports any of these
 ---@field when? fun(buf: integer, clients: vim.lsp.Client[]): boolean the buffer also gets the map while this holds
 
 -- A formatter set for the filetype in conform counts before its tool is installed
@@ -42,6 +42,23 @@ local function has_formatter(buf)
 end
 
 local function format() require("conform").format_buffer({ async = true, quiet = false }) end
+
+-- Diagnostics come from attached clients, and from nvim-lint where it has linters for the filetype
+---@param buf integer
+---@param clients vim.lsp.Client[]
+local function has_diagnostics(buf, clients)
+  if #clients > 0 then
+    return true
+  end
+  local by_ft = require("lint").linters_by_ft
+  local ft = vim.bo[buf].filetype
+  for _, name in ipairs(vim.list_extend({ ft }, vim.split(ft, ".", { plain = true }))) do
+    if next(by_ft[name] or {}) then
+      return true
+    end
+  end
+  return false
+end
 
 ---@type core.lsp.Key[]
 M.keys = {
@@ -73,6 +90,8 @@ M.keys = {
   { "<leader>lf", format, desc = "Format buffer", method = "textDocument/formatting", when = has_formatter },
   { "<leader>lf", format, mode = "v", desc = "Format buffer", method = "textDocument/rangeFormatting", when = has_formatter },
   { "<leader>Tf", method = "textDocument/formatting", when = has_formatter },
+  { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", desc = "Buffer Diagnostics (Trouble)", when = has_diagnostics },
+  { "<leader>sd", function() Snacks.picker.diagnostics_buffer() end, desc = "Diagnostics (Buffer)", when = has_diagnostics },
 }
 
 -- Neovim maps its LSP defaults globally; move them into the table so they are gated too
