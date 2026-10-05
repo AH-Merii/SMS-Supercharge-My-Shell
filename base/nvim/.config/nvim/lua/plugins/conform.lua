@@ -139,7 +139,9 @@ return {
 
       c.format({ async = async, bufnr = bufnr }, function(err, did_edit)
         if err then
-          vim.notify(string.format("Formatting failed in %s with %s: %s", filename, formatter_label, err), vim.log.levels.ERROR, { title = "Conform" })
+          -- LSP fallback passes the raw lsp.ResponseError table, which has no __tostring since Neovim 0.13
+          local reason = type(err) == "table" and vim.lsp.rpc.format_rpc_error(err) or err
+          vim.notify(string.format("Formatting failed in %s with %s: %s", filename, formatter_label, reason), vim.log.levels.ERROR, { title = "Conform" })
           return
         end
 
