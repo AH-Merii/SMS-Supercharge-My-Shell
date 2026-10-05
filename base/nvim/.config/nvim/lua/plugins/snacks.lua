@@ -353,7 +353,6 @@ return {
             wk_desc = { enabled = "Conceal ", disabled = "Show " },
           })
           :map("<leader>Tm")
-        Snacks.toggle.treesitter():map("<leader>TT")
         Snacks.toggle
           .inlay_hints({
             wk_desc = { enabled = "Hide ", disabled = "Show " },

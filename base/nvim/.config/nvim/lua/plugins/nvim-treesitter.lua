@@ -134,6 +134,7 @@ local function set_keymaps(buf, lang)
   vim.keymap.set("n", "<leader>vv", "van", { buf = buf, remap = true, desc = "Start incremental selection" })
   vim.keymap.set("x", "+", "an", { buf = buf, remap = true, desc = "Grow selection to parent node" })
   vim.keymap.set("x", "-", "in", { buf = buf, remap = true, desc = "Shrink selection to child node" })
+  Snacks.toggle.treesitter():map("<leader>TT", { buf = buf })
 
   local query = vim.treesitter.query.get(lang, "textobjects")
   local captures = {}
