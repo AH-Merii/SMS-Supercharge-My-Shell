@@ -1,3 +1,5 @@
+-- vim.g.install_tools: "ask" (default) before installing what a filetype lacks, "auto" to install without asking, "off"
+
 -- LSP *server* names (not Mason package names), installed when a file of one of their filetypes opens
 local servers = {
   "pyrefly",
@@ -60,49 +62,107 @@ local function tool_names(filetype)
 end
 
 local handled = {} -- filetypes whose tools were looked at this session
+local queue = {} -- filetypes waiting for their prompt; one prompt at a time
+local asking = false
+local never_file = vim.fs.joinpath(vim.fn.stdpath("state"), "install_tools_never.json")
+local never -- filetypes answered "Never", read from never_file once
 
---- Installs the Mason packages a buffer's filetype needs and that are not installed yet.
+---@return string[]
+local function never_list()
+  if not never then
+    local ok, list = pcall(function() return vim.json.decode(table.concat(vim.fn.readfile(never_file), "\n")) end)
+    never = ok and list or {}
+  end
+  return never
+end
+
+--- Mason packages the filetype needs that are neither installed nor installing.
+---@param ft string
+---@return string[]
+local function missing_packages(ft)
+  local registry = require("mason-registry")
+  local available = registry.get_all_package_names()
+  local missing = {}
+  for _, name in ipairs(tool_names(ft)) do
+    name = package_names[name] or name
+    if vim.list_contains(available, name) and not vim.list_contains(missing, name) then
+      local pkg = registry.get_package(name)
+      if not pkg:is_installed() and not pkg:is_installing() then
+        table.insert(missing, name)
+      end
+    end
+  end
+  return missing
+end
+
+---@param ft string
+local function install(ft)
+  local missing = missing_packages(ft)
+  if #missing == 0 then
+    return
+  end
+  local registry = require("mason-registry")
+  vim.notify(("Installing %s for %s"):format(table.concat(missing, ", "), ft), vim.log.levels.INFO, { title = "Mason" })
+  for _, name in ipairs(missing) do
+    registry.get_package(name):install(
+      {},
+      vim.schedule_wrap(function(success)
+        if success then
+          vim.notify("Installed " .. name, vim.log.levels.INFO, { title = "Mason" })
+        else
+          vim.notify(("Could not install %s, see :MasonLog"):format(name), vim.log.levels.ERROR, { title = "Mason" })
+        end
+      end)
+    )
+  end
+end
+
+--- Asks about the next queued filetype, once startup is done and no other prompt is open.
+local function ask_next()
+  if asking or vim.v.vim_did_enter == 0 or #queue == 0 then
+    return
+  end
+  local ft = table.remove(queue, 1)
+  local missing = missing_packages(ft)
+  if #missing == 0 then
+    return ask_next()
+  end
+  asking = true
+  vim.ui.select({ "Yes", "Not now", "Never" }, { prompt = ("Install %s for %s?"):format(table.concat(missing, ", "), ft) }, function(choice)
+    if choice == "Yes" then
+      install(ft)
+    elseif choice == "Never" then
+      never = nil -- re-read, another session may have written since
+      table.insert(never_list(), ft)
+      vim.fn.mkdir(vim.fs.dirname(never_file), "p")
+      vim.fn.writefile({ vim.json.encode(never_list()) }, never_file)
+      vim.notify(("Not installing tools for %s; remove it from %s to be asked again"):format(ft, never_file), vim.log.levels.INFO, { title = "Mason" })
+    end
+    asking = false
+    vim.schedule(ask_next)
+  end)
+end
+
+--- Offers to install, or installs, the Mason packages a buffer's filetype needs and lacks.
 ---@param ev vim.api.keyset.create_autocmd.callback_args
 local function install_tools(ev)
   local ft = ev.match
-  if handled[ft] or vim.bo[ev.buf].buftype ~= "" or #vim.api.nvim_list_uis() == 0 then
+  local mode = vim.g.install_tools or "ask"
+  if mode == "off" or handled[ft] or vim.bo[ev.buf].buftype ~= "" or #vim.api.nvim_list_uis() == 0 or vim.list_contains(never_list(), ft) then
     return
   end
   handled[ft] = true
 
   local registry = require("mason-registry")
   registry.refresh(vim.schedule_wrap(function()
-    local available = registry.get_all_package_names()
-    if #available == 0 then
+    if #registry.get_all_package_names() == 0 then
       return vim.notify("No Mason registry, so nothing was installed for " .. ft, vim.log.levels.ERROR, { title = "Mason" })
     end
-
-    local missing = {}
-    for _, name in ipairs(tool_names(ft)) do
-      name = package_names[name] or name
-      if vim.list_contains(available, name) and not vim.list_contains(missing, name) then
-        local pkg = registry.get_package(name)
-        if not pkg:is_installed() and not pkg:is_installing() then
-          table.insert(missing, name)
-        end
-      end
-    end
-    if #missing == 0 then
-      return
-    end
-
-    vim.notify(("Installing %s for %s"):format(table.concat(missing, ", "), ft), vim.log.levels.INFO, { title = "Mason" })
-    for _, name in ipairs(missing) do
-      registry.get_package(name):install(
-        {},
-        vim.schedule_wrap(function(success)
-          if success then
-            vim.notify("Installed " .. name, vim.log.levels.INFO, { title = "Mason" })
-          else
-            vim.notify(("Could not install %s, see :MasonLog"):format(name), vim.log.levels.ERROR, { title = "Mason" })
-          end
-        end)
-      )
+    if mode == "auto" then
+      install(ft)
+    elseif #missing_packages(ft) > 0 then
+      table.insert(queue, ft)
+      ask_next()
     end
   end))
 end
@@ -145,10 +205,9 @@ return {
       automatic_enable = true,
     },
     config = function(_, opts)
-      vim.api.nvim_create_autocmd("FileType", {
-        group = vim.api.nvim_create_augroup("UserMasonInstall", { clear = true }),
-        callback = install_tools,
-      })
+      local group = vim.api.nvim_create_augroup("UserMasonInstall", { clear = true })
+      vim.api.nvim_create_autocmd("FileType", { group = group, callback = install_tools })
+      vim.api.nvim_create_autocmd("VimEnter", { group = group, once = true, callback = vim.schedule_wrap(ask_next) })
       require("mason-lspconfig").setup(opts)
       for _, server in ipairs(path_lsps) do
         local cmd = vim.lsp.config[server] and vim.lsp.config[server].cmd

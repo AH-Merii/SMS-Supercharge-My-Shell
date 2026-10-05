@@ -51,7 +51,9 @@ nvim/
 ### Two-Tier System
 
 **Tier 1: Automatic Setup** (`lua/plugins/mason.lua`)
-- Opening a file installs the Mason packages its filetype needs and lacks: the servers in `servers`, the formatters in conform's `formatters_by_ft`, the linters in nvim-lint's `linters_by_ft` and anything in `extra_packages`. A filetype never opened installs nothing, and nothing installs headless
+- Opening a file offers to install the Mason packages its filetype needs and lacks: the servers in `servers`, the formatters in conform's `formatters_by_ft`, the linters in nvim-lint's `linters_by_ft` and anything in `extra_packages`. A filetype never opened installs nothing, and nothing installs headless
+- The offer is a prompt, "Install X, Y for <filetype>?", with Yes, Not now and Never. Not now lasts for the session; Never is kept per filetype in `install_tools_never.json` under `stdpath("state")` (`~/.local/state/nvim/`), and removing the filetype from it brings the prompt back. Several files opened at once get one prompt at a time, one per filetype
+- `vim.g.install_tools` sets the behaviour: `"ask"` (default), `"auto"` to install without asking, or `"off"`. Set it in `lua/config/options.lua`
 - Mason-LSPConfig enables every installed server, so a server attaches to open buffers once its install lands
 - Servers auto-launch when filetypes are detected
 
@@ -272,7 +274,7 @@ After modifying configuration:
 ## Common Tasks
 
 **Update plugins**: `:Lazy update`
-**Install missing tools**: Open a file of that filetype; `:Mason` shows them (press `U` to update all)
+**Install missing tools**: Open a file of that filetype and answer Yes; `:Mason` shows them (press `U` to update all)
 **Check LSP logs**: `:LspLog` (`:LspInfo` shows the path)
 **Reload config**: Restart Neovim (changes to `init.lua` and core modules require restart)
 **Format file**: Handled automatically on save via Conform
