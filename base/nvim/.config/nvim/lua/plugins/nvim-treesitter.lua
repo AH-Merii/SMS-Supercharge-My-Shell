@@ -217,6 +217,7 @@ return {
             return
           end
           map_textobjects(args.buf, {})
+          pcall(vim.keymap.del, "n", "<leader>TT", { buf = args.buf })
           if lang and vim.list_contains(ts.get_available(), lang) then
             ts.install(lang):await(function()
               vim.schedule(function() attach(args.buf, lang) end)
