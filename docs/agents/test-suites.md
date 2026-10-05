@@ -29,6 +29,12 @@ came from.
   - Run it on the old commit and expect red, then on the fix and expect green.
   - Mutation runs (break the fix on purpose) show which checks are real. Keep the mutation
     lists as a manual reference rather than a framework.
+  - Distrust a sub-second check. Run it verbosely once to confirm it asserts what it claims,
+    then prove it with a mutation.
+- **Assert on every channel an error can reach.** A harness passes the failures it never
+  reads.
+  - E.g. errors that reached only a UI's message history went unseen, so checks that looked
+    green were red.
 - **First-run checks use a throwaway copy** of the state that is deleted afterwards.
 - **Write the gotchas of the system under test into the suite README** the first time someone
   hits one, so the next agent doesn't rediscover it.

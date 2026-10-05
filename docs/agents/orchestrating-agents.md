@@ -32,7 +32,9 @@ migration, 2026-10-05). Each rule is general; the "e.g." shows the incident it c
   - Never bypass signing.
 - **Cap agent context, about 250k tokens.**
   - Big outputs go to files and are read with grep or tail. Bulk sweeps go to subagents.
-  - A large agent keeps its state in a notes file and works from that.
+  - An agent's state lives in files, not in its context. It and its helpers write results and
+    what is left to a file the next agent reads, so any of them can stop at the cap without
+    losing work.
   - Past about 200k, the agent writes a handoff covering: task, decisions, commits, what
     failed, what was skipped, what is left, how to verify, and doubts. Then it stops.
   - The orchestrator enforces the cap, because an agent cannot see its own context size.
