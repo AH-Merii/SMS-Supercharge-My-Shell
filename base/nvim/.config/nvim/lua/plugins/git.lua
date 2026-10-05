@@ -5,12 +5,12 @@ return {
     keys = {
       {
         "[g",
-        function() require("gitsigns").prev_hunk({ navigation_message = false }) end,
+        function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end,
         desc = "Prev Hunk",
       },
       {
         "]g",
-        function() require("gitsigns").next_hunk({ navigation_message = false }) end,
+        function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end,
         desc = "Next Hunk",
       },
 
@@ -78,7 +78,6 @@ return {
         linehl = false,
         word_diff = false,
         watch_gitdir = {
-          interval = 1000,
           follow_files = true,
         },
         attach_to_untracked = true,
