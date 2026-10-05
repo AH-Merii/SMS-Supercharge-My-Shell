@@ -133,7 +133,9 @@ return {
 
       -- Show linter status
       vim.keymap.set("n", "<leader>li", function()
-        local linters = lint.linters_by_ft[vim.bo.filetype] or {}
+        local linters = vim.tbl_map(function(name)
+          return covered(name, buf) and ("%s (reported by the %s server)"):format(name, covering_server[name]) or name
+        end, lint._resolve_linter_by_ft(vim.bo[buf].filetype))
         if #linters == 0 then
           print("No linters configured for filetype: " .. vim.bo.filetype)
         else
