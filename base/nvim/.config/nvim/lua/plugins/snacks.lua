@@ -213,22 +213,6 @@ return {
 
         vim._print = function(_, ...) _G.dd(...) end
 
-        local function setup_gitsigns_toggle()
-          local ok, gs = pcall(require, "gitsigns")
-          local okc, gsc = pcall(require, "gitsigns.config")
-          if ok and okc then
-            Snacks.toggle
-              .new({
-                name = "Git Signs Column",
-                get = function() return gsc.config.signcolumn end,
-                set = function(state) gs.toggle_signs(state) end,
-              })
-              :map("<leader>TG")
-          else
-            vim.notify("gitsigns.nvim not found. Skipping gitsigns column toggle option.", vim.log.levels.WARN, { title = "Snacks Config" })
-          end
-        end
-
         local function setup_format_on_save_toggle()
           -- Global flag: on by default
           if vim.g.snacks_format_on_save == nil then
@@ -325,7 +309,6 @@ return {
         Snacks.toggle.dim():map("<leader>TD")
         Snacks.toggle.option("list", { name = "Hidden Chars" }):map("<leader>TH")
 
-        setup_gitsigns_toggle()
         setup_indent_view_toggle()
         setup_format_on_save_toggle()
       end,

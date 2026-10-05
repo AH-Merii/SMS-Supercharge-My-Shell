@@ -133,8 +133,8 @@ return {
         { "[q", icon = { icon = "", color = "yellow" }, desc = "quickfix item" },
 
         -- Git hunks
-        { "]g", icon = { icon = "", color = "green" }, desc = " git hunk" },
-        { "[g", icon = { icon = "", color = "green" }, desc = "git hunk" },
+        { "]g", icon = { icon = "", color = "green" }, desc = " git hunk", real = true },
+        { "[g", icon = { icon = "", color = "green" }, desc = "git hunk", real = true },
 
         { "[ ", desc = "Add Space Above", icon = { icon = "󰞙", color = "grey" } },
         { "] ", desc = "Add Space Below", icon = { icon = "󰞖", color = "grey" } },
