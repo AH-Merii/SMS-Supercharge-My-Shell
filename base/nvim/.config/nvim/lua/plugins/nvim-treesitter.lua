@@ -156,7 +156,11 @@ return {
     },
     config = function()
       local ts = require("nvim-treesitter")
-      ts.install(ensure_installed)
+      -- on the first start lazy runs this config inside its install wait, where the install log raises a hit-enter prompt
+      vim.api.nvim_create_autocmd("VimEnter", {
+        once = true,
+        callback = function() ts.install(ensure_installed) end,
+      })
 
       require("nvim-treesitter-textobjects").setup({
         select = {
