@@ -64,10 +64,6 @@ return {
         { "zd", desc = "Delete fold under cursor", icon = { icon = "󰗨", color = "red" } },
         { "zD", desc = "Delete all manual folds", icon = { icon = "󰗩", color = "red" } },
 
-        -- Navigation
-        { "]z", desc = "fold", icon = { icon = "", color = "yellow" } },
-        { "[z", desc = "fold", icon = { icon = "", color = "yellow" } },
-
         -- Global toggle
         { "zi", desc = "Toggle folding (foldenable)" },
       },
