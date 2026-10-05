@@ -33,7 +33,6 @@ return {
       {
         { "<leader>l", group = "LSP", icon = { icon = "󱍔", color = "purple" } },
         { "<leader>c", group = "LSP (Trouble)", icon = { icon = "󰙎", color = "purple" } },
-        { "<leader>D", group = "Debugger", icon = { icon = "", color = "purple" } },
         { "<leader>x", group = "Diagnostics", icon = { icon = "", color = "orange" } },
 
         { "g", group = "Goto", icon = { icon = "", color = "cyan" } },

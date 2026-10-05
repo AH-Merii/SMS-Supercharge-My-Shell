@@ -32,7 +32,7 @@ nvim/
 │   │   ├── autocmds.lua     # Autocommands
 │   │   ├── helpers.lua      # LSP debugging commands
 │   │   └── utils.lua        # Custom utilities
-│   └── plugins/             # Plugin specifications (~18 files)
+│   └── plugins/             # Plugin specifications (~17 files)
 ├── after/
 │   ├── ftplugin/            # Filetype-specific configs
 │   └── lsp/                 # LSP server-specific configs
@@ -249,18 +249,6 @@ Configure in:
 - `lua/plugins/conform.lua` - Add to `formatters_by_ft`
 - `lua/plugins/nvim-lint.lua` - Add to `linters_by_ft`
 - `lua/plugins/mason.lua` - Nothing, unless the Mason package has another name (`package_names`) or no filetype list names the tool (`extra_packages`)
-
-### Mason Tool Paths
-
-Mason tools install to `~/.local/share/nvim/mason/bin/`. When configuring tools (e.g., DAP), check Mason paths first:
-
-```lua
-local mason_tool = vim.fn.stdpath("data") .. "/mason/bin/tool"
-if vim.fn.executable(mason_tool) == 1 then
-    return mason_tool
-end
-return vim.fn.exepath("tool") or "tool"  -- Fallback to system
-```
 
 ## Testing Changes
 
