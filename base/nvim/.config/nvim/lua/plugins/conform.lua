@@ -49,7 +49,7 @@ return {
       c = { "clang_format" },
       cpp = { "clang_format" },
 
-      go = { "goimports", "gofmt" },
+      go = { "goimports" },
       lua = { "stylua" },
       rust = { "rustfmt" },
       zig = { "zigfmt" },
