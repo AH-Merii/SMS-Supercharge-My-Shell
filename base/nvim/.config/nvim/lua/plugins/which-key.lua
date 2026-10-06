@@ -76,7 +76,7 @@ return {
         { "[c", icon = { icon = "", color = "orange" }, real = true },
         { "[p", icon = { icon = "", color = "orange" }, real = true },
         { "[i", icon = { icon = "󰙁", color = "orange" }, real = true },
-        { "[r", icon = { icon = "", color = "orange" }, real = true },
+        { "[r", icon = { icon = "󰌑", color = "orange" }, real = true },
         { "[/", icon = { icon = "󰅺", color = "grey" }, real = true },
 
         -- Next starts
@@ -84,7 +84,7 @@ return {
         { "]c", icon = { icon = "", color = "purple" }, real = true },
         { "]p", icon = { icon = "", color = "purple" }, real = true },
         { "]i", icon = { icon = "󰙁", color = "purple" }, real = true },
-        { "]r", icon = { icon = "", color = "purple" }, real = true },
+        { "]r", icon = { icon = "󰌑", color = "purple" }, real = true },
         { "]/", icon = { icon = "󰅺", color = "grey" }, real = true },
 
         -- Previous ends
@@ -100,10 +100,10 @@ return {
         -- Filetype plugin motions, labelled in after/ftplugin
         { "[m", icon = { icon = "", color = "orange" }, real = true },
         { "]m", icon = { icon = "", color = "purple" }, real = true },
-        { "[M", icon = { icon = "", color = "cyan" }, real = true },
-        { "]M", icon = { icon = "", color = "cyan" }, real = true },
-        { "[]", icon = { icon = "", color = "cyan" }, real = true },
-        { "][", icon = { icon = "", color = "cyan" }, real = true },
+        { "[M", icon = { icon = "", color = "cyan" }, real = true },
+        { "]M", icon = { icon = "", color = "cyan" }, real = true },
+        { "[]", icon = { icon = "", color = "cyan" }, real = true },
+        { "][", icon = { icon = "", color = "cyan" }, real = true },
 
         -- Diagnostics
         { "]d", icon = { icon = "", color = "orange" }, desc = " diagnostic" },

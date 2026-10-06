@@ -245,8 +245,8 @@ return {
         { "<leader>.", icon = { icon = "󰎕", color = "grey" } },
         { "<leader>lR", icon = { icon = "󰑕", color = "green" } },
         { "<leader>GB", icon = { icon = "󰖟", color = "grey" }, real = true },
-        { "]]", icon = { icon = "", color = "grey" }, real = true },
-        { "[[", icon = { icon = "", color = "grey" }, real = true },
+        { "]]", icon = { icon = "", color = "grey" }, real = true },
+        { "[[", icon = { icon = "", color = "grey" }, real = true },
       })
     else
       vim.notify("which-key.nvim not found. Install it for enhanced keymap icons and descriptions.", vim.log.levels.WARN, { title = "Snacks Config" })
