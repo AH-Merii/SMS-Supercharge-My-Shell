@@ -10,6 +10,8 @@ came from.
   - E.g. without this the job ended with 9 sandboxes, 48G and about 260 scripts, and no way to
     re-verify everything.
 - **Run tests in tiers.**
+  - Scale the check to the change: a one-line config change gets a load-only check, not health
+    comparisons and a full suite run.
   - Tag each check with areas, and map changed files to areas so a run picks its own checks.
   - A feature in development iterates on a mini suite of its own checks plus the area it
     touches, on one target unless the behaviour is target-sensitive.

@@ -21,7 +21,13 @@ Neovim-specific facts from the 0.13 migration (2026-10-05). The general rules ar
     each quit cost the full timeout. Keep it small: 500 ms.
   - A typed `:qa` in the TUI hides the leak; headless `:qa`, closing the pane and SIGHUP show
     it.
-- **GUI recipe:**
-  - launch: `ghostty --class=<unique> --gtk-single-instance=false -e <launcher> --listen <sock>`;
-  - find the window with `niri msg -j windows`;
-  - capture with `niri msg action screenshot-window --id <id> --path <abs>`.
+- **GUI recipe:** on the leased `cachyos` VM, headless, never a window on the live desktop.
+  - boot: `lease.sh acquire cachyos`, `lease.sh restore cachyos after-pr140`,
+    `GL=headless test-ready.sh cachyos`, type the greeter password over QMP, then rsync the
+    nvim builds, config and fixtures into the guest;
+  - launch, in the guest: `niri msg action spawn -- ghostty --class=<unique>
+    --gtk-single-instance=false -e <launcher> --listen <sock>`;
+  - find the window with `niri msg -j windows` in the guest;
+  - drive nvim over `<sock>` with `--remote-send` and `--remote-expr`;
+  - capture from the host over VNC with `~/VMs/shot.sh cachyos <abs>`, after
+    `niri msg action power-on-monitors` in the guest, because it blanks its monitor when idle.

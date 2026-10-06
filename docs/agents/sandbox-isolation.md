@@ -33,8 +33,9 @@ came from.
     GIT_CONFIG_VALUE_0=false`;
   - unset the display and session env for the program under test. A GUI run keeps it only
     for the terminal window;
-  - run each case in its own process group, then report and kill any survivor. A case that
-    leaks a process fails.
+  - run each case in its own process group, then report any survivor and kill it by PID or
+    group. A case that leaks a process fails. Never `pkill -f <pattern>`: an invalid regex
+    fails silently and the process keeps running.
 - **Seed from a copy, then scrub it.** Reflink-copy (`cp -a --reflink=auto`) instead of
   downloading, then grep the copy for live absolute paths and repoint or reinstall what it
   finds.
@@ -61,3 +62,14 @@ came from.
   - Never touch the live session's own services.
   - When a GUI capture is unavoidable, check that the content under test is unmodified before
     each keypress, and retake the capture if it is not.
+- **On the leased VM** (`~/VMs`, see its README):
+  - Each agent sets its own `VM_LEASE_ID`, and runs `~/VMs/lease.sh ping` during long waits so
+    the idle expiry doesn't power the VM off mid-run. Never `VM_LEASE_SKIP`, not even for a
+    read-only status query.
+  - Snapshot right after the slow setup (a fresh install, the first plugin install), and start
+    later runs from that snapshot.
+  - Snapshots are taken with the VM off: guest `sync`, `systemctl poweroff`, wait up to 60 s,
+    then QMP `quit`, because the guest poweroff can hang.
+  - To hand the VM to another agent, snapshot it as `handoff-<n>` and write a `HANDOFF.md`
+    with the state, the next step and the lease holder. The next agent restores the snapshot
+    and continues.

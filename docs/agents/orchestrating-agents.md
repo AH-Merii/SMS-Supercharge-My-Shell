@@ -29,7 +29,9 @@ migration, 2026-10-05). Each rule is general; the "e.g." shows the incident it c
   - A finished agent waiting for its turn costs nothing, and it can be resumed later.
 - **Integrate by cherry-pick.**
   - Review the diff, check the signature, and skip commits already landed under another hash.
-  - Never bypass signing.
+- **Never bypass signing:** no `--no-gpg-sign`, and no route around a denial.
+  - When the user is away, park the verified change as a patch plus its commit message, and
+    commit it signed once they are back.
 - **Cap agent context, about 250k tokens.**
   - Big outputs go to files and are read with grep or tail. Bulk sweeps go to subagents.
   - An agent's state lives in files, not in its context. It and its helpers write results and
@@ -78,7 +80,8 @@ migration, 2026-10-05). Each rule is general; the "e.g." shows the incident it c
   - An idle agent writes nothing to its transcript, so check for a live background job before
     calling it stuck. Resume a stopped agent with SendMessage.
   - After a trip, handle the cause (fix it, or brief an agent), then restart the watchdog.
-- **Wait on callbacks, never on fixed sleeps.**
+- **Wait on completion signals, never on fixed sleeps.**
+  - A signal is a log line, a status dict or a process exit.
   - Start runs longer than about 30s in the background, each with a timeout cap.
   - Meanwhile do other independent work, or end the turn with a one-line status. Tested: a
     subagent idle with a live background job is not treated as finished, and the job's exit
