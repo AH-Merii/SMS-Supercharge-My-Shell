@@ -4,6 +4,25 @@ local function on_buffer_map(icon)
   return function(m) return vim.fn.maparg(m.lhs, require("which-key.util").mapmode(), false, true).buffer == 1 and icon or nil end
 end
 
+-- the treesitter text objects (a and i plus the letter), iconed as the ] move of the same letter
+local text_object_icons = {
+  f = { icon = "󰊕", color = "purple" },
+  c = { icon = "", color = "purple" },
+  b = { icon = "󰅩", color = "purple" },
+  a = { icon = "󰅪", color = "purple" },
+  i = { icon = "󰙁", color = "purple" },
+  l = { icon = "", color = "purple" },
+  p = { icon = "", color = "purple" },
+  r = { icon = "󰌑", color = "purple" },
+  ["/"] = { icon = "󰅺", color = "grey" },
+}
+local text_objects = {}
+for letter, icon in pairs(text_object_icons) do
+  for _, prefix in ipairs({ "a", "i" }) do
+    table.insert(text_objects, { prefix .. letter, icon = on_buffer_map(icon), real = true })
+  end
+end
+
 return {
   "folke/which-key.nvim",
   event = "VeryLazy",
@@ -49,6 +68,7 @@ return {
         mode = { "x", "o" },
         { "a", group = "Around" },
         { "i", group = "Inside" },
+        text_objects,
       },
       {
         { "<leader>q", desc = "Quit", icon = { icon = "", color = "red" } },
