@@ -176,7 +176,7 @@ return {
       wk.add({
         -- Groups
         { "<leader>f", group = "Find", icon = { icon = "󰈞", color = "blue" } },
-        { "<leader>s", group = "Search", icon = { icon = "󰞷", color = "cyan" } },
+        { "<leader>s", group = "Search", mode = { "n", "x" }, icon = { icon = "󰞷", color = "cyan" } },
         { "<leader>G", group = "Git (Actions)", icon = { icon = "", color = "cyan" } },
         { "<leader>g", group = "Git (Inspect)", icon = { icon = "", color = "cyan" } },
         { "<leader>T", group = "Toggle Features", icon = { icon = "", color = "yellow" } },
@@ -232,7 +232,7 @@ return {
         { "gI", icon = { icon = "󰡱", color = "purple" }, real = true },
         { "gt", icon = { icon = "", color = "purple" }, real = true },
 
-        { "gr", group = "LSP", icon = { icon = "󱍔", color = "purple" } },
+        { "gr", group = "LSP", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" } },
 
         { "gC", group = "calls", icon = { icon = "󰃻", color = "yellow" } },
         { "gCi", icon = { icon = "󰃺", color = "cyan" }, real = true },

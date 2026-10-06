@@ -37,11 +37,17 @@ return {
     -- valid colors for reference: `azure`, `blue`, `cyan`, `green`, `grey`, `orange`, `purple`, `red`, `yellow`
     spec = {
       {
-        { "<leader>l", group = "LSP", icon = { icon = "󱍔", color = "purple" } },
+        { "<leader>l", group = "LSP", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" } },
         { "<leader>c", group = "LSP (Trouble)", icon = { icon = "󰙎", color = "purple" } },
         { "<leader>x", group = "Diagnostics", icon = { icon = "", color = "orange" } },
 
-        { "g", group = "Goto", icon = { icon = "", color = "cyan" } },
+        { "g", group = "Goto", mode = { "n", "x" }, icon = { icon = "", color = "cyan" } },
+        { "s", group = "Surround", mode = "x" },
+      },
+      {
+        mode = { "x", "o" },
+        { "a", group = "Around" },
+        { "i", group = "Inside" },
       },
       {
         { "<leader>q", desc = "Quit", icon = { icon = "", color = "red" } },
@@ -51,7 +57,7 @@ return {
       },
       {
         -- Folds (labels only; no remaps)
-        { "z", group = "Folds", icon = { icon = "", color = "yellow" } },
+        { "z", group = "Folds", mode = { "n", "x" }, icon = { icon = "", color = "yellow" } },
 
         { "za", desc = "Toggle fold" },
         { "zA", desc = "Toggle fold (recursive)" },
