@@ -109,7 +109,7 @@ return {
         vim.schedule_wrap(function()
           for _, buf in ipairs(vim.api.nvim_list_bufs()) do
             if vim.api.nvim_buf_is_loaded(buf) then
-              vim.api.nvim_buf_call(buf, function() vim.api.nvim_exec_autocmds("BufWritePost", { group = user_group, buffer = buf, modeline = false }) end)
+              vim.api.nvim_buf_call(buf, function() vim.api.nvim_exec_autocmds("BufWritePost", { group = user_group, buf = buf, modeline = false }) end)
             end
           end
         end)
@@ -118,8 +118,8 @@ return {
 
     ---@param buf integer
     local function map_lint_keys(buf)
-      pcall(vim.keymap.del, "n", "<leader>ll", { buffer = buf })
-      pcall(vim.keymap.del, "n", "<leader>li", { buffer = buf })
+      pcall(vim.keymap.del, "n", "<leader>ll", { buf = buf })
+      pcall(vim.keymap.del, "n", "<leader>li", { buf = buf })
       -- The lookup try_lint does when lint_buffer() names no linters
       local names = lint._resolve_linter_by_ft(vim.bo[buf].filetype)
       if #names == 0 then
@@ -131,7 +131,7 @@ return {
         vim.keymap.set("n", "<leader>ll", function()
           lint_buffer(nil, installed)
           vim.notify("Linting...", vim.log.levels.INFO, { title = "nvim-lint" })
-        end, { buffer = buf, desc = "Trigger linting for current file" })
+        end, { buf = buf, desc = "Trigger linting for current file" })
       end
 
       -- Show linter status
@@ -144,7 +144,7 @@ return {
         else
           print("Linters for " .. vim.bo.filetype .. ": " .. table.concat(linters, ", "))
         end
-      end, { buffer = buf, desc = "Show available linters for current filetype" })
+      end, { buf = buf, desc = "Show available linters for current filetype" })
     end
 
     autocmd({ "FileType", "LspAttach" }, { group = user_group, callback = function(ev) map_lint_keys(ev.buf) end })
