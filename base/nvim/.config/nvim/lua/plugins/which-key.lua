@@ -97,6 +97,14 @@ return {
         { "]C", icon = { icon = "󰒕", color = "cyan" }, real = true },
         { "]B", icon = { icon = "", color = "cyan" }, real = true },
 
+        -- Filetype plugin motions, labelled in after/ftplugin
+        { "[m", icon = { icon = "", color = "orange" }, real = true },
+        { "]m", icon = { icon = "", color = "purple" }, real = true },
+        { "[M", icon = { icon = "", color = "cyan" }, real = true },
+        { "]M", icon = { icon = "", color = "cyan" }, real = true },
+        { "[]", icon = { icon = "", color = "cyan" }, real = true },
+        { "][", icon = { icon = "", color = "cyan" }, real = true },
+
         -- Diagnostics
         { "]d", icon = { icon = "", color = "orange" }, desc = " diagnostic" },
         { "[d", icon = { icon = "", color = "orange" }, desc = "diagnostic" },

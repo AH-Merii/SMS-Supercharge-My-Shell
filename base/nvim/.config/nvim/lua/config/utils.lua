@@ -54,4 +54,20 @@ M.copyFilePathAndLineNumber = function()
   end
 end
 
+--- Labels the buffer maps a runtime ftplugin set without a desc, so which-key shows the label, not the rhs.
+---@param script string the ftplugin's file name, e.g. "python.vim"
+---@param labels table<string, string> lhs to desc
+M.label_ftplugin_maps = function(script, labels)
+  for lhs, desc in pairs(labels) do
+    for _, mode in ipairs({ "n", "x", "o" }) do
+      local map = vim.fn.maparg(lhs, mode, false, true)
+      local from = map.buffer == 1 and not map.desc and map.sid > 0 and vim.fn.getscriptinfo({ sid = map.sid })[1].name
+      if from and vim.endswith(from, "/ftplugin/" .. script) then
+        map.desc = desc
+        vim.fn.mapset(map)
+      end
+    end
+  end
+end
+
 return M
