@@ -1,3 +1,8 @@
+-- the icon only where a buffer map shadows the global default, as the treesitter moves do on ]b, ]a and ]l
+local function on_buffer_map(icon)
+  return function(m) return vim.fn.maparg(m.lhs, "n", false, true).buffer == 1 and icon or nil end
+end
+
 return {
   "folke/which-key.nvim",
   event = "VeryLazy",
@@ -77,6 +82,9 @@ return {
         { "[p", icon = { icon = "", color = "orange" }, real = true },
         { "[i", icon = { icon = "󰙁", color = "orange" }, real = true },
         { "[r", icon = { icon = "󰌑", color = "orange" }, real = true },
+        { "[b", icon = on_buffer_map({ icon = "󰅩", color = "orange" }), real = true },
+        { "[a", icon = on_buffer_map({ icon = "󰅪", color = "orange" }), real = true },
+        { "[l", icon = on_buffer_map({ icon = "", color = "orange" }), real = true },
         { "[/", icon = { icon = "󰅺", color = "grey" }, real = true },
 
         -- Next starts
@@ -85,6 +93,9 @@ return {
         { "]p", icon = { icon = "", color = "purple" }, real = true },
         { "]i", icon = { icon = "󰙁", color = "purple" }, real = true },
         { "]r", icon = { icon = "󰌑", color = "purple" }, real = true },
+        { "]b", icon = on_buffer_map({ icon = "󰅩", color = "purple" }), real = true },
+        { "]a", icon = on_buffer_map({ icon = "󰅪", color = "purple" }), real = true },
+        { "]l", icon = on_buffer_map({ icon = "", color = "purple" }), real = true },
         { "]/", icon = { icon = "󰅺", color = "grey" }, real = true },
 
         -- Previous ends
