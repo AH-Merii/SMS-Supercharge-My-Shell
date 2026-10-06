@@ -45,6 +45,7 @@ return {
       {
         { "<leader>q", desc = "Quit", icon = { icon = "", color = "red" } },
         { "<leader>w", desc = "Write", icon = { icon = "", color = "green" } },
+        { "<leader>p", mode = { "n", "x" }, icon = { icon = "", color = "cyan" }, real = true },
       },
       {
         -- Folds (labels only; no remaps)
