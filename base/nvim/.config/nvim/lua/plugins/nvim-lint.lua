@@ -84,8 +84,7 @@ return {
     autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
       group = user_group,
       callback = function()
-        local linters = lint.linters_by_ft[vim.bo.filetype]
-        if linters and #linters > 0 then
+        if #lint._resolve_linter_by_ft(vim.bo.filetype) > 0 then
           lint_buffer(nil, installed)
         end
       end,
