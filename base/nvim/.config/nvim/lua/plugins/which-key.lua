@@ -107,8 +107,8 @@ return {
       {
         mode = { "n", "x", "o" }, -- real = true keeps a key to the modes it is mapped in
         -- Jump groups
-        { "]", group = "Jump to Next", icon = { icon = "󰒭", color = "cyan" } },
-        { "[", group = "Jump to Previous", icon = { icon = "󰒮", color = "orange" } },
+        { "]", group = "Jump to next", icon = { icon = "󰒭", color = "cyan" } },
+        { "[", group = "Jump to previous", icon = { icon = "󰒮", color = "orange" } },
 
         -- Previous starts
         { "[f", icon = { icon = "󰊕", color = "orange" }, real = true },
