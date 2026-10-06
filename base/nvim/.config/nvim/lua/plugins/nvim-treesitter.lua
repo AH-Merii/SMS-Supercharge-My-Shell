@@ -253,6 +253,7 @@ return {
         },
       })
 
+      local installs = {} -- language -> its one install task this session, so a failed build is not retried per buffer
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true }),
         callback = function(args)
@@ -264,7 +265,8 @@ return {
           map_textobjects(args.buf, {}, {})
           pcall(vim.keymap.del, "n", "<leader>TT", { buf = args.buf })
           if lang and vim.list_contains(ts.get_available(), lang) then
-            ts.install(lang):await(function()
+            installs[lang] = installs[lang] or ts.install(lang)
+            installs[lang]:await(function()
               vim.schedule(function() attach(args.buf, lang) end)
             end)
           end
