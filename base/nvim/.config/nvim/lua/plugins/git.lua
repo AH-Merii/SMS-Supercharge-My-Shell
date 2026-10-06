@@ -5,11 +5,14 @@ return {
     config = function()
       local gs = require("gitsigns")
       local gsc = require("gitsigns.config")
+      -- one which-key spec, with the toggle's live label and icon, for the key mapped in every buffer
       local signs_column = Snacks.toggle.new({
         name = "Git Signs Column",
         get = function() return gsc.config.signcolumn end,
         set = function(state) gs.toggle_signs(state) end,
+        which_key = false,
       })
+      Snacks.util.on_module("which-key", function() signs_column:_wk("<leader>TG", "n") end)
 
       -- stage_hunk() stages an unstaged hunk under the cursor and unstages a staged one
       local function unstage_hunk()

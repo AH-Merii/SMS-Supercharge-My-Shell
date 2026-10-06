@@ -160,13 +160,14 @@ local function map_parser_textobjects(buf, parser)
 end
 
 local watched_parsers = setmetatable({}, { __mode = "k" })
+local ts_toggle -- set in config: Snacks is not loaded yet when lazy reads this spec
 
 local function set_keymaps(buf, lang)
   -- incremental selection, on the core `an` (parent node) and `in` (child node)
   vim.keymap.set("n", "<leader>vv", "van", { buf = buf, remap = true, desc = "Start incremental selection" })
   vim.keymap.set("x", "+", "an", { buf = buf, remap = true, desc = "Grow selection to parent node" })
   vim.keymap.set("x", "-", "in", { buf = buf, remap = true, desc = "Shrink selection to child node" })
-  Snacks.toggle.treesitter():map("<leader>TT", { buf = buf })
+  ts_toggle:map("<leader>TT", { buf = buf })
 
   local parser = vim.treesitter.get_parser(buf, lang)
   map_parser_textobjects(buf, parser)
@@ -220,6 +221,9 @@ return {
     },
     config = function()
       local ts = require("nvim-treesitter")
+      -- one which-key spec, with the toggle's live label and icon, for the key mapped in every buffer
+      ts_toggle = Snacks.toggle.treesitter({ which_key = false })
+      Snacks.util.on_module("which-key", function() ts_toggle:_wk("<leader>TT", "n") end)
       -- on the first start lazy runs this config inside its install wait, where the install log raises a hit-enter prompt
       vim.api.nvim_create_autocmd("VimEnter", {
         once = true,
