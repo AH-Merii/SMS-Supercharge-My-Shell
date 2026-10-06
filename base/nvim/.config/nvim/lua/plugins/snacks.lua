@@ -200,7 +200,7 @@ return {
         -- Grep-in
         { "<leader>/", icon = { icon = "󰞷", color = "cyan" } },
         { "<leader>sB", icon = { icon = "󰱼", color = "cyan" } },
-        { "<leader>sw", icon = { icon = "", color = "cyan" } },
+        { "<leader>sw", mode = { "n", "x" }, icon = { icon = "", color = "cyan" } },
         { "<leader>sb", icon = { icon = "", color = "cyan" } },
 
         -- Search
@@ -233,6 +233,7 @@ return {
         { "gt", icon = { icon = "", color = "purple" }, real = true },
 
         { "gr", group = "LSP", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" } },
+        { "gra", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" }, real = true },
 
         { "gC", group = "calls", icon = { icon = "󰃻", color = "yellow" } },
         { "gCi", icon = { icon = "󰃺", color = "cyan" }, real = true },

@@ -38,6 +38,7 @@ return {
     spec = {
       {
         { "<leader>l", group = "LSP", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" } },
+        { "<leader>lf", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" }, real = true },
         { "<leader>c", group = "LSP (Trouble)", icon = { icon = "󰙎", color = "purple" } },
         { "<leader>x", group = "Diagnostics", icon = { icon = "", color = "orange" } },
 
@@ -54,7 +55,9 @@ return {
         { "<leader>w", desc = "Write", icon = { icon = "", color = "green" } },
         { "<leader>p", mode = { "n", "x" }, icon = { icon = "", color = "cyan" }, real = true },
         { "<leader>v", icon = { icon = "󰩭", color = "cyan" }, real = true },
-        { "<leader>!", icon = { icon = "", color = "red" }, real = true },
+        { "<leader>!", mode = { "n", "x" }, icon = { icon = "", color = "red" }, real = true },
+        { "+", mode = "x", icon = { icon = "󰩭", color = "cyan" }, real = true },
+        { "-", mode = "x", icon = { icon = "󰩭", color = "cyan" }, real = true },
       },
       {
         -- Folds (labels only; no remaps)
