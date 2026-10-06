@@ -125,10 +125,10 @@ return {
             end
             if github then
               vim.keymap.set("n", "<leader>p", "<cmd>PRReviewMenu<cr>", { desc = "PR Review Menu" })
-              vim.keymap.set("v", "<leader>p", ":<C-u>'<,'>PRSuggestChange<CR>", { desc = "Suggest change" })
+              vim.keymap.set("x", "<leader>p", ":<C-u>'<,'>PRSuggestChange<CR>", { desc = "Suggest change" })
             else
               pcall(vim.keymap.del, "n", "<leader>p")
-              pcall(vim.keymap.del, "v", "<leader>p")
+              pcall(vim.keymap.del, "x", "<leader>p")
             end
           end)
         end)

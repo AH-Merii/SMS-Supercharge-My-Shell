@@ -3,7 +3,7 @@ local function set_keymaps()
   local keymap = vim.keymap.set
 
   keymap("n", "<space>!", ":.lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current line" }))
-  keymap("v", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
+  keymap("x", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
   keymap("n", "<space>%", "<cmd>source %<CR>", vim.tbl_extend("force", opts, { desc = "Source current file" }))
 end
 

@@ -88,7 +88,7 @@ M.keys = {
   },
   { "<leader>Th", method = "textDocument/inlayHint" },
   { "<leader>lf", format, desc = "Format buffer", method = "textDocument/formatting", when = has_formatter },
-  { "<leader>lf", format, mode = "v", desc = "Format selection", method = "textDocument/rangeFormatting", when = has_formatter },
+  { "<leader>lf", format, mode = "x", desc = "Format selection", method = "textDocument/rangeFormatting", when = has_formatter },
   { "<leader>Tf", method = "textDocument/formatting", when = has_formatter },
   { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", desc = "Buffer Diagnostics (Trouble)", when = has_diagnostics },
   { "<leader>sd", function() Snacks.picker.diagnostics_buffer() end, desc = "Diagnostics (Buffer)", when = has_diagnostics },
