@@ -223,6 +223,10 @@ return {
         { "[<C-T>", hidden = true },
         { "[<C-L>", hidden = true },
         { "[%", hidden = true },
+
+        -- node selection, labelled on + and -
+        { "an", mode = "x", hidden = true },
+        { "in", mode = "x", hidden = true },
       },
     },
   },
