@@ -16,7 +16,7 @@ migration, 2026-10-05). Each rule is general; the "e.g." shows the incident it c
     [test-suites.md](test-suites.md).
   - **Owns / Must not touch:** the files the agent may change, and the files it must leave
     alone.
-  - **Process:** signed atomic commits, the time limit, and the waiting, overrun and context
+  - **Process:** unsigned atomic commits (see below), the time limit, and the waiting, overrun and context
     rules below, written out in full.
   - **Outputs:** the commits, a report in the given format, and the handoff path if it reaches
     the handoff point.
@@ -28,10 +28,18 @@ migration, 2026-10-05). Each rule is general; the "e.g." shows the incident it c
   - Land A, then B rebases or cherry-picks onto the tip.
   - A finished agent waiting for its turn costs nothing, and it can be resumed later.
 - **Integrate by cherry-pick.**
-  - Review the diff, check the signature, and skip commits already landed under another hash.
-- **Never bypass signing:** no `--no-gpg-sign`, and no route around a denial.
-  - When the user is away, park the verified change as a patch plus its commit message, and
-    commit it signed once they are back.
+  - Review the diff, and skip commits already landed under another hash.
+- **Agents commit unsigned; the orchestrator signs once.**
+  - Agents commit with `git commit --no-gpg-sign`, a per-command flag. They never write git
+    config.
+  - The orchestrator signs in one batch under the 1Password approval its session already
+    holds: a cherry-pick signs as it lands, and a range an agent committed in place is
+    rewritten with `git rebase -f -S <last signed commit>`.
+  - Before every push, `git log --format='%h %G? %s' <base>..` shows G on each commit. Never
+    push an unsigned commit.
+  - If signing fails, stop and ask. No route around a denial.
+  - E.g. one 1Password prompt per agent session flooded the user; the orchestrator's single
+    approval window covers the whole batch.
 - **Cap agent context, about 250k tokens.**
   - Big outputs go to files and are read with grep or tail. Bulk sweeps go to subagents.
   - An agent's state lives in files, not in its context. It and its helpers write results and
