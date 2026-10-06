@@ -100,17 +100,21 @@ return {
       callback = function() lint_buffer("actionlint", installed) end,
     })
 
-    -- Lint every loaded buffer again when Mason installs a package; BufWritePost runs both autocmds above
-    require("mason-registry"):on(
-      "package:install:success",
-      vim.schedule_wrap(function()
-        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-          if vim.api.nvim_buf_is_loaded(buf) then
-            vim.api.nvim_buf_call(buf, function() vim.api.nvim_exec_autocmds("BufWritePost", { group = user_group, buffer = buf, modeline = false }) end)
+    -- Lint every loaded buffer again once Mason's installs pause for a second; BufWritePost runs both autocmds above
+    local relint = assert(vim.uv.new_timer())
+    require("mason-registry"):on("package:install:success", function()
+      relint:start(
+        1000,
+        0,
+        vim.schedule_wrap(function()
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            if vim.api.nvim_buf_is_loaded(buf) then
+              vim.api.nvim_buf_call(buf, function() vim.api.nvim_exec_autocmds("BufWritePost", { group = user_group, buffer = buf, modeline = false }) end)
+            end
           end
-        end
-      end)
-    )
+        end)
+      )
+    end)
 
     ---@param buf integer
     local function map_lint_keys(buf)
