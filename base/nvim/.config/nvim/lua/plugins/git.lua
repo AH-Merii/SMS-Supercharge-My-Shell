@@ -11,6 +11,18 @@ return {
         set = function(state) gs.toggle_signs(state) end,
       })
 
+      -- stage_hunk() stages an unstaged hunk under the cursor and unstages a staged one
+      local function unstage_hunk()
+        local lnum = vim.fn.line(".")
+        for _, hunk in ipairs(require("gitsigns").get_hunks() or {}) do
+          local first = math.min(math.max(hunk.added.start, 1), vim.fn.line("$"))
+          if lnum >= first and lnum <= math.max(hunk.added.start + hunk.added.count - 1, first) then
+            return vim.notify("The hunk under the cursor is not staged", vim.log.levels.WARN, { title = "gitsigns" })
+          end
+        end
+        require("gitsigns").stage_hunk()
+      end
+
       local hunk_keys = {
         { "[g", function() require("gitsigns").nav_hunk("prev", { navigation_message = false }) end, desc = "Prev Hunk" },
         { "]g", function() require("gitsigns").nav_hunk("next", { navigation_message = false }) end, desc = "Next Hunk" },
@@ -19,7 +31,7 @@ return {
         { "<leader>Gr", function() require("gitsigns").reset_hunk() end, desc = "Reset Hunk" },
         { "<leader>GR", function() require("gitsigns").reset_buffer() end, desc = "Reset Buffer" },
         { "<leader>Gs", function() require("gitsigns").stage_hunk() end, desc = "Stage Hunk" },
-        { "<leader>Gu", function() require("gitsigns").stage_hunk() end, desc = "Unstage Hunk" },
+        { "<leader>Gu", unstage_hunk, desc = "Unstage Hunk" },
         { "<leader>Gd", function() vim.cmd("Gitsigns diffthis HEAD") end, desc = "Diff (vs HEAD)" },
       }
 
