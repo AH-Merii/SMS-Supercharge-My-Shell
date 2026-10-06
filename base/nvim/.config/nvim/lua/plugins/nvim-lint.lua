@@ -125,7 +125,7 @@ return {
       -- Manual linting command, while lint_buffer() would run at least one linter
       if vim.iter(names):any(function(name) return not covered(name, buf) end) then
         vim.keymap.set("n", "<leader>ll", function()
-          lint_buffer()
+          lint_buffer(nil, installed)
           vim.notify("Linting...", vim.log.levels.INFO, { title = "nvim-lint" })
         end, { buffer = buf, desc = "Trigger linting for current file" })
       end
