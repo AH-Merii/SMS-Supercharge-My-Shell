@@ -1,6 +1,7 @@
 -- the icon only where a buffer map shadows the global default, as the treesitter moves do on ]b, ]a and ]l
 local function on_buffer_map(icon)
-  return function(m) return vim.fn.maparg(m.lhs, "n", false, true).buffer == 1 and icon or nil end
+  -- in the popup's mode: m.mode is the spec's whole mode list
+  return function(m) return vim.fn.maparg(m.lhs, require("which-key.util").mapmode(), false, true).buffer == 1 and icon or nil end
 end
 
 return {
@@ -74,6 +75,7 @@ return {
         { "zi", desc = "Toggle folding (foldenable)" },
       },
       {
+        mode = { "n", "x", "o" }, -- real = true keeps a key to the modes it is mapped in
         -- Jump groups
         { "]", group = "Jump to Next", icon = { icon = "󰒭", color = "cyan" } },
         { "[", group = "Jump to Previous", icon = { icon = "󰒮", color = "orange" } },
@@ -117,33 +119,40 @@ return {
         { "]M", icon = { icon = "", color = "cyan" }, real = true },
         { "[]", icon = { icon = "", color = "cyan" }, real = true },
         { "][", icon = { icon = "", color = "cyan" }, real = true },
-
-        -- Diagnostics
-        { "]d", icon = { icon = "", color = "orange" }, desc = " diagnostic" },
-        { "[d", icon = { icon = "", color = "orange" }, desc = "diagnostic" },
+        -- Snacks words references, or the filetype plugin's sections
+        { "]]", icon = { icon = "", color = "grey" }, real = true },
+        { "[[", icon = { icon = "", color = "grey" }, real = true },
 
         -- Spelling
         { "]s", icon = { icon = "󰓆", color = "red" }, desc = " misspelled word" },
         { "[s", icon = { icon = "󰓆", color = "red" }, desc = "misspelled word" },
 
-        -- Tags
-        { "]t", icon = { icon = "", color = "yellow" }, desc = " tag" },
-        { "[t", icon = { icon = "", color = "yellow" }, desc = "tag" },
-
         -- Folds
         { "]z", icon = { icon = "", color = "yellow" }, desc = " fold end" },
         { "[z", icon = { icon = "", color = "yellow" }, desc = "fold start" },
-
-        -- Quickfix list
-        { "]q", icon = { icon = "", color = "yellow" }, desc = " quickfix item" },
-        { "[q", icon = { icon = "", color = "yellow" }, desc = "quickfix item" },
 
         -- Git hunks
         { "]g", icon = { icon = "", color = "green" }, desc = " git hunk", real = true },
         { "[g", icon = { icon = "", color = "green" }, desc = "git hunk", real = true },
 
-        { "[ ", desc = "Add Space Above", icon = { icon = "󰞙", color = "grey" } },
-        { "] ", desc = "Add Space Below", icon = { icon = "󰞖", color = "grey" } },
+        -- built-ins that do nothing in visual and operator-pending mode
+        {
+          mode = "n",
+          -- Diagnostics
+          { "]d", icon = { icon = "", color = "orange" }, desc = " diagnostic" },
+          { "[d", icon = { icon = "", color = "orange" }, desc = "diagnostic" },
+
+          -- Tags
+          { "]t", icon = { icon = "", color = "yellow" }, desc = " tag" },
+          { "[t", icon = { icon = "", color = "yellow" }, desc = "tag" },
+
+          -- Quickfix list
+          { "]q", icon = { icon = "", color = "yellow" }, desc = " quickfix item" },
+          { "[q", icon = { icon = "", color = "yellow" }, desc = "quickfix item" },
+
+          { "[ ", desc = "Add Space Above", icon = { icon = "󰞙", color = "grey" } },
+          { "] ", desc = "Add Space Below", icon = { icon = "󰞖", color = "grey" } },
+        },
       },
 
       -- hide the following keymaps
