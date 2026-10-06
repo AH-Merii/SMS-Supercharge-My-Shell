@@ -71,6 +71,19 @@ return {
         text_objects,
       },
       {
+        mode = "x",
+        real = true,
+        -- a spec's desc wins over the map's own, which is missing or names the normal-mode action
+        { "gc", desc = "Comment lines" },
+        { "gb", desc = "Comment block" },
+        { "*", desc = "Search selection forward" },
+        { "#", desc = "Search selection backward" },
+        { "@", desc = "Run macro on each line" },
+        { "gx", desc = "Open path or URL" },
+        { ",", desc = "Repeat f/t backward" },
+        { ";", desc = "Repeat f/t forward" },
+      },
+      {
         { "<leader>q", desc = "Quit", icon = { icon = "", color = "red" } },
         { "<leader>w", desc = "Write", icon = { icon = "", color = "green" } },
         { "<leader>p", mode = { "n", "x" }, icon = { icon = "", color = "cyan" }, real = true },

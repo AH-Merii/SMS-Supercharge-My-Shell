@@ -88,7 +88,7 @@ M.keys = {
   },
   { "<leader>Th", method = "textDocument/inlayHint" },
   { "<leader>lf", format, desc = "Format buffer", method = "textDocument/formatting", when = has_formatter },
-  { "<leader>lf", format, mode = "v", desc = "Format buffer", method = "textDocument/rangeFormatting", when = has_formatter },
+  { "<leader>lf", format, mode = "v", desc = "Format selection", method = "textDocument/rangeFormatting", when = has_formatter },
   { "<leader>Tf", method = "textDocument/formatting", when = has_formatter },
   { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", desc = "Buffer Diagnostics (Trouble)", when = has_diagnostics },
   { "<leader>sd", function() Snacks.picker.diagnostics_buffer() end, desc = "Diagnostics (Buffer)", when = has_diagnostics },
@@ -97,7 +97,7 @@ M.keys = {
 -- Neovim maps its LSP defaults globally; move them into the table so they are gated too
 for _, builtin in ipairs({
   { "grn", "textDocument/rename" },
-  { "gra", "textDocument/codeAction" },
+  { "gra", "textDocument/codeAction", desc = "Code action" },
   { "gri", "textDocument/implementation" },
   { "grt", "textDocument/typeDefinition" },
   { "grx", "textDocument/codeLens" },
@@ -108,7 +108,7 @@ for _, builtin in ipairs({
     local map = vim.fn.maparg(lhs, mode, false, true)
     if map.callback then
       vim.keymap.del(mode, lhs)
-      table.insert(M.keys, { lhs, map.callback, mode = mode, desc = map.desc, method = method })
+      table.insert(M.keys, { lhs, map.callback, mode = mode, desc = builtin.desc or map.desc, method = method })
     end
   end
 end
