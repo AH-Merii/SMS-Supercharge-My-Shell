@@ -164,7 +164,7 @@ local ts_toggle -- set in config: Snacks is not loaded yet when lazy reads this 
 
 local function set_keymaps(buf, lang)
   -- incremental selection, on the core `an` (parent node) and `in` (child node)
-  vim.keymap.set("n", "<leader>vv", "van", { buf = buf, remap = true, desc = "Start incremental selection" })
+  vim.keymap.set("n", "<leader>v", "van", { buf = buf, remap = true, desc = "Start incremental selection" })
   vim.keymap.set("x", "+", "an", { buf = buf, remap = true, desc = "Grow selection to parent node" })
   vim.keymap.set("x", "-", "in", { buf = buf, remap = true, desc = "Shrink selection to child node" })
   ts_toggle:map("<leader>TT", { buf = buf })
