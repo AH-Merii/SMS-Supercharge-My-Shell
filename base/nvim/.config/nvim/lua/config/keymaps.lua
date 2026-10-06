@@ -51,8 +51,7 @@ keymap("x", ">", function()
 end, desc("Indent right"))
 
 -- Paste over currently selected text without yanking it
-keymap("x", "p", '"_dP', silent_desc("Paste without yanking"))
-keymap("v", "P", '"_dP', silent_desc("Paste without yanking"))
+keymap("x", "p", "P", silent_desc("Paste, keep register"))
 
 -- Panes resizing
 keymap("n", "+", ":vertical resize +5<CR>", silent_desc("Increase width"))
