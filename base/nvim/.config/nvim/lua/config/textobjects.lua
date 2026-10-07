@@ -22,21 +22,90 @@ local function parser_of(buf)
   return ok and parser or nil
 end
 
---- The innermost language at the cursor that has text objects; markdown_inline is the prose of markdown
+--- The innermost language at (row, col) that has text objects; markdown_inline is the prose of markdown
 ---@param buf integer
+---@param row integer 0-based
+---@param col integer
 ---@return vim.treesitter.LanguageTree?
-local function cursor_tree(buf)
+local function tree_at(buf, row, col)
   local parser = parser_of(buf)
   if not parser then
     return
   end
-  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-  pcall(parser.parse, parser, { row - 1, row })
-  local tree = parser:language_for_range({ row - 1, col, row - 1, col })
+  pcall(parser.parse, parser, { row, row + 1 })
+  local tree = parser:language_for_range({ row, col, row, col })
   while tree and (tree:lang() == "markdown_inline" or not ts.query.get(tree:lang(), "textobjects")) do
     tree = tree:parent()
   end
   return tree
+end
+
+---@param buf integer
+local function cursor_tree(buf)
+  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+  return tree_at(buf, row - 1, col)
+end
+
+---@param range Range6
+local function contains(range, row, col)
+  return (range[1] < row or (range[1] == row and range[2] <= col)) and (range[4] > row or (range[4] == row and range[5] > col))
+end
+
+--- Upstream's textobject_at_point limited to the language tree at the point, with lookahead only on the point's
+--- line or inside the enclosing outer object, so a select never edits another fence or a far line
+local function limited(original, query, group, buf, pos, opts)
+  buf = (buf == nil or buf == 0) and vim.api.nvim_get_current_buf() or buf
+  pos = pos or vim.api.nvim_win_get_cursor(0)
+  local row, col = pos[1] - 1, pos[2]
+  local tree = tree_at(buf, row, col)
+  if not tree or not has(tree:lang(), query) then
+    return nil
+  end
+  local root = tree:tree_for_range({ row, col, row, col }, { ignore_injections = true })
+  local parser = assert(parser_of(buf))
+  local proxy = setmetatable({
+    parse = function() end,
+    for_each_tree = function(_, fn)
+      if root then
+        fn(root, tree)
+      end
+    end,
+  }, {
+    __index = function(_, key)
+      local value = parser[key]
+      return type(value) == "function" and function(_, ...) return value(parser, ...) end or value
+    end,
+  })
+  local get_parser = ts.get_parser
+  ts.get_parser = function(b, ...) return b == buf and proxy or get_parser(b, ...) end
+  local ok, range = pcall(original, query, group, buf, pos, opts)
+  if ok and range and range[1] ~= row and not contains(range, row, col) then
+    local outer = query:gsub("%.inner$", ".outer")
+    local fine, around = false, nil
+    if outer ~= query and has(tree:lang(), outer) then
+      fine, around = pcall(original, outer, group, buf, pos, {})
+    end
+    if not (fine and around and contains(around, range[1], range[2])) then
+      range = nil
+    end
+  end
+  ts.get_parser = get_parser
+  assert(ok, range)
+  return range
+end
+
+do
+  local ok, shared = pcall(require, "nvim-treesitter-textobjects.shared")
+  local original = ok and type(shared.textobject_at_point) == "function" and shared.textobject_at_point
+  if original then
+    shared.textobject_at_point = function(...)
+      local fine, range = pcall(limited, original, ...)
+      if fine then
+        return range
+      end
+      return original(...) -- upstream changed under the wrapper: unlimited, as before
+    end
+  end
 end
 
 --- Whether lhs runs the treesitter select or move in the current buffer and mode, rather than the key's own meaning
