@@ -82,6 +82,9 @@ return {
         { "gx", desc = "Open path or URL" },
         { ",", desc = "Repeat f/t backward" },
         { ";", desc = "Repeat f/t forward" },
+        { "%", desc = "Jump to matching pair" },
+        { "g%", desc = "Jump to previous match" },
+        { "a%", desc = "Around matching pair" },
       },
       {
         { "<leader>q", desc = "Quit", icon = { icon = "", color = "red" } },
@@ -210,7 +213,7 @@ return {
         { "]<C-Q>", hidden = true },
         { "]<C-T>", hidden = true },
         { "]<C-L>", hidden = true },
-        { "]%", hidden = true },
+        { "]%", mode = { "n", "x" }, hidden = true },
 
         -- jump backward
         { "[L", hidden = true },
@@ -222,7 +225,7 @@ return {
         { "[<C-Q>", hidden = true },
         { "[<C-T>", hidden = true },
         { "[<C-L>", hidden = true },
-        { "[%", hidden = true },
+        { "[%", mode = { "n", "x" }, hidden = true },
 
         -- node selection, labelled on + and -
         { "an", mode = "x", hidden = true },
