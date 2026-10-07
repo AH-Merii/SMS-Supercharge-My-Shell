@@ -60,6 +60,11 @@ local function has_diagnostics(buf, clients)
   return false
 end
 
+---@param clients vim.lsp.Client[]
+local function has_pyrefly(_, clients)
+  return vim.iter(clients):any(function(client) return client.name == "pyrefly" end)
+end
+
 ---@type core.lsp.Key[]
 M.keys = {
   { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Definition", method = "textDocument/definition" },
@@ -87,6 +92,7 @@ M.keys = {
     },
   },
   { "<leader>Th", method = "textDocument/inlayHint" },
+  { "<leader>Te", when = has_pyrefly },
   { "<leader>lf", format, desc = "Format buffer", method = "textDocument/formatting", when = has_formatter },
   { "<leader>lf", format, mode = "x", desc = "Format selection", method = "textDocument/rangeFormatting", when = has_formatter },
   { "<leader>Tf", method = "textDocument/formatting", when = has_formatter },

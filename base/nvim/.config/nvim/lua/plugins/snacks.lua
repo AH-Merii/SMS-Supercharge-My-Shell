@@ -361,6 +361,22 @@ return {
             map = require("core.lsp").map,
           })
           :map("<leader>Th")
+        Snacks.toggle
+          .new({
+            name = "Type Errors",
+            get = function()
+              local client = vim.lsp.get_clients({ bufnr = 0, name = "pyrefly" })[1]
+              return client ~= nil and require("config.utils").pyrefly_type_errors(client)
+            end,
+            set = function(state)
+              for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0, name = "pyrefly" })) do
+                require("config.utils").pyrefly_type_errors(client, state)
+              end
+            end,
+            wk_desc = { enabled = "Hide ", disabled = "Show " },
+            map = require("core.lsp").map,
+          })
+          :map("<leader>Te")
         Snacks.toggle.indent():map("<leader>Tg")
         Snacks.toggle.dim():map("<leader>TD")
         Snacks.toggle.option("list", { name = "Hidden Chars" }):map("<leader>TH")
