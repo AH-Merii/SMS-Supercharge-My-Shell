@@ -17,12 +17,10 @@ return {
   },
 
   {
-    "echasnovski/mini.nvim",
+    "nvim-mini/mini.icons",
+    -- VeryLazy, not lazy = true: snacks never requires mini.icons, it only reads the MiniIcons global that setup() sets
     event = "VeryLazy",
-    dependencies = {
-      { "echasnovski/mini.icons", lazy = true, opts = {} },
-    },
-    config = function() require("mini.surround").setup() end,
+    opts = {},
   },
 
   {
@@ -109,12 +107,35 @@ return {
   },
   {
     "AH-Merii/github-pr-reviewer.nvim",
+    cmd = { "PRReviewMenu", "PRSuggestChange" },
     opts = {
       pr_list_limit = 250,
     },
-    keys = {
-      { "<leader>p", "<cmd>PRReviewMenu<cr>", desc = "PR Review Menu" },
-      { "<leader>p", ":<C-u>'<,'>PRSuggestChange<CR>", desc = "Suggest change", mode = "v" },
-    },
+    init = function()
+      -- PR review works on the repo of the cwd, so map it while that repo has a GitHub remote
+      local function map_pr_keys()
+        local cwd = vim.fn.getcwd()
+        vim.system({ "git", "-C", cwd, "remote", "-v" }, { text = true }, function(out)
+          local github = out.code == 0 and out.stdout:find("github.com", 1, true) ~= nil
+          vim.schedule(function()
+            if vim.fn.getcwd() ~= cwd then
+              return
+            end
+            if github then
+              vim.keymap.set("n", "<leader>p", "<cmd>PRReviewMenu<cr>", { desc = "PR Review Menu" })
+              vim.keymap.set("x", "<leader>p", ":<C-u>'<,'>PRSuggestChange<CR>", { desc = "Suggest change" })
+            else
+              pcall(vim.keymap.del, "n", "<leader>p")
+              pcall(vim.keymap.del, "x", "<leader>p")
+            end
+          end)
+        end)
+      end
+      vim.api.nvim_create_autocmd("DirChanged", {
+        group = vim.api.nvim_create_augroup("PRReviewKeys", { clear = true }),
+        callback = map_pr_keys,
+      })
+      map_pr_keys()
+    end,
   },
 }

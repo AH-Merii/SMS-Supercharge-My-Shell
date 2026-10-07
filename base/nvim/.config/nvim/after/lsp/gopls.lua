@@ -1,8 +1,5 @@
-local blink = require("blink.cmp")
 return {
-  cmd = { "gopls" },
   filetypes = { "go", "gomod", "gowork", "gotmpl", "gosum" },
-  root_markers = { "go.mod", "go.work", ".git" },
   settings = {
     gopls = {
       gofumpt = true,
@@ -29,10 +26,7 @@ return {
         nilness = true,
         unusedparams = true,
         unusedwrite = true,
-        useany = true,
         unreachable = true,
-        modernize = true,
-        stylecheck = true,
         appends = true,
         asmdecl = true,
         assign = true,
@@ -40,9 +34,6 @@ return {
         bools = true,
         buildtag = true,
         cgocall = true,
-        composite = true,
-        contextcheck = true,
-        deba = true,
         atomicalign = true,
         composites = true,
         copylocks = true,
@@ -54,7 +45,6 @@ return {
         errorsas = true,
         fillreturns = true,
         framepointer = true,
-        gofix = true,
         hostport = true,
         infertypeargs = true,
         lostcancel = true,
@@ -95,10 +85,12 @@ return {
       semanticTokens = true,
     },
   },
-  capabilities = vim.tbl_deep_extend("force", {}, vim.lsp.protocol.make_client_capabilities(), blink.get_lsp_capabilities(), {
-    fileOperations = {
-      didRename = true,
-      willRename = true,
+  capabilities = {
+    workspace = {
+      fileOperations = {
+        didRename = true,
+        willRename = true,
+      },
     },
-  }),
+  },
 }

@@ -9,7 +9,7 @@ vim.g.lazydev_enabled = true
 vim.opt.termguicolors = true
 vim.opt.fileencoding = "utf-8"
 vim.opt.confirm = true -- Confirm before exiting modified buffer
-vim.opt.timeoutlen = 500 -- How much time nvim waits for the next command (example sa: for mini.surround)
+vim.opt.timeoutlen = 500 -- How much time nvim waits for the next command
 vim.opt.jumpoptions = "view" -- Restores both cursor and window view (scroll, folds, etc.) between jumps
 vim.opt.autoread = true -- Auto-reload files
 vim.opt.inccommand = "split" -- Live preview for substitutions %s/text/new_text/
@@ -40,12 +40,9 @@ vim.opt.listchars = {
   lead = ".",
 }
 
--- BUG: Below is not working -> expected example:
--- when pressing 44j to go down 44 lines
--- I expect to see a preview of that command below
 vim.opt.cmdheight = 0
 vim.o.showcmd = true
-vim.o.showcmdloc = "last" -- show partial commands in the statusline
+vim.o.showcmdloc = "statusline" -- show partial commands in the statusline
 
 -- make the hidden chars foreground color more subtle
 vim.cmd([[

@@ -1,9 +1,39 @@
+-- the icon only where the key runs the treesitter object or move, not the key's own meaning
+local function where_treesitter(icon)
+  -- in the popup's mode: m.mode is the spec's whole mode list
+  return function(m) return require("config.textobjects").ours(m.lhs, require("which-key.util").mapmode(), true) and icon or nil end
+end
+
+-- what the key does here: the treesitter object or move and its language, or the key's own meaning
+local function treesitter_label(m) return require("config.textobjects").label(m.lhs, require("which-key.util").mapmode()) end
+
+-- the treesitter text objects (a and i plus the letter), iconed as the ] move of the same letter
+local text_object_icons = {
+  f = { icon = "󰊕", color = "purple" },
+  c = { icon = "", color = "purple" },
+  b = { icon = "󰅩", color = "purple" },
+  a = { icon = "󰅪", color = "purple" },
+  i = { icon = "󰙁", color = "purple" },
+  l = { icon = "", color = "purple" },
+  p = { icon = "", color = "purple" },
+  r = { icon = "󰌑", color = "purple" },
+  ["/"] = { icon = "󰅺", color = "grey" },
+}
+local text_objects = {}
+for letter, icon in pairs(text_object_icons) do
+  for _, prefix in ipairs({ "a", "i" }) do
+    table.insert(text_objects, { prefix .. letter, icon = where_treesitter(icon), desc = treesitter_label, real = true })
+  end
+end
+
 return {
   "folke/which-key.nvim",
   event = "VeryLazy",
   opts = {
     preset = "helix",
     delay = 300,
+    -- a treesitter key is hidden where it runs neither the treesitter object nor a meaning of its own
+    filter = function(m) return require("config.textobjects").shown(m.lhs, m.mode) end,
     icons = {
       breadcrumb = " ", -- symbol used in the command line area that shows your active key combo
       separator = "󱦰  ", -- symbol used between a key and it's label
@@ -31,22 +61,49 @@ return {
     -- valid colors for reference: `azure`, `blue`, `cyan`, `green`, `grey`, `orange`, `purple`, `red`, `yellow`
     spec = {
       {
-        { "<leader>l", group = "LSP", icon = { icon = "󱍔", color = "purple" } },
+        { "<leader>l", group = "LSP", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" } },
+        { "<leader>lf", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" }, real = true },
         { "<leader>c", group = "LSP (Trouble)", icon = { icon = "󰙎", color = "purple" } },
-        { "<leader>t", group = "Test", icon = { icon = "󰙨", color = "cyan" } },
-        { "<leader>D", group = "Debugger", icon = { icon = "", color = "purple" } },
         { "<leader>x", group = "Diagnostics", icon = { icon = "", color = "orange" } },
-        { "<leader>W", group = "Workspace", icon = { icon = "󱃸", color = "cyan" } },
 
-        { "g", group = "Goto", icon = { icon = "", color = "cyan" } },
+        { "g", group = "Goto", mode = { "n", "x" }, icon = { icon = "", color = "cyan" } },
+      },
+      {
+        mode = { "x", "o" },
+        { "a", group = "Around" },
+        { "i", group = "Inside" },
+        text_objects,
+      },
+      {
+        mode = "x",
+        real = true,
+        -- a spec's desc wins over the map's own, which is missing or names the normal-mode action
+        { "gc", desc = "Comment lines", icon = { icon = "󰅺", color = "grey" } },
+        { "gb", desc = "Comment block", icon = { icon = "󰅺", color = "grey" } },
+        { "*", desc = "Search selection forward" },
+        { "#", desc = "Search selection backward" },
+        { "@", desc = "Run macro on each line" },
+        { "gx", desc = "Open path or URL" },
+        { ",", desc = "Repeat f/t backward" },
+        { ";", desc = "Repeat f/t forward" },
+        { "%", mode = { "n", "x", "o" }, desc = "Jump to matching pair" },
+        { "g%", mode = { "n", "x", "o" }, desc = "Jump to previous match" },
+        { "a%", desc = "Around matching pair" },
       },
       {
         { "<leader>q", desc = "Quit", icon = { icon = "", color = "red" } },
         { "<leader>w", desc = "Write", icon = { icon = "", color = "green" } },
+        { "<leader>p", mode = { "n", "x" }, icon = { icon = "", color = "cyan" }, real = true },
+        { "<leader>v", icon = { icon = "󰩭", color = "cyan" }, real = true },
+        { "<leader>!", mode = { "n", "x" }, icon = { icon = "", color = "red" }, real = true },
+        { "+", mode = "x", icon = { icon = "󰩭", color = "cyan" }, real = true },
+        { "-", mode = "x", icon = { icon = "󰩭", color = "cyan" }, real = true },
+        { "gc", icon = { icon = "󰅺", color = "grey" }, real = true },
+        { "gb", icon = { icon = "󰅺", color = "grey" }, real = true },
       },
       {
         -- Folds (labels only; no remaps)
-        { "z", group = "Folds", icon = { icon = "", color = "yellow" } },
+        { "z", group = "Folds", mode = { "n", "x" }, icon = { icon = "", color = "yellow" } },
 
         { "za", desc = "Toggle fold" },
         { "zA", desc = "Toggle fold (recursive)" },
@@ -66,80 +123,86 @@ return {
         { "zd", desc = "Delete fold under cursor", icon = { icon = "󰗨", color = "red" } },
         { "zD", desc = "Delete all manual folds", icon = { icon = "󰗩", color = "red" } },
 
-        -- Navigation
-        { "]z", desc = "fold", icon = { icon = "", color = "yellow" } },
-        { "[z", desc = "fold", icon = { icon = "", color = "yellow" } },
-
         -- Global toggle
         { "zi", desc = "Toggle folding (foldenable)" },
       },
       {
+        mode = { "n", "x", "o" }, -- real = true keeps a key to the modes it is mapped in
         -- Jump groups
-        { "]", group = "Jump to Next", icon = { icon = "󰒭", color = "cyan" } },
-        { "[", group = "Jump to Previous", icon = { icon = "󰒮", color = "orange" } },
+        { "]", group = "Jump to next", icon = { icon = "󰒭", color = "cyan" } },
+        { "[", group = "Jump to previous", icon = { icon = "󰒮", color = "orange" } },
 
         -- Previous starts
-        { "[f", icon = { icon = "󰊕", color = "orange" }, desc = "function" },
-        { "[c", icon = { icon = "", color = "orange" }, desc = "class" },
-        { "[p", icon = { icon = "", color = "orange" }, desc = "parameter" },
-        { "[b", icon = { icon = "", color = "orange" }, desc = "block" },
-        { "[i", icon = { icon = "󰙁", color = "orange" }, desc = "conditional" },
-        { "[l", icon = { icon = "󰑖", color = "orange" }, desc = "loop" },
-        { "[a", icon = { icon = "󰡱", color = "grey" }, desc = "function call" },
-        { "[r", icon = { icon = "", color = "orange" }, desc = "return" },
-        { "[/", icon = { icon = "󰅺", color = "grey" }, desc = "comment" },
+        { "[f", icon = where_treesitter({ icon = "󰊕", color = "orange" }), desc = treesitter_label, real = true },
+        { "[c", icon = where_treesitter({ icon = "", color = "orange" }), desc = treesitter_label, real = true },
+        { "[p", icon = where_treesitter({ icon = "", color = "orange" }), desc = treesitter_label, real = true },
+        { "[i", icon = where_treesitter({ icon = "󰙁", color = "orange" }), desc = treesitter_label, real = true },
+        { "[r", icon = where_treesitter({ icon = "󰌑", color = "orange" }), desc = treesitter_label, real = true },
+        { "[b", icon = where_treesitter({ icon = "󰅩", color = "orange" }), desc = treesitter_label, real = true },
+        { "[a", icon = where_treesitter({ icon = "󰅪", color = "orange" }), desc = treesitter_label, real = true },
+        { "[l", icon = where_treesitter({ icon = "", color = "orange" }), desc = treesitter_label, real = true },
+        { "[/", icon = where_treesitter({ icon = "󰅺", color = "grey" }), desc = treesitter_label, real = true },
 
         -- Next starts
-        { "]f", icon = { icon = "󰊕", color = "purple" }, desc = " function" },
-        { "]c", icon = { icon = "", color = "purple" }, desc = " class" },
-        { "]p", icon = { icon = "", color = "purple" }, desc = " parameter" },
-        { "]b", icon = { icon = "", color = "purple" }, desc = " block" },
-        { "]i", icon = { icon = "󰙁", color = "purple" }, desc = " conditional" },
-        { "]l", icon = { icon = "󰑖", color = "purple" }, desc = " loop" },
-        { "]a", icon = { icon = "󰡱", color = "grey" }, desc = " function call" },
-        { "]r", icon = { icon = "", color = "purple" }, desc = " return" },
-        { "]/", icon = { icon = "󰅺", color = "grey" }, desc = " comment" },
+        { "]f", icon = where_treesitter({ icon = "󰊕", color = "purple" }), desc = treesitter_label, real = true },
+        { "]c", icon = where_treesitter({ icon = "", color = "purple" }), desc = treesitter_label, real = true },
+        { "]p", icon = where_treesitter({ icon = "", color = "purple" }), desc = treesitter_label, real = true },
+        { "]i", icon = where_treesitter({ icon = "󰙁", color = "purple" }), desc = treesitter_label, real = true },
+        { "]r", icon = where_treesitter({ icon = "󰌑", color = "purple" }), desc = treesitter_label, real = true },
+        { "]b", icon = where_treesitter({ icon = "󰅩", color = "purple" }), desc = treesitter_label, real = true },
+        { "]a", icon = where_treesitter({ icon = "󰅪", color = "purple" }), desc = treesitter_label, real = true },
+        { "]l", icon = where_treesitter({ icon = "", color = "purple" }), desc = treesitter_label, real = true },
+        { "]/", icon = where_treesitter({ icon = "󰅺", color = "grey" }), desc = treesitter_label, real = true },
 
         -- Previous ends
-        { "[F", icon = { icon = "󰡱", color = "cyan" }, desc = "function end" },
-        { "[C", icon = { icon = "󰒕", color = "cyan" }, desc = "class end" },
-        { "[B", icon = { icon = "", color = "cyan" }, desc = "block end" },
+        { "[F", icon = where_treesitter({ icon = "󰡱", color = "cyan" }), desc = treesitter_label, real = true },
+        { "[B", icon = where_treesitter({ icon = "", color = "cyan" }), desc = treesitter_label, real = true },
 
         --  ends
-        { "]F", icon = { icon = "󰡱", color = "cyan" }, desc = " function end" },
-        { "]C", icon = { icon = "󰒕", color = "cyan" }, desc = " class end" },
-        { "]B", icon = { icon = "", color = "cyan" }, desc = " block end" },
+        { "]F", icon = where_treesitter({ icon = "󰡱", color = "cyan" }), desc = treesitter_label, real = true },
+        { "]B", icon = where_treesitter({ icon = "", color = "cyan" }), desc = treesitter_label, real = true },
 
-        -- Diagnostics
-        { "]d", icon = { icon = "", color = "orange" }, desc = " diagnostic" },
-        { "[d", icon = { icon = "", color = "orange" }, desc = "diagnostic" },
+        -- Filetype plugin motions, labelled in after/ftplugin
+        { "[m", icon = { icon = "", color = "orange" }, real = true },
+        { "]m", icon = { icon = "", color = "purple" }, real = true },
+        { "[M", icon = { icon = "", color = "cyan" }, real = true },
+        { "]M", icon = { icon = "", color = "cyan" }, real = true },
+        { "[]", icon = { icon = "", color = "cyan" }, real = true },
+        { "][", icon = { icon = "", color = "cyan" }, real = true },
+        -- Snacks words references, or the filetype plugin's sections
+        { "]]", icon = { icon = "", color = "grey" }, real = true },
+        { "[[", icon = { icon = "", color = "grey" }, real = true },
 
         -- Spelling
         { "]s", icon = { icon = "󰓆", color = "red" }, desc = " misspelled word" },
         { "[s", icon = { icon = "󰓆", color = "red" }, desc = "misspelled word" },
 
-        -- Tags
-        { "]t", icon = { icon = "", color = "yellow" }, desc = " tag" },
-        { "[t", icon = { icon = "", color = "yellow" }, desc = "tag" },
-
         -- Folds
         { "]z", icon = { icon = "", color = "yellow" }, desc = " fold end" },
         { "[z", icon = { icon = "", color = "yellow" }, desc = "fold start" },
 
-        -- Location list
-        { "]l", icon = { icon = "", color = "yellow" }, desc = " loclist item" },
-        { "[l", icon = { icon = "", color = "yellow" }, desc = "loclist item" },
-
-        -- Quickfix list
-        { "]q", icon = { icon = "", color = "yellow" }, desc = " quickfix item" },
-        { "[q", icon = { icon = "", color = "yellow" }, desc = "quickfix item" },
-
         -- Git hunks
-        { "]g", icon = { icon = "", color = "green" }, desc = " git hunk" },
-        { "[g", icon = { icon = "", color = "green" }, desc = "git hunk" },
+        { "]g", icon = { icon = "", color = "green" }, desc = " git hunk", real = true },
+        { "[g", icon = { icon = "", color = "green" }, desc = "git hunk", real = true },
 
-        { "[ ", desc = "Add Space Above", icon = { icon = "󰞙", color = "grey" } },
-        { "] ", desc = "Add Space Below", icon = { icon = "󰞖", color = "grey" } },
+        -- built-ins that do nothing in visual and operator-pending mode
+        {
+          mode = "n",
+          -- Diagnostics
+          { "]d", icon = { icon = "", color = "orange" }, desc = " diagnostic" },
+          { "[d", icon = { icon = "", color = "orange" }, desc = "diagnostic" },
+
+          -- Tags
+          { "]t", icon = { icon = "", color = "yellow" }, desc = " tag" },
+          { "[t", icon = { icon = "", color = "yellow" }, desc = "tag" },
+
+          -- Quickfix list
+          { "]q", icon = { icon = "", color = "yellow" }, desc = " quickfix item" },
+          { "[q", icon = { icon = "", color = "yellow" }, desc = "quickfix item" },
+
+          { "[ ", desc = "Add Space Above", icon = { icon = "󰞙", color = "grey" } },
+          { "] ", desc = "Add Space Below", icon = { icon = "󰞖", color = "grey" } },
+        },
       },
 
       -- hide the following keymaps
@@ -154,7 +217,7 @@ return {
         { "]<C-Q>", hidden = true },
         { "]<C-T>", hidden = true },
         { "]<C-L>", hidden = true },
-        { "]%", hidden = true },
+        { "]%", mode = { "n", "x", "o" }, hidden = true },
 
         -- jump backward
         { "[L", hidden = true },
@@ -166,7 +229,11 @@ return {
         { "[<C-Q>", hidden = true },
         { "[<C-T>", hidden = true },
         { "[<C-L>", hidden = true },
-        { "[%", hidden = true },
+        { "[%", mode = { "n", "x", "o" }, hidden = true },
+
+        -- node selection, labelled on + and -
+        { "an", mode = "x", hidden = true },
+        { "in", mode = "x", hidden = true },
       },
     },
   },

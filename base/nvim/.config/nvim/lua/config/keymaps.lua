@@ -6,8 +6,8 @@ local function silent_desc(description) return vim.tbl_extend("force", opts, { d
 -- Keymaps
 
 -- Move selected line / block of text in visual mode
-keymap("v", "J", ":m '>+1<CR>gv", { desc = "Move line down", silent = true })
-keymap("v", "K", ":m '<-2<CR>gv", { desc = "Move line up", silent = true })
+keymap("x", "J", ":m '>+1<CR>gv", { desc = "Move line down", silent = true })
+keymap("x", "K", ":m '<-2<CR>gv", { desc = "Move line up", silent = true })
 
 -- Fast saving
 keymap("n", "<leader>w", ":write!<CR>", silent_desc("Save file"))
@@ -18,7 +18,7 @@ keymap("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Move up" })
 keymap("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, desc = "Move down" })
 
 -- Better indenting (with temporary Snacks indent animation disable)
-keymap("v", "<", function()
+keymap("x", "<", function()
   local ok, snacks = pcall(require, "snacks")
   if ok and snacks and snacks.indent then
     local buf = vim.api.nvim_get_current_buf()
@@ -35,7 +35,7 @@ keymap("v", "<", function()
   end
 end, desc("Indent left"))
 
-keymap("v", ">", function()
+keymap("x", ">", function()
   local ok, snacks = pcall(require, "snacks")
   if ok and snacks and snacks.indent then
     local buf = vim.api.nvim_get_current_buf()
@@ -51,8 +51,7 @@ keymap("v", ">", function()
 end, desc("Indent right"))
 
 -- Paste over currently selected text without yanking it
-keymap("v", "p", '"_dP', silent_desc("Paste without yanking"))
-keymap("v", "P", '"_dP', silent_desc("Paste without yanking"))
+keymap("x", "p", "P", silent_desc("Paste, keep register"))
 
 -- Panes resizing
 keymap("n", "+", ":vertical resize +5<CR>", silent_desc("Increase width"))
@@ -74,6 +73,3 @@ keymap("n", "<A-c>", '"_c', silent_desc("Change to black hole register"))
 
 -- Delete using black hole register
 keymap("n", "<A-d>", '"_d', silent_desc("Delete to black hole register"))
-
--- Run commands and source files without restarting neovim
-keymap("n", "<space>%", "<cmd>source %<CR>", desc("Source current file"))

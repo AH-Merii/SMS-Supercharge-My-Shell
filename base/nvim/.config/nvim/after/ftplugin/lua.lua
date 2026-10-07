@@ -1,16 +1,10 @@
 local function set_keymaps()
-  local opts = { noremap = true, silent = false, buffer = true } -- buffer = true, ensures that it is only applied for current buffer
+  local opts = { noremap = true, silent = false, buf = 0 } -- buf = 0 applies it only to the current buffer
   local keymap = vim.keymap.set
 
   keymap("n", "<space>!", ":.lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current line" }))
-  keymap("v", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
-  keymap("v", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
-  local ok, wk = pcall(require, "which-key")
-  if ok then
-    wk.add({
-      { "<space>!", icon = { icon = "", color = "red" } },
-    })
-  end
+  keymap("x", "<space>!", ":lua<CR>", vim.tbl_extend("force", opts, { desc = "Execute current selection" }))
+  keymap("n", "<space>%", "<cmd>source %<CR>", vim.tbl_extend("force", opts, { desc = "Source current file" }))
 end
 
 set_keymaps()
