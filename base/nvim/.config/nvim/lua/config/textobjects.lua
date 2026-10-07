@@ -108,6 +108,101 @@ do
   end
 end
 
+local states = setmetatable({}, { __mode = "k" }) ---@type table<vim.treesitter.LanguageTree, table>
+
+--- The buffer's languages with every injection parsed, and the capture ranges found so far, until the next change
+---@param buf integer
+local function buffer_state(buf)
+  local parser = parser_of(buf)
+  if not parser then
+    return
+  end
+  local tick = vim.api.nvim_buf_get_changedtick(buf)
+  local state = states[parser]
+  if not state or state.tick ~= tick then
+    pcall(parser.parse, parser, true)
+    state = { tick = tick, langs = {}, trees = {}, captures = {} }
+    parser:for_each_tree(function(_, tree) state.langs[tree:lang()] = true end)
+    states[parser] = state
+  end
+  return state, parser
+end
+
+--- Every capture of one tree, as upstream reads them: Range6 lists by capture name
+local function tree_captures(buf, tree, lang)
+  local query = assert(ts.query.get(lang, "textobjects"))
+  local out = {}
+  local function add(name, range)
+    out[name] = out[name] or {}
+    table.insert(out[name], range)
+  end
+  local root = tree:root()
+  local start_row, _, end_row = root:range()
+  for _, match, metadata in query:iter_matches(root, buf, start_row, end_row + 1) do
+    for id, nodes in pairs(match) do
+      local range = ts.get_range(nodes[1], buf, metadata[id])
+      if #nodes > 1 then
+        local _, _, _, end_row_, end_col, end_byte = nodes[#nodes]:range(true)
+        range[4], range[5], range[6] = end_row_, end_col, end_byte
+      end
+      add(query.captures[id], range)
+    end
+    if metadata.range and metadata.range[7] then
+      add(metadata.range[7], { unpack(metadata.range, 1, 6) })
+    end
+  end
+  return out
+end
+
+--- The ranges of a capture in every language tree of the buffer
+---@param capture string "function.outer"
+local function capture_ranges(buf, capture)
+  local state, parser = buffer_state(buf)
+  if not state then
+    return {}
+  end
+  if not state.captures[capture] then
+    local out = {}
+    parser:for_each_tree(function(tree, ltree)
+      if has(ltree:lang(), "@" .. capture) then
+        state.trees[tree] = state.trees[tree] or tree_captures(buf, tree, ltree:lang())
+        vim.list_extend(out, state.trees[tree][capture] or {})
+      end
+    end)
+    state.captures[capture] = out
+  end
+  return state.captures[capture]
+end
+
+local across = false -- true while one of our moves runs, so a move searches every language tree
+local searches_all = false
+do
+  local ok, shared = pcall(require, "nvim-treesitter-textobjects.shared")
+  local original = ok and type(shared.find_best_range) == "function" and shared.find_best_range
+  if original then
+    searches_all = true
+    shared.find_best_range = function(buf, capture, group, keep, score)
+      if not across then
+        return original(buf, capture, group, keep, score)
+      end
+      local fine, all = pcall(capture_ranges, buf, (capture:gsub("^@", "")))
+      if not fine then
+        return original(buf, capture, group, keep, score)
+      end
+      local best, best_score
+      for _, range in ipairs(all) do
+        if keep(range) then
+          local s = score(range)
+          if not best or s > best_score then
+            best, best_score = range, s
+          end
+        end
+      end
+      return best
+    end
+  end
+end
+
 --- Whether lhs runs the treesitter select or move in the current buffer and mode, rather than the key's own meaning
 ---@param lhs string
 ---@param mode string
@@ -120,15 +215,29 @@ function M.ours(lhs, mode)
   if not move or (vim.wo.diff and (lhs == "]c" or lhs == "[c")) then
     return false
   end
-  local parser = parser_of(vim.api.nvim_get_current_buf())
-  return parser ~= nil and has(parser:lang(), move.query)
+  local state, parser = buffer_state(vim.api.nvim_get_current_buf())
+  if not state then
+    return false
+  end
+  if not searches_all then
+    return has(parser:lang(), move.query)
+  end
+  for lang in pairs(state.langs) do
+    if has(lang, move.query) then
+      return true
+    end
+  end
+  return false
 end
 
 function M.run(lhs)
   if selects[lhs] then
     return require("nvim-treesitter-textobjects.select").select_textobject(selects[lhs].query, "textobjects")
   end
-  require("nvim-treesitter-textobjects.move")[moves[lhs].fn](moves[lhs].query, "textobjects")
+  across = true
+  local ok, err = pcall(require("nvim-treesitter-textobjects.move")[moves[lhs].fn], moves[lhs].query, "textobjects")
+  across = false
+  assert(ok, err)
 end
 
 function M.shadowed(mode, lhs) shadowed[mode .. lhs].callback() end
