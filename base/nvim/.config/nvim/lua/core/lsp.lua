@@ -76,6 +76,7 @@ M.keys = {
   { "gCo", function() Snacks.picker.lsp_outgoing_calls() end, desc = "Outgoing Calls", method = "textDocument/prepareCallHierarchy" },
   { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Reference (word)", method = "textDocument/documentHighlight" },
   { "[[", function() Snacks.words.jump(-vim.v.count1) end, desc = "Reference (word)", method = "textDocument/documentHighlight" },
+  { "K", function() vim.lsp.buf.hover() end, desc = "Hover", method = "textDocument/hover" },
   { "<leader>lr", function() vim.lsp.buf.rename() end, desc = "LSP Rename", method = "textDocument/rename" },
   { "<leader>cs", "<cmd>Trouble symbols toggle focus=false<cr>", desc = "Symbols (Trouble)", method = "textDocument/documentSymbol" },
   {
@@ -102,12 +103,12 @@ M.keys = {
 
 -- Neovim maps its LSP defaults globally; move them into the table so they are gated too
 for _, builtin in ipairs({
-  { "grn", "textDocument/rename" },
+  { "grn", "textDocument/rename", desc = "Rename" },
   { "gra", "textDocument/codeAction", desc = "Code action" },
-  { "gri", "textDocument/implementation" },
-  { "grt", "textDocument/typeDefinition" },
-  { "grx", "textDocument/codeLens" },
-  { "gO", "textDocument/documentSymbol" },
+  { "gri", "textDocument/implementation", desc = "Implementation" },
+  { "grt", "textDocument/typeDefinition", desc = "Type definition" },
+  { "grx", "textDocument/codeLens", desc = "Run code lens" },
+  { "gO", "textDocument/documentSymbol", desc = "Document symbols" },
 }) do
   local lhs, method = builtin[1], builtin[2]
   for _, mode in ipairs({ "n", "x" }) do
@@ -145,6 +146,12 @@ local function sync(buf, gone)
     return
   end
   local clients = vim.tbl_filter(function(client) return client.id ~= gone end, vim.lsp.get_clients({ bufnr = buf }))
+  -- Neovim maps K to hover per buffer on attach and on registration; drop it for the gated K in the table
+  for _, map in ipairs(vim.api.nvim_buf_get_keymap(buf, "n")) do
+    if map.lhs == "K" and map.desc == "vim.lsp.buf.hover()" then
+      vim.keymap.del("n", "K", { buf = buf })
+    end
+  end
   for _, key in ipairs(M.keys) do
     if key[2] then
       local mode, lhs = key.mode or "n", vim.keycode(key[1])
