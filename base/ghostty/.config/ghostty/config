@@ -54,6 +54,7 @@ keybind = ctrl+arrow_up=jump_to_prompt:-1
 keybind = performable:ctrl+c=copy_to_clipboard
 keybind = performable:ctrl+v=paste_from_clipboard
 keybind = shift+enter=text:\x1b\r
+keybind = ctrl+enter=unbind
 
 # Ctrl+Backspace has no encoding in the legacy key protocol: Backspace is the
 # control character 0x7f, and only CSI keys (arrows, F-keys, Delete) carry a
