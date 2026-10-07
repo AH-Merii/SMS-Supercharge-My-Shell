@@ -62,7 +62,6 @@ return {
         { "<leader>x", group = "Diagnostics", icon = { icon = "", color = "orange" } },
 
         { "g", group = "Goto", mode = { "n", "x" }, icon = { icon = "", color = "cyan" } },
-        { "s", group = "Surround", mode = "x" },
       },
       {
         mode = { "x", "o" },

@@ -17,12 +17,10 @@ return {
   },
 
   {
-    "echasnovski/mini.nvim",
+    "nvim-mini/mini.icons",
+    -- VeryLazy, not lazy = true: snacks never requires mini.icons, it only reads the MiniIcons global that setup() sets
     event = "VeryLazy",
-    dependencies = {
-      { "echasnovski/mini.icons", lazy = true, opts = {} },
-    },
-    config = function() require("mini.surround").setup() end,
+    opts = {},
   },
 
   {
