@@ -224,6 +224,7 @@ return {
         { "<leader>su", icon = { icon = "󰕍", color = "yellow" } },
         { "<leader>sC", icon = { icon = "󰏘", color = "purple" } },
         { "<leader>ss", icon = { icon = "󰎕", color = "grey" } },
+        { "<leader>sS", icon = { icon = "󱔁", color = "purple" }, real = true },
 
         -- LSP
         { "gd", icon = { icon = "󰊕", color = "purple" }, real = true },

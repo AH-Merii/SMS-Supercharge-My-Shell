@@ -99,6 +99,7 @@ M.keys = {
   { "<leader>Tf", method = "textDocument/formatting", when = has_formatter },
   { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", desc = "Buffer Diagnostics (Trouble)", when = has_diagnostics },
   { "<leader>sd", function() Snacks.picker.diagnostics_buffer() end, desc = "Diagnostics (Buffer)", when = has_diagnostics },
+  { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols() end, desc = "Workspace symbols", method = "workspace/symbol" },
 }
 
 -- Neovim maps its LSP defaults globally; move them into the table so they are gated too
