@@ -82,8 +82,8 @@ return {
         { "gx", desc = "Open path or URL" },
         { ",", desc = "Repeat f/t backward" },
         { ";", desc = "Repeat f/t forward" },
-        { "%", desc = "Jump to matching pair" },
-        { "g%", desc = "Jump to previous match" },
+        { "%", mode = { "n", "x", "o" }, desc = "Jump to matching pair" },
+        { "g%", mode = { "n", "x", "o" }, desc = "Jump to previous match" },
         { "a%", desc = "Around matching pair" },
       },
       {
@@ -215,7 +215,7 @@ return {
         { "]<C-Q>", hidden = true },
         { "]<C-T>", hidden = true },
         { "]<C-L>", hidden = true },
-        { "]%", mode = { "n", "x" }, hidden = true },
+        { "]%", mode = { "n", "x", "o" }, hidden = true },
 
         -- jump backward
         { "[L", hidden = true },
@@ -227,7 +227,7 @@ return {
         { "[<C-Q>", hidden = true },
         { "[<C-T>", hidden = true },
         { "[<C-L>", hidden = true },
-        { "[%", mode = { "n", "x" }, hidden = true },
+        { "[%", mode = { "n", "x", "o" }, hidden = true },
 
         -- node selection, labelled on + and -
         { "an", mode = "x", hidden = true },
