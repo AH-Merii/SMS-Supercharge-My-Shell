@@ -1,7 +1,7 @@
--- the icon only where a buffer map shadows the global default, as the treesitter moves do on ]b, ]a and ]l
-local function on_buffer_map(icon)
+-- the icon only where the key runs the treesitter object or move, not the key's own meaning
+local function where_treesitter(icon)
   -- in the popup's mode: m.mode is the spec's whole mode list
-  return function(m) return vim.fn.maparg(m.lhs, require("which-key.util").mapmode(), false, true).buffer == 1 and icon or nil end
+  return function(m) return require("config.textobjects").ours(m.lhs, require("which-key.util").mapmode()) and icon or nil end
 end
 
 -- the treesitter text objects (a and i plus the letter), iconed as the ] move of the same letter
@@ -19,7 +19,7 @@ local text_object_icons = {
 local text_objects = {}
 for letter, icon in pairs(text_object_icons) do
   for _, prefix in ipairs({ "a", "i" }) do
-    table.insert(text_objects, { prefix .. letter, icon = on_buffer_map(icon), real = true })
+    table.insert(text_objects, { prefix .. letter, icon = where_treesitter(icon), real = true })
   end
 end
 
@@ -128,36 +128,36 @@ return {
         { "[", group = "Jump to previous", icon = { icon = "󰒮", color = "orange" } },
 
         -- Previous starts
-        { "[f", icon = { icon = "󰊕", color = "orange" }, real = true },
-        { "[c", icon = { icon = "", color = "orange" }, real = true },
-        { "[p", icon = { icon = "", color = "orange" }, real = true },
-        { "[i", icon = { icon = "󰙁", color = "orange" }, real = true },
-        { "[r", icon = { icon = "󰌑", color = "orange" }, real = true },
-        { "[b", icon = on_buffer_map({ icon = "󰅩", color = "orange" }), real = true },
-        { "[a", icon = on_buffer_map({ icon = "󰅪", color = "orange" }), real = true },
-        { "[l", icon = on_buffer_map({ icon = "", color = "orange" }), real = true },
-        { "[/", icon = { icon = "󰅺", color = "grey" }, real = true },
+        { "[f", icon = where_treesitter({ icon = "󰊕", color = "orange" }), real = true },
+        { "[c", icon = where_treesitter({ icon = "", color = "orange" }), real = true },
+        { "[p", icon = where_treesitter({ icon = "", color = "orange" }), real = true },
+        { "[i", icon = where_treesitter({ icon = "󰙁", color = "orange" }), real = true },
+        { "[r", icon = where_treesitter({ icon = "󰌑", color = "orange" }), real = true },
+        { "[b", icon = where_treesitter({ icon = "󰅩", color = "orange" }), real = true },
+        { "[a", icon = where_treesitter({ icon = "󰅪", color = "orange" }), real = true },
+        { "[l", icon = where_treesitter({ icon = "", color = "orange" }), real = true },
+        { "[/", icon = where_treesitter({ icon = "󰅺", color = "grey" }), real = true },
 
         -- Next starts
-        { "]f", icon = { icon = "󰊕", color = "purple" }, real = true },
-        { "]c", icon = { icon = "", color = "purple" }, real = true },
-        { "]p", icon = { icon = "", color = "purple" }, real = true },
-        { "]i", icon = { icon = "󰙁", color = "purple" }, real = true },
-        { "]r", icon = { icon = "󰌑", color = "purple" }, real = true },
-        { "]b", icon = on_buffer_map({ icon = "󰅩", color = "purple" }), real = true },
-        { "]a", icon = on_buffer_map({ icon = "󰅪", color = "purple" }), real = true },
-        { "]l", icon = on_buffer_map({ icon = "", color = "purple" }), real = true },
-        { "]/", icon = { icon = "󰅺", color = "grey" }, real = true },
+        { "]f", icon = where_treesitter({ icon = "󰊕", color = "purple" }), real = true },
+        { "]c", icon = where_treesitter({ icon = "", color = "purple" }), real = true },
+        { "]p", icon = where_treesitter({ icon = "", color = "purple" }), real = true },
+        { "]i", icon = where_treesitter({ icon = "󰙁", color = "purple" }), real = true },
+        { "]r", icon = where_treesitter({ icon = "󰌑", color = "purple" }), real = true },
+        { "]b", icon = where_treesitter({ icon = "󰅩", color = "purple" }), real = true },
+        { "]a", icon = where_treesitter({ icon = "󰅪", color = "purple" }), real = true },
+        { "]l", icon = where_treesitter({ icon = "", color = "purple" }), real = true },
+        { "]/", icon = where_treesitter({ icon = "󰅺", color = "grey" }), real = true },
 
         -- Previous ends
-        { "[F", icon = { icon = "󰡱", color = "cyan" }, real = true },
-        { "[C", icon = { icon = "󰒕", color = "cyan" }, real = true },
-        { "[B", icon = { icon = "", color = "cyan" }, real = true },
+        { "[F", icon = where_treesitter({ icon = "󰡱", color = "cyan" }), real = true },
+        { "[C", icon = where_treesitter({ icon = "󰒕", color = "cyan" }), real = true },
+        { "[B", icon = where_treesitter({ icon = "", color = "cyan" }), real = true },
 
         --  ends
-        { "]F", icon = { icon = "󰡱", color = "cyan" }, real = true },
-        { "]C", icon = { icon = "󰒕", color = "cyan" }, real = true },
-        { "]B", icon = { icon = "", color = "cyan" }, real = true },
+        { "]F", icon = where_treesitter({ icon = "󰡱", color = "cyan" }), real = true },
+        { "]C", icon = where_treesitter({ icon = "󰒕", color = "cyan" }), real = true },
+        { "]B", icon = where_treesitter({ icon = "", color = "cyan" }), real = true },
 
         -- Filetype plugin motions, labelled in after/ftplugin
         { "[m", icon = { icon = "", color = "orange" }, real = true },
