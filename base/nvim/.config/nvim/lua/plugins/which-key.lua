@@ -74,8 +74,8 @@ return {
         mode = "x",
         real = true,
         -- a spec's desc wins over the map's own, which is missing or names the normal-mode action
-        { "gc", desc = "Comment lines" },
-        { "gb", desc = "Comment block" },
+        { "gc", desc = "Comment lines", icon = { icon = "󰅺", color = "grey" } },
+        { "gb", desc = "Comment block", icon = { icon = "󰅺", color = "grey" } },
         { "*", desc = "Search selection forward" },
         { "#", desc = "Search selection backward" },
         { "@", desc = "Run macro on each line" },
@@ -94,6 +94,8 @@ return {
         { "<leader>!", mode = { "n", "x" }, icon = { icon = "", color = "red" }, real = true },
         { "+", mode = "x", icon = { icon = "󰩭", color = "cyan" }, real = true },
         { "-", mode = "x", icon = { icon = "󰩭", color = "cyan" }, real = true },
+        { "gc", icon = { icon = "󰅺", color = "grey" }, real = true },
+        { "gb", icon = { icon = "󰅺", color = "grey" }, real = true },
       },
       {
         -- Folds (labels only; no remaps)
