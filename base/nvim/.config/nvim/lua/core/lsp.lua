@@ -80,7 +80,7 @@ M.keys = {
   { "<leader>cs", "<cmd>Trouble symbols toggle focus=false<cr>", desc = "Symbols (Trouble)", method = "textDocument/documentSymbol" },
   {
     "<leader>cl",
-    "<cmd>Trouble lsp toggle focus=false win.position=down<cr>",
+    "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
     desc = "LSP Definitions / references / ... (Trouble)",
     method = {
       "textDocument/definition",
