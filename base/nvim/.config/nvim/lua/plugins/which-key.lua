@@ -151,12 +151,10 @@ return {
 
         -- Previous ends
         { "[F", icon = where_treesitter({ icon = "󰡱", color = "cyan" }), real = true },
-        { "[C", icon = where_treesitter({ icon = "󰒕", color = "cyan" }), real = true },
         { "[B", icon = where_treesitter({ icon = "", color = "cyan" }), real = true },
 
         --  ends
         { "]F", icon = where_treesitter({ icon = "󰡱", color = "cyan" }), real = true },
-        { "]C", icon = where_treesitter({ icon = "󰒕", color = "cyan" }), real = true },
         { "]B", icon = where_treesitter({ icon = "", color = "cyan" }), real = true },
 
         -- Filetype plugin motions, labelled in after/ftplugin

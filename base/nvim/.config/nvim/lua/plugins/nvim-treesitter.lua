@@ -77,12 +77,10 @@ local move_textobjects = {
   },
   goto_previous_end = {
     ["[F"] = { query = "@function.outer", desc = "Previous function end" },
-    ["[C"] = { query = "@class.outer", desc = "Previous class end" },
     ["[B"] = { query = "@block.outer", desc = "Previous block end" },
   },
   goto_next_end = {
     ["]F"] = { query = "@function.outer", desc = "Next function end" },
-    ["]C"] = { query = "@class.outer", desc = "Next class end" },
     ["]B"] = { query = "@block.outer", desc = "Next block end" },
   },
 }
