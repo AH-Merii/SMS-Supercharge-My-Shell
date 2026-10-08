@@ -4,3 +4,4 @@
 - [Inline code comment guidelines](inline-code-comment-guidelines.md) — DO NOT IGNORE: ONE LINE, only when the code is unclear or an obvious attempt fails; ALL context goes in PR inline comments.
 - [Never write git config.local](git-identity-never-write-config-local.md) — identity and signing key are the user's; hand back the ggh command, approve the 1Password prompt.
 - [When to version a memory](when-to-version-memories.md) — portable facts go in the repo and index.md; anything true of one machine only stays local.
+- [Judge a test in both directions](judge-a-test-in-both-directions.md) — test complex logic and config validity (parses, validates, formatted), never config values or preferences; red on a real violation, green on any change of mind.
