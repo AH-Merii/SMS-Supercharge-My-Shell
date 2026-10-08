@@ -1,0 +1,5 @@
+# Worktrunk (wt) user config: https://worktrunk.dev/config/
+
+# Next to the worktrees Claude Code creates for its agents
+[projects."github.com/AH-Merii/SMS-Supercharge-My-Shell"]
+worktree-path = ".claude/worktrees/{{ branch | sanitize }}"
