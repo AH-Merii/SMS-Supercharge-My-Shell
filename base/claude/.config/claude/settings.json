@@ -36,6 +36,8 @@
       "Bash(git tag:*)",
       "Bash(git blame:*)",
       "Bash(git worktree:*)",
+      "Bash(but push:*)",
+      "Bash(but pr:*)",
       "Bash(npm *)",
       "Bash(pnpm *)",
       "Bash(node *)",
