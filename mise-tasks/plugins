@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE description="Install fisher with its plugins, and tmux plugins via TPM"
+#MISE description="Install fisher with its plugins, tmux plugins via TPM, and Claude Code plugins"
 #MISE raw=true
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
@@ -22,3 +22,18 @@ if [[ ! -d $tpm ]]; then
   git clone --depth 1 https://github.com/tmux-plugins/tpm "$tpm"
 fi
 "$tpm/bin/install_plugins"
+
+if command -v claude >/dev/null 2>&1; then
+  if ! claude_market_added; then
+    settings=$(claude_config_dir)/settings.json
+    snap=$(mktemp)
+    cp "$settings" "$snap" 2>/dev/null || true
+    _claude plugin marketplace add "$CLAUDE_MARKET_REPO"
+    # `marketplace add` strips autoUpdate from the declared entry; put it back.
+    grep -q "\"$CLAUDE_MARKET\"" "$snap" && cat "$snap" >"$settings"
+    rm -f "$snap"
+  fi
+  for p in "${CLAUDE_PLUGINS[@]}"; do
+    claude_plugin_installed "$p" || _claude plugin install "$p"
+  done
+fi

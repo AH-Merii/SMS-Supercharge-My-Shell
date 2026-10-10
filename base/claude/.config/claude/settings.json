@@ -65,9 +65,17 @@
     "padding": 0
   },
   "enabledPlugins": {
+    "niri-screen-lab@ah-merii": true,
     "terminal-icons@local-plugins": true
   },
   "extraKnownMarketplaces": {
+    "ah-merii": {
+      "source": {
+        "source": "github",
+        "repo": "AH-Merii/claude-plugins"
+      },
+      "autoUpdate": true
+    },
     "local-plugins": {
       "source": {
         "source": "directory",

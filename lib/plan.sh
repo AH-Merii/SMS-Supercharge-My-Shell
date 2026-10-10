@@ -282,6 +282,35 @@ plan_tools() {
 
 # --- plugins ----------------------------------------------------------------------
 
+# The Claude Code marketplace `plugins` adds, and what it installs from it.
+CLAUDE_MARKET=ah-merii
+CLAUDE_MARKET_REPO=AH-Merii/claude-plugins
+CLAUDE_PLUGINS=(niri-screen-lab@ah-merii)
+
+# fish sets CLAUDE_CONFIG_DIR, so a bash run on a fresh machine may not have it yet.
+claude_config_dir() { printf '%s' "${CLAUDE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/claude}"; }
+_claude() { CLAUDE_CONFIG_DIR=$(claude_config_dir) claude "$@"; }
+
+claude_market_added() {
+  _claude plugin marketplace list --json 2>/dev/null | grep -q "\"name\": *\"$CLAUDE_MARKET\""
+}
+
+claude_plugin_installed() {
+  _claude plugin list --json 2>/dev/null | grep -q "\"id\": *\"$1\""
+}
+
+_plan_claude_plugins() {
+  command -v claude >/dev/null 2>&1 || return 0
+  local have=() want=() p
+  if claude_market_added; then have+=("$CLAUDE_MARKET_REPO"); else want+=("$CLAUDE_MARKET_REPO"); fi
+  for p in "${CLAUDE_PLUGINS[@]}"; do
+    if claude_plugin_installed "$p"; then have+=("$p"); else want+=("$p"); fi
+  done
+  [[ ${#have[@]} -gt 0 ]] && sms_have "${have[@]}"
+  [[ ${#want[@]} -gt 0 ]] && sms_want "${want[@]}"
+  return 0
+}
+
 plan_plugins() {
   sms_section plugins ''
 
@@ -295,6 +324,8 @@ plan_plugins() {
       sms_want "fisher + $(_n "$fish_count" 'fish plugin')"
     fi
   fi
+
+  _plan_claude_plugins
 
   local tconf=$MISE_PROJECT_ROOT/base/tmux/.config/tmux/plugins.tmux.conf
   [[ -f $tconf ]] || return 0
