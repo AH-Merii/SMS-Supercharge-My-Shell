@@ -20,3 +20,10 @@
         match namespace="^noctalia-wallpaper*"
         place-within-backdrop true
     }
+
+    // Claude's test terminal: opens on the laptop panel, never takes focus.
+    window-rule {
+        match app-id=r#"^dev\.claude\.lab$"#
+        open-on-output "eDP-1"
+        open-focused false
+    }
