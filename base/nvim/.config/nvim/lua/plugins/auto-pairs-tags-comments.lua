@@ -268,15 +268,12 @@ return {
             rule:with_pair(function(_)
               -- If current filetype isn't in the target list → no change
               if not vim.tbl_contains(langs, vim.bo.filetype) then
-                print("true")
                 return true
               end
               -- Inside specified nodes → disable built-in rule
               if in_nodes(_) then
-                print("false")
                 return false
               end
-              print("true 2")
               return true
             end)
           end
@@ -317,7 +314,14 @@ return {
   -- comments
   {
     "numToStr/Comment.nvim",
-    opts = {},
+    opts = {
+      -- Comment.nvim indexes a nil parser in buffers without one on 0.12+ (numToStr/Comment.nvim#517)
+      pre_hook = function(ctx)
+        if not vim.treesitter.get_parser(0, nil, { error = false }) then
+          return require("Comment.ft").get(vim.bo.filetype, ctx.ctype) or vim.bo.commentstring
+        end
+      end,
+    },
     lazy = false,
   },
 

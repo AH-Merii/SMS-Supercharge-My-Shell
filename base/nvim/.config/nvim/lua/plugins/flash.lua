@@ -19,7 +19,7 @@ return {
       "f",
       mode = { "n", "x", "o" },
       function() require("flash").jump() end,
-      desc = "Flash Anywhere (f)",
+      desc = "Flash jump",
     },
 
     { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
@@ -47,7 +47,7 @@ return {
           },
         })
       end,
-      desc = "treesitter incremental selection",
+      desc = "Treesitter selection",
     },
   },
 }

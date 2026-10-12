@@ -434,6 +434,13 @@ return {
       macro_recording,
       color = { fg = colors.yellow, gui = "bold" },
     })
+    -- 0.12 leaves "~@\253" in %S while a <Cmd> or Lua mapping runs, e.g. which-key (neovim#40747)
+    function _G.statusline_showcmd() return (vim.api.nvim_eval_statusline("%S", {}).str:gsub("~@\253", "")) end
+    -- Pending keys (e.g. a count), shown here since 'cmdheight' is 0
+    ins_right({
+      function() return "%{v:lua.statusline_showcmd()}" end,
+      color = { fg = colors.fg },
+    })
 
     ---------------------------------------------------------------------------
     -- go live

@@ -1,3 +1,55 @@
+--   Git Tools: Interact with branches, logs, and diffs
+-- These act on the repo of the cwd
+local git_pickers = {
+  { "<leader>gB", function() Snacks.picker.git_branches() end, desc = "Branches" },
+  { "<leader>gl", function() Snacks.picker.git_log() end, desc = "Log" },
+  { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Status" },
+  { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Stashes" },
+  { "<leader>gD", function() Snacks.picker.git_diff() end, desc = "Diff (Hunks)" },
+}
+-- These act on the buffer's file
+local git_file_logs = {
+  { "<leader>gL", function() Snacks.picker.git_log_line() end, desc = "Log (Line)" },
+  { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Log (File)" },
+}
+-- This needs a remote on the buffer's repo
+local git_browse = {
+  { "<leader>GB", function() Snacks.gitbrowse() end, desc = "Open in Git Browser" },
+}
+
+---@param keys table[]
+---@param on boolean
+---@param buf? integer
+local function set_keys(keys, on, buf)
+  for _, key in ipairs(keys) do
+    if on then
+      vim.keymap.set("n", key[1], key[2], { buf = buf, desc = key.desc })
+    else
+      pcall(vim.keymap.del, "n", key[1], { buf = buf })
+    end
+  end
+end
+
+local function map_git_pickers() set_keys(git_pickers, Snacks.git.get_root(vim.fn.getcwd()) ~= nil) end
+
+---@param buf integer
+local function map_git_file_keys(buf)
+  local file = vim.api.nvim_buf_get_name(buf)
+  local root = vim.bo[buf].buftype == "" and file ~= "" and Snacks.git.get_root(file) or nil
+  set_keys(git_file_logs, root ~= nil, buf)
+  if not root then
+    set_keys(git_browse, false, buf)
+    return
+  end
+  vim.system({ "git", "-C", root, "remote" }, { text = true }, function(out)
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_name(buf) == file then
+        set_keys(git_browse, out.code == 0 and vim.trim(out.stdout) ~= "", buf)
+      end
+    end)
+  end)
+end
+
 return {
   "folke/snacks.nvim",
   priority = 1000,
@@ -62,19 +114,10 @@ return {
     { "<leader>fp", function() Snacks.picker.projects() end, desc = "Projects" },
     { "<leader>fr", function() Snacks.picker.recent() end, desc = "Recent Files" },
 
-    --   Git Tools: Interact with branches, logs, and diffs
-    { "<leader>gB", function() Snacks.picker.git_branches() end, desc = "Branches" },
-    { "<leader>gl", function() Snacks.picker.git_log() end, desc = "Log" },
-    { "<leader>gL", function() Snacks.picker.git_log_line() end, desc = "Log (Line)" },
-    { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Status" },
-    { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Stashes" },
-    { "<leader>gD", function() Snacks.picker.git_diff() end, desc = "Diff (Hunks)" },
-    { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Log (File)" },
-
     -- 󰞷  Search: Grep and search across files and buffers
     { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep" },
     { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep (Open Buffers)" },
-    { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Grep (Word/Selection)", mode = { "n", "x" } },
+    { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Grep word or selection", mode = { "n", "x" } },
     { "<leader>sb", function() Snacks.picker.lines() end, desc = "Grep (Buffer Lines)" },
 
     -- 󱦞 Search: System & Editor: Inspect commands, diagnostics, and help
@@ -82,7 +125,6 @@ return {
     { "<leader>sa", function() Snacks.picker.autocmds() end, desc = "Autocommands" },
     { "<leader>s:", function() Snacks.picker.command_history() end, desc = "Command History" },
     { "<leader>sc", function() Snacks.picker.commands() end, desc = "Commands" },
-    { "<leader>sd", function() Snacks.picker.diagnostics_buffer() end, desc = "Diagnostics (Buffer)" },
     { "<leader>sD", function() Snacks.picker.diagnostics() end, desc = "Diagnostics (Workspace)" },
     { "<leader>sh", function() Snacks.picker.help() end, desc = "Help Pages" },
     { "<leader>sH", function() Snacks.picker.highlights() end, desc = "Highlight Groups" },
@@ -99,33 +141,34 @@ return {
     { "<leader>sC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
     { "<leader>ss", function() Snacks.scratch.select() end, desc = "Scratch Buffers" },
 
-    -- 󰒕  LSP: Language features (symbols, definitions, references)
-    { "gD", function() Snacks.picker.lsp_declarations() end, desc = "Declaration" },
-    { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Definition" },
-    { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Implementations" },
-    { "gr", function() Snacks.picker.lsp_references() end, desc = "References", nowait = true },
-    { "gt", function() Snacks.picker.lsp_type_definitions() end, desc = "Type Definition" },
-    { "gCi", function() Snacks.picker.lsp_incoming_calls() end, desc = "Incoming Calls" },
-    { "gCo", function() Snacks.picker.lsp_outgoing_calls() end, desc = "Outgoing Calls" },
-
     -- Misc
     { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
     { "<C-W>z", function() Snacks.zen() end, desc = "Toggle Zen Mode" },
     { "<C-W>Z", function() Snacks.zen.zoom() end, desc = "Toggle Zoom" },
     { "<leader>.", function() Snacks.scratch({ ft = "markdown" }) end, desc = "Toggle Scratch Buffer" },
     { "<leader>lR", function() Snacks.rename.rename_file() end, desc = "Rename File" },
-    { "<leader>GB", function() Snacks.gitbrowse() end, desc = "Open in Git Browser" },
-    { "]]", function() Snacks.words.jump(vim.v.count1) end, desc = "Reference (word)" },
-    { "[[", function() Snacks.words.jump(-vim.v.count1) end, desc = "Reference (word)" },
 
     -- Profiler
-    { "<leader>pp", function() Snacks.profiler.toggle() end, desc = "Toggle Profiler" },
-    { "<leader>ps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch" },
-    { "<leader>ph", function() Snacks.profiler.highlight() end, desc = "Profiler Highlight" },
+    { "<leader>Pp", function() Snacks.profiler.toggle() end, desc = "Toggle Profiler" },
+    { "<leader>Ps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch" },
+    { "<leader>Ph", function() Snacks.profiler.highlight() end, desc = "Profiler Highlight" },
   },
 
   config = function(_, opts)
     require("snacks").setup(opts)
+
+    local git_group = vim.api.nvim_create_augroup("SnacksGitKeys", { clear = true })
+    vim.api.nvim_create_autocmd("DirChanged", { group = git_group, callback = map_git_pickers })
+    vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile", "BufFilePost" }, {
+      group = git_group,
+      callback = function(ev) map_git_file_keys(ev.buf) end,
+    })
+    map_git_pickers()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(buf) then
+        map_git_file_keys(buf)
+      end
+    end
 
     -- Try to register icons with which-key
     local ok, wk = pcall(require, "which-key")
@@ -133,10 +176,11 @@ return {
       wk.add({
         -- Groups
         { "<leader>f", group = "Find", icon = { icon = "󰈞", color = "blue" } },
-        { "<leader>s", group = "Search", icon = { icon = "󰞷", color = "cyan" } },
+        { "<leader>s", group = "Search", mode = { "n", "x" }, icon = { icon = "󰞷", color = "cyan" } },
         { "<leader>G", group = "Git (Actions)", icon = { icon = "", color = "cyan" } },
         { "<leader>g", group = "Git (Inspect)", icon = { icon = "", color = "cyan" } },
         { "<leader>T", group = "Toggle Features", icon = { icon = "", color = "yellow" } },
+        { "<leader>P", group = "Profiler", icon = { icon = "󰓅", color = "orange" } },
 
         -- find
         { "<leader>ff", icon = { icon = "󰈞", color = "blue" } },
@@ -145,18 +189,18 @@ return {
         { "<leader>fr", icon = { icon = "", color = "yellow" } },
 
         -- git
-        { "<leader>gB", icon = { icon = "", color = "grey" } },
-        { "<leader>gl", icon = { icon = "", color = "orange" } },
-        { "<leader>gL", icon = { icon = "", color = "yellow" } },
-        { "<leader>gf", icon = { icon = "", color = "blue" } },
-        { "<leader>gs", icon = { icon = "󰊢", color = "cyan" } },
-        { "<leader>gS", icon = { icon = "󰀼", color = "grey" } },
-        { "<leader>gD", icon = { icon = "", color = "cyan" } },
+        { "<leader>gB", icon = { icon = "", color = "grey" }, real = true },
+        { "<leader>gl", icon = { icon = "", color = "orange" }, real = true },
+        { "<leader>gL", icon = { icon = "", color = "yellow" }, real = true },
+        { "<leader>gf", icon = { icon = "", color = "blue" }, real = true },
+        { "<leader>gs", icon = { icon = "󰊢", color = "cyan" }, real = true },
+        { "<leader>gS", icon = { icon = "󰀼", color = "grey" }, real = true },
+        { "<leader>gD", icon = { icon = "", color = "cyan" }, real = true },
 
         -- Grep-in
         { "<leader>/", icon = { icon = "󰞷", color = "cyan" } },
         { "<leader>sB", icon = { icon = "󰱼", color = "cyan" } },
-        { "<leader>sw", icon = { icon = "", color = "cyan" } },
+        { "<leader>sw", mode = { "n", "x" }, icon = { icon = "", color = "cyan" } },
         { "<leader>sb", icon = { icon = "", color = "cyan" } },
 
         -- Search
@@ -164,7 +208,7 @@ return {
         { "<leader>sa", icon = { icon = "󰆍", color = "grey" } },
         { "<leader>s:", icon = { icon = "", color = "yellow" } },
         { "<leader>sc", icon = { icon = "󰘳", color = "grey" } },
-        { "<leader>sd", icon = { icon = "", color = "orange" } },
+        { "<leader>sd", icon = { icon = "", color = "orange" }, real = true },
         { "<leader>sD", icon = { icon = "", color = "orange" } },
         { "<leader>sh", icon = { icon = "󰘥", color = "grey" } },
         { "<leader>sH", icon = { icon = "", color = "yellow" } },
@@ -180,17 +224,21 @@ return {
         { "<leader>su", icon = { icon = "󰕍", color = "yellow" } },
         { "<leader>sC", icon = { icon = "󰏘", color = "purple" } },
         { "<leader>ss", icon = { icon = "󰎕", color = "grey" } },
+        { "<leader>sS", icon = { icon = "󱔁", color = "purple" }, real = true },
 
         -- LSP
-        { "gd", icon = { icon = "󰊕", color = "purple" } },
-        { "gD", icon = { icon = "󱈸", color = "purple" } },
-        { "gr", icon = { icon = "", color = "purple" } },
-        { "gI", icon = { icon = "󰡱", color = "purple" } },
-        { "gt", icon = { icon = "", color = "purple" } },
+        { "gd", icon = { icon = "󰊕", color = "purple" }, real = true },
+        { "gD", icon = { icon = "󱈸", color = "purple" }, real = true },
+        { "grr", icon = { icon = "", color = "purple" }, real = true },
+        { "gI", icon = { icon = "󰡱", color = "purple" }, real = true },
+        { "gt", icon = { icon = "", color = "purple" }, real = true },
+
+        { "gr", group = "LSP", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" } },
+        { "gra", mode = { "n", "x" }, icon = { icon = "󱍔", color = "purple" }, real = true },
 
         { "gC", group = "calls", icon = { icon = "󰃻", color = "yellow" } },
-        { "gCi", icon = { icon = "󰃺", color = "cyan" } },
-        { "gCo", icon = { icon = "󰃷", color = "orange" } },
+        { "gCi", icon = { icon = "󰃺", color = "cyan" }, real = true },
+        { "gCo", icon = { icon = "󰃷", color = "orange" }, real = true },
 
         -- Misc
         { "<leader>n", icon = { icon = "󰂚", color = "yellow" } },
@@ -198,9 +246,7 @@ return {
         { "<C-W>Z", icon = { icon = "󰘖", color = "yellow" } },
         { "<leader>.", icon = { icon = "󰎕", color = "grey" } },
         { "<leader>lR", icon = { icon = "󰑕", color = "green" } },
-        { "<leader>GB", icon = { icon = "󰖟", color = "grey" } },
-        { "]]", icon = { icon = "", color = "grey" } },
-        { "[[", icon = { icon = "", color = "grey" } },
+        { "<leader>GB", icon = { icon = "󰖟", color = "grey" }, real = true },
       })
     else
       vim.notify("which-key.nvim not found. Install it for enhanced keymap icons and descriptions.", vim.log.levels.WARN, { title = "Snacks Config" })
@@ -223,22 +269,6 @@ return {
         _G.bt = function() Snacks.debug.backtrace() end
 
         vim._print = function(_, ...) _G.dd(...) end
-
-        local function setup_gitsigns_toggle()
-          local ok, gs = pcall(require, "gitsigns")
-          local okc, gsc = pcall(require, "gitsigns.config")
-          if ok and okc then
-            Snacks.toggle
-              .new({
-                name = "Git Signs Column",
-                get = function() return gsc.config.signcolumn end,
-                set = function(state) gs.toggle_signs(state) end,
-              })
-              :map("<leader>TG")
-          else
-            vim.notify("gitsigns.nvim not found. Skipping gitsigns column toggle option.", vim.log.levels.WARN, { title = "Snacks Config" })
-          end
-        end
 
         local function setup_format_on_save_toggle()
           -- Global flag: on by default
@@ -275,6 +305,7 @@ return {
               name = "Format on Save",
               get = function() return vim.g.snacks_format_on_save end,
               set = function(state) vim.g.snacks_format_on_save = state end,
+              map = require("core.lsp").map,
             })
             :map("<leader>Tf")
         end
@@ -325,17 +356,32 @@ return {
             wk_desc = { enabled = "Conceal ", disabled = "Show " },
           })
           :map("<leader>Tm")
-        Snacks.toggle.treesitter():map("<leader>TT")
         Snacks.toggle
           .inlay_hints({
             wk_desc = { enabled = "Hide ", disabled = "Show " },
+            map = require("core.lsp").map,
           })
           :map("<leader>Th")
+        Snacks.toggle
+          .new({
+            name = "Type Errors",
+            get = function()
+              local client = vim.lsp.get_clients({ bufnr = 0, name = "pyrefly" })[1]
+              return client ~= nil and require("config.utils").pyrefly_type_errors(client)
+            end,
+            set = function(state)
+              for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0, name = "pyrefly" })) do
+                require("config.utils").pyrefly_type_errors(client, state)
+              end
+            end,
+            wk_desc = { enabled = "Hide ", disabled = "Show " },
+            map = require("core.lsp").map,
+          })
+          :map("<leader>Te")
         Snacks.toggle.indent():map("<leader>Tg")
         Snacks.toggle.dim():map("<leader>TD")
         Snacks.toggle.option("list", { name = "Hidden Chars" }):map("<leader>TH")
 
-        setup_gitsigns_toggle()
         setup_indent_view_toggle()
         setup_format_on_save_toggle()
       end,

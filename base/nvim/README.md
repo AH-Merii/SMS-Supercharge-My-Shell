@@ -32,7 +32,7 @@ nvim/
 │   │   ├── autocmds.lua     # Autocommands
 │   │   ├── helpers.lua      # LSP debugging commands
 │   │   └── utils.lua        # Custom utilities
-│   └── plugins/             # Plugin specifications (~18 files)
+│   └── plugins/             # Plugin specifications (~17 files)
 ├── after/
 │   ├── ftplugin/            # Filetype-specific configs
 │   └── lsp/                 # LSP server-specific configs
@@ -51,18 +51,21 @@ nvim/
 ### Two-Tier System
 
 **Tier 1: Automatic Setup** (`lua/plugins/mason.lua`)
-- Mason-LSPConfig handles installation and basic configuration
-- Mason-Tool-Installer manages formatters, linters, and debuggers
+- Opening a file offers to install the Mason packages its filetype needs and lacks: the servers in `servers`, the formatters in conform's `formatters_by_ft`, the linters in nvim-lint's `linters_by_ft` and anything in `extra_packages`. A filetype never opened installs nothing, and nothing installs headless
+- The offer is a prompt, "Install X, Y for <filetype>?", with Yes, Not now and Never. Not now lasts for the session; Never is kept per filetype in `install_tools_never.json` under `stdpath("state")` (`~/.local/state/nvim/`), and removing the filetype from it brings the prompt back. Several files opened at once get one prompt at a time, one per filetype
+- `vim.g.install_tools` sets the behaviour: `"ask"` (default), `"auto"` to install without asking, or `"off"`. Set it in `lua/config/options.lua`
+- Mason's pip packages need a `python3` that can make a venv; without one, `uv` installs a managed Python first and Neovim puts it on its `PATH`
+- Mason-LSPConfig enables every installed server, so a server attaches to open buffers once its install lands
 - Servers auto-launch when filetypes are detected
 
 **Tier 2: Custom Configuration** (`after/lsp/[server].lua`)
 - Each LSP server can have a custom config file that returns server-specific options
 - These files are late-loaded after Neovim understands filetypes
-- Example servers with custom configs: `gopls.lua`, `rust-analyzer.lua`, `ts-ls.lua`, `pyrefly.lua`, `intelephense.lua`, `zls.lua`
+- Example servers with custom configs: `gopls.lua`, `rust_analyzer.lua`, `pyrefly.lua`, `intelephense.lua`
 
 ### Adding a New LSP Server
 
-1. Add server name to `ensure_installed` in `lua/plugins/mason.lua`
+1. Add server name to `servers` in `lua/plugins/mason.lua`
 2. Optionally create `after/lsp/[server].lua` for custom settings
 3. Add formatters to `lua/plugins/conform.lua` under `formatters_by_ft`
 4. Add linters to `lua/plugins/nvim-lint.lua` under `linters_by_ft`
@@ -140,6 +143,7 @@ The `lua/config/helpers.lua` file provides LSP debugging commands:
 - `:LspInfo` - Comprehensive LSP information
 - `:LspCapabilities` - Detailed capability list
 - `:LspDiagnostics` - Diagnostic summary
+- `:LspLog` - Open the LSP log in a new tab
 - `:Status` - Full tooling status (LSP, formatters, linters, treesitter)
 
 The `lua/config/utils.lua` file provides utilities:
@@ -244,19 +248,7 @@ For each language, the tooling chain is:
 Configure in:
 - `lua/plugins/conform.lua` - Add to `formatters_by_ft`
 - `lua/plugins/nvim-lint.lua` - Add to `linters_by_ft`
-- `lua/plugins/mason.lua` - Add tools to `ensure_installed`
-
-### Mason Tool Paths
-
-Mason tools install to `~/.local/share/nvim/mason/bin/`. When configuring tools (e.g., DAP), check Mason paths first:
-
-```lua
-local mason_tool = vim.fn.stdpath("data") .. "/mason/bin/tool"
-if vim.fn.executable(mason_tool) == 1 then
-    return mason_tool
-end
-return vim.fn.exepath("tool") or "tool"  -- Fallback to system
-```
+- `lua/plugins/mason.lua` - Nothing, unless the Mason package has another name (`package_names`) or no filetype list names the tool (`extra_packages`)
 
 ## Testing Changes
 
@@ -271,8 +263,8 @@ After modifying configuration:
 ## Common Tasks
 
 **Update plugins**: `:Lazy update`
-**Install missing tools**: `:Mason` (press `U` to update all)
-**Check LSP logs**: `:LspInfo` shows log path
+**Install missing tools**: Open a file of that filetype and answer Yes; `:Mason` shows them (press `U` to update all)
+**Check LSP logs**: `:LspLog` (`:LspInfo` shows the path)
 **Reload config**: Restart Neovim (changes to `init.lua` and core modules require restart)
 **Format file**: Handled automatically on save via Conform
 **Lint file**: Handled automatically on events via nvim-lint

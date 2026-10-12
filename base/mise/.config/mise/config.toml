@@ -16,6 +16,8 @@ uv = "latest"
 
 # editor, prompt, multiplexers
 neovim = "latest"
+# nvim-treesitter compiles its parsers with it
+tree-sitter = "latest"
 starship = "latest"
 # upstream moved orgs (ogulcancelik -> herdrdev); pinned so a stale registry cannot
 # resolve the abandoned repo. Migrate an old install with:

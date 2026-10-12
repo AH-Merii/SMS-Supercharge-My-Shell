@@ -2,14 +2,6 @@ return {
   "stevearc/conform.nvim",
   event = { "BufWritePre" },
   cmd = { "ConformInfo", "FormatWithConform" },
-  keys = {
-    {
-      "<leader>lf",
-      function() require("conform").format_buffer({ async = true, quiet = false }) end,
-      mode = { "n", "v" },
-      desc = "Format buffer",
-    },
-  },
 
   opts = {
     formatters = {
@@ -49,10 +41,9 @@ return {
       c = { "clang_format" },
       cpp = { "clang_format" },
 
-      go = { "goimports", "gofmt" },
+      go = { "goimports" },
       lua = { "stylua" },
       rust = { "rustfmt" },
-      zig = { "zigfmt" },
 
       terraform = { "terraform_fmt" },
       tf = { "terraform_fmt" },
@@ -139,7 +130,9 @@ return {
 
       c.format({ async = async, bufnr = bufnr }, function(err, did_edit)
         if err then
-          vim.notify(string.format("Formatting failed in %s with %s: %s", filename, formatter_label, err), vim.log.levels.ERROR, { title = "Conform" })
+          -- LSP fallback passes the raw lsp.ResponseError table, which has no __tostring since Neovim 0.13
+          local reason = type(err) == "table" and vim.lsp.rpc.format_rpc_error(err) or err
+          vim.notify(string.format("Formatting failed in %s with %s: %s", filename, formatter_label, reason), vim.log.levels.ERROR, { title = "Conform" })
           return
         end
 

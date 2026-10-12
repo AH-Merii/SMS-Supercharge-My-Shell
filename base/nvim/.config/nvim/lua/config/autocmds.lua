@@ -97,7 +97,8 @@ function M.setup()
   -- Highlight on yank
   autocmd("TextYankPost", {
     group = user_group,
-    callback = function() vim.highlight.on_yank({ higroup = "Search", timeout = 200 }) end,
+    -- on_yank is the 0.12 name of hl_op
+    callback = function() (vim.hl.hl_op or vim.hl.on_yank)({ higroup = "Search", timeout = 200 }) end,
   })
 
   -- Close specific filetypes with 'q'
@@ -113,10 +114,7 @@ function M.setup()
       "spectre_panel",
       "startuptime",
       "tsplayground",
-      "neotest-output",
       "checkhealth",
-      "neotest-summary",
-      "neotest-output-panel",
       "netrw",
       "Jaq",
       "git",
@@ -126,7 +124,7 @@ function M.setup()
     callback = function(event)
       vim.bo[event.buf].buflisted = false
       vim.keymap.set("n", "q", "<cmd>close<cr>", {
-        buffer = event.buf,
+        buf = event.buf,
         silent = true,
         desc = "Close window",
       })
@@ -136,7 +134,11 @@ function M.setup()
   -- Resize windows equally when Neovim is resized
   autocmd("VimResized", {
     group = user_group,
-    callback = function() vim.cmd("tabdo wincmd =") end,
+    callback = function()
+      local current_tab = vim.api.nvim_get_current_tabpage()
+      vim.cmd("tabdo wincmd =")
+      vim.api.nvim_set_current_tabpage(current_tab)
+    end,
   })
 
   -- Show cursor line only in active window
