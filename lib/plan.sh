@@ -285,7 +285,7 @@ plan_tools() {
 # The Claude Code marketplace `plugins` adds, and what it installs from it.
 CLAUDE_MARKET=ah-merii
 CLAUDE_MARKET_REPO=AH-Merii/claude-plugins
-CLAUDE_PLUGINS=(niri-screen-lab@ah-merii)
+CLAUDE_PLUGINS=(niri-screen-lab@ah-merii copy-code@ah-merii vim-ux@ah-merii)
 
 # fish sets CLAUDE_CONFIG_DIR, so a bash run on a fresh machine may not have it yet.
 claude_config_dir() { printf '%s' "${CLAUDE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/claude}"; }
