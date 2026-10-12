@@ -26,7 +26,6 @@ end
 fish_add_path $HOME/.local/bin
 fish_add_path $HOME/.cargo/bin
 fish_add_path $XDG_DATA_HOME/go/bin
-fish_add_path $XDG_DATA_HOME/nvim/mason/bin
 
 # XDG DATA
 set -gx CLAUDE_CONFIG_DIR $XDG_CONFIG_HOME/claude
