@@ -10,7 +10,7 @@ tint_intensity = 0.37999999150633812
 [bar.default]
 capsule_thickness = 0.80000000000000004
 center = [ "launcher", "spacer__", "spacer__", "workspaces", "spacer__", "group:g5" ]
-end = [ "spacer__", "group:g2", "spacer__", "group:g1", "spacer__", "group:g4", "spacer__", "notifications", "session" ]
+end = [ "spacer__", "group:g2", "spacer__", "group:g1", "spacer__", "group:g4", "spacer__", "notifications", "session", "cappuccino" ]
 margin_ends = 15
 padding = 10
 scale = 1.25
@@ -208,7 +208,7 @@ enabled = true
 scale = 1.1500000096857548
 
 [plugins]
-enabled = [ "noctalia/bongocat", "noctalia/screen_recorder", "noctalia/wallhaven" ]
+enabled = [ "amerii/cappuccino", "noctalia/bongocat", "noctalia/screen_recorder", "noctalia/wallhaven" ]
 
 [shell]
 corner_radius_scale = 1.1500000171363354
@@ -282,6 +282,10 @@ capsule = true
 [widget.brightness]
 capsule = true
 color = "#CEBE3B"
+
+[widget.cappuccino]
+scale = 1.15
+type = "amerii/cappuccino:cappuccino"
 
 [widget.cat]
 audio_spectrum = true

@@ -1,0 +1,17 @@
+# Cappuccino - a caffeine (idle inhibitor) toggle drawn as a cappuccino mug.
+# Click to toggle; the steam wiggles while caffeine is on.
+
+id = "amerii/cappuccino"
+name = "Cappuccino"
+version = "1.0.0"
+plugin_api = 24
+author = "amerii"
+license = "MIT"
+dependencies = []
+icon = "coffee"
+description = "Caffeine toggle shown as a cappuccino mug with animated steam."
+tags = ["caffeine", "animation"]
+
+[[widget]]
+id = "cappuccino"
+entry = "cappuccino.luau"
