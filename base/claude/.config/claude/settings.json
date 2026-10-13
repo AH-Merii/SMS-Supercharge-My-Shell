@@ -46,7 +46,9 @@
       "Bash(which *)",
       "Bash(mkdir *)",
       "Bash(cat *)",
-      "Bash(jq *)"
+      "Bash(jq *)",
+      "Bash(op-ssh-sign *)",
+      "Bash(/opt/1Password/op-ssh-sign *)"
     ],
     "deny": [
       "Read(.env*)",
@@ -55,7 +57,11 @@
       "Bash(head *.env*)",
       "Bash(tail *.env*)",
       "Bash(less *.env*)",
-      "Bash(more *.env*)"
+      "Bash(more *.env*)",
+      "Bash(op)",
+      "Bash(op *)",
+      "Bash(/usr/bin/op)",
+      "Bash(/usr/bin/op *)"
     ],
     "defaultMode": "auto"
   },
