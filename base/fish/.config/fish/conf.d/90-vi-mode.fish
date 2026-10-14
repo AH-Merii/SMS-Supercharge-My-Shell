@@ -14,6 +14,11 @@ if status is-interactive
         # ctrl-h, which the autopair plugin already owns in insert mode.
         bind -M default alt-backspace backward-kill-word
         bind -M insert alt-backspace backward-kill-word
+
+        # Ctrl+D never exits the shell (closing the Ghostty window); type `exit` instead.
+        bind -M default ctrl-d delete-char
+        bind -M insert ctrl-d delete-char
+        bind -M visual ctrl-d delete-char
     end
 
     # As per fish version 4.3
