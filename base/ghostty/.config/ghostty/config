@@ -64,4 +64,28 @@ keybind = ctrl+enter=unbind
 # instead and every app gets a working delete-previous-word.
 keybind = ctrl+backspace=text:\x1b\x7f
 
+# Scroll mode: ctrl+s, then vim keys scroll the scrollback; q or Esc leaves.
+# v and V open the visible screen or all of it in nvim, for vim selection and
+# yanks. Ghostty can't tell fish to do that, so they send a key fish binds
+# (fish/conf.d/23-screen-nvim.fish), then the path of a dump and Enter. They
+# only work at a fish prompt.
+keybind = ctrl+s=activate_key_table:scroll
+keybind = scroll/catch_all=ignore
+keybind = scroll/q=deactivate_key_table
+keybind = scroll/escape=deactivate_key_table
+keybind = scroll/ctrl+u=scroll_page_fractional:-0.5
+keybind = scroll/ctrl+d=scroll_page_fractional:0.5
+keybind = scroll/g>g=scroll_to_top
+keybind = scroll/shift+g=scroll_to_bottom
+keybind = scroll/v=deactivate_key_table
+keybind = chain=scroll_to_bottom
+keybind = chain=csi:23;8~
+keybind = chain=write_screen_file:paste
+keybind = chain=text:\r
+keybind = scroll/shift+v=deactivate_key_table
+keybind = chain=scroll_to_bottom
+keybind = chain=csi:24;8~
+keybind = chain=write_screen_file:paste
+keybind = chain=text:\r
+
 quit-after-last-window-closed = true

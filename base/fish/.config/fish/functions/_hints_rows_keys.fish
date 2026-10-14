@@ -12,7 +12,7 @@ function _hints_rows_keys --description "hints rows for every custom key binding
     # To add a shortcut:           keys_bind KEY COMMAND LABEL [DETAIL...] in conf.d, after
     #                              03-fisher-path.fish so it lands on top of plugin defaults.
     # To hide a file's bindings:   add the file's basename to skip_sources below.
-    set -l skip_sources autopair.fish 90-vi-mode.fish
+    set -l skip_sources autopair.fish 90-vi-mode.fish 23-screen-nvim.fish
 
     set -l bold (set_color --bold)
     set -l warn (set_color $fish_color_error)
