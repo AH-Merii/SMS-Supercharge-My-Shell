@@ -238,6 +238,28 @@ plan_unlink() {
 
 # --- mise tools -------------------------------------------------------------------
 
+# Tools the repo's mise config pins to "nightly", as tool@nightly: a moving build that
+# `mise install` and `mise upgrade` never fetch again once one is installed.
+nightly_tools() {
+  awk '
+    /^\[tools\]/ { t = 1; next }
+    /^\[/        { t = 0 }
+    t && /^[^#[:space:]]/ && /=[[:space:]]*"nightly"[[:space:]]*$/ {
+      split($0, kv, "=")
+      gsub(/^[ \t]+|[ \t]+$/, "", kv[1])
+      gsub(/^"|"$/, "", kv[1])
+      print kv[1] "@nightly"
+    }
+  ' "$MISE_PROJECT_ROOT/base/mise/.config/mise/config.toml"
+}
+
+_plan_nightly() {
+  local nightly=()
+  mapfile -t nightly < <(nightly_tools)
+  [[ ${#nightly[@]} -gt 0 ]] && _sms_list "$c_yellow" 'will re-fetch' "${nightly[@]}"
+  return 0
+}
+
 plan_tools() {
   local cfg=$MISE_PROJECT_ROOT/base/mise/.config/mise/config.toml
   if [[ ! -f $cfg ]]; then
@@ -272,12 +294,14 @@ plan_tools() {
     awk '{ print $1 }'); then
     sms_section 'mise tools' "$(_n ${#wanted[@]} tool)"
     sms_note 'could not determine which tools are installed; mise install will sort it out'
+    _plan_nightly
     return 0
   fi
 
   _split_by_installed "$installed" "${wanted[@]}"
   sms_section 'mise tools' "${#_want[@]} of ${#wanted[@]} missing"
   _show_split
+  _plan_nightly
 }
 
 # --- plugins ----------------------------------------------------------------------

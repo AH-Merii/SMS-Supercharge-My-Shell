@@ -15,7 +15,7 @@ rust = "stable"
 uv = "latest"
 
 # editor, prompt, multiplexers
-neovim = "latest"
+neovim = "nightly"
 starship = "latest"
 # upstream moved orgs (ogulcancelik -> herdrdev); pinned so a stale registry cannot
 # resolve the abandoned repo. Migrate an old install with:

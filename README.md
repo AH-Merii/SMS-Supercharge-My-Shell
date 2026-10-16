@@ -84,7 +84,7 @@ reminder until the latter is done.
 | `link`    | Stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run) |
 | `unlink`  | Remove those symlinks                                               |
 | `check`   | Dry-run `link`                                                      |
-| `tools`   | `mise install` everything in the global mise config                 |
+| `tools`   | `mise install` everything in the global mise config, re-fetching any tool pinned to `nightly` |
 | `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
 | `greeter` | Arch desktop: greetd + noctalia-greeter as the login screen, synced to the Noctalia theme; a no-op elsewhere |
 | `memory`  | Link the portable Claude Code memories into this checkout's project directory, and add any missing `MEMORY.md` lines |
