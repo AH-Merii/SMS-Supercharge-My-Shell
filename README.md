@@ -87,7 +87,7 @@ reminder until the latter is done.
 | `unlink`  | Remove those symlinks                                               |
 | `check`   | Dry-run `link`                                                      |
 | `tools`   | `mise install` everything in the global mise config, re-fetching any tool pinned to `nightly` |
-| `plugins` | fisher + fish plugins, TPM + tmux plugins                           |
+| `plugins` | fisher + fish plugins, TPM + tmux plugins, Neovim plugins restored to nvim-config's `lazy-lock.json` |
 | `greeter` | Arch desktop: greetd + noctalia-greeter as the login screen, synced to the Noctalia theme; a no-op elsewhere |
 | `memory`  | Link the portable Claude Code memories into this checkout's project directory, and add any missing `MEMORY.md` lines |
 | `profile` | Print the detected profile                                          |
@@ -140,6 +140,7 @@ keeps the moving commit out of `git status`. Why: [ADR 0001](docs/adr/0001-neovi
 git pull
 mise run link       # nvim-config's latest main
 mise run tools      # Neovim nightly, which nvim-config needs, fetched again
+mise run plugins    # Neovim plugins back to nvim-config's lazy-lock.json
 ```
 
 Change the config and its plugins in nvim-config, not here. lazy.nvim rewrites

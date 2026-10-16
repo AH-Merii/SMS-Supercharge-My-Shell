@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE description="Install fisher with its plugins, tmux plugins via TPM, and Claude Code plugins"
+#MISE description="Install fisher with its plugins, tmux plugins via TPM, Claude Code plugins, and Neovim's from nvim-config's lockfile"
 #MISE raw=true
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
@@ -22,6 +22,13 @@ if [[ ! -d $tpm ]]; then
   git clone --depth 1 https://github.com/tmux-plugins/tpm "$tpm"
 fi
 "$tpm/bin/install_plugins"
+
+# lazy.nvim installs missing plugins by itself, but only a restore moves installed ones to the lockfile
+if [[ $(readlink -f "${XDG_CONFIG_HOME:-$HOME/.config}/nvim") != "$(pwd -P)/nvim-config/nvim" ]]; then
+  sms_note 'Neovim plugins skipped: ~/.config/nvim does not link to nvim-config; run mise run link first'
+elif command -v nvim >/dev/null 2>&1; then
+  nvim --headless '+Lazy! restore' +qa
+fi
 
 if command -v claude >/dev/null 2>&1; then
   if ! claude_market_added; then

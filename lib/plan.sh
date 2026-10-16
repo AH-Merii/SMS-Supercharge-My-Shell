@@ -367,6 +367,7 @@ plan_plugins() {
   fi
 
   _plan_claude_plugins
+  sms_note 'Neovim plugins: lazy.nvim restores them to the commits in nvim-config/nvim/lazy-lock.json'
 
   local tconf=$MISE_PROJECT_ROOT/base/tmux/.config/tmux/plugins.tmux.conf
   [[ -f $tconf ]] || return 0
