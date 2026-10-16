@@ -9,6 +9,8 @@ Dotfiles for fish, neovim, tmux, git and a niri desktop. Configs are linked into
 ```
 base/        stow packages every machine gets: fish git nvim tmux starship lazygit ghostty
              herdr claude ccstatusline mise sesh
+nvim-config/ submodule of AH-Merii/nvim-config, following its main; base/nvim links
+             ~/.config/nvim to its nvim/ directory (see Neovim below)
 desktop/     Linux desktop only: niri noctalia (v5, ~/.local/state/noctalia/settings.toml)
 macos/       macOS only: karabiner
 plugins/     Claude Code local plugin marketplace (referenced by path, not stowed)
@@ -28,7 +30,7 @@ bootstrap.sh     the one command: OS packages, clone, then `mise run setup`
 Each package mirrors `~`: `base/fish/.config/fish/...` links to `~/.config/fish/...`.
 Package READMEs: [claude](base/claude/README.md), [ccstatusline](base/ccstatusline/README.md),
 [memory](memory/README.md),
-[git](base/git/README.md), [nvim](base/nvim/README.md), [karabiner](macos/karabiner/README.md).
+[git](base/git/README.md), [nvim](https://github.com/AH-Merii/nvim-config#readme), [karabiner](macos/karabiner/README.md).
 
 ## Profiles
 
@@ -81,7 +83,7 @@ reminder until the latter is done.
 | --------- | ------------------------------------------------------------------- |
 | `setup`   | `deps`, `link`, `tools`, `plugins`, `greeter`, `memory` in order    |
 | `deps`    | OS packages: pacman/paru on Arch, apt on Debian, `brew bundle` on macOS/WSL |
-| `link`    | Stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run) |
+| `link`    | Check out nvim-config's latest main, then stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run, without the checkout) |
 | `unlink`  | Remove those symlinks                                               |
 | `check`   | Dry-run `link`                                                      |
 | `tools`   | `mise install` everything in the global mise config, re-fetching any tool pinned to `nightly` |
@@ -124,6 +126,30 @@ stow -n fish              # dry-run
 Stow refuses to overwrite a real file. `mise run link` moves such files to `<name>.bak`
 first; when calling `stow` by hand, move them aside yourself. Do not use `--adopt`, it copies
 the old file into the repo.
+
+## Neovim
+
+The config lives in [AH-Merii/nvim-config](https://github.com/AH-Merii/nvim-config) and is
+checked out here as the `nvim-config/` submodule. The `nvim` package holds a single link, so
+`~/.config/nvim` points at `nvim-config/nvim`. The submodule follows nvim-config's `main`
+rather than the commit this repo records: `mise run link` runs
+`git submodule update --init --remote` before stowing, and `ignore = all` in `.gitmodules`
+keeps the moving commit out of `git status`. Why: [ADR 0001](docs/adr/0001-neovim-config-follows-nvim-config-main.md).
+
+```bash
+git pull
+mise run link       # nvim-config's latest main
+mise run tools      # Neovim nightly, which nvim-config needs, fetched again
+```
+
+Change the config and its plugins in nvim-config, not here. lazy.nvim rewrites
+`lazy-lock.json` in place, and git will not check out a newer one over that edit, so when
+an update is blocked `link` moves the edited file to `lazy-lock.json.bak` and checks out
+nvim-config's. Any other edit under `nvim-config/` stops the update with git's error, and
+`link` links the checkout already there.
+
+A machine linked before the submodule has a real `~/.config/nvim` directory of per-file
+links; `link` moves it to `~/.config/nvim.bak`.
 
 ## Machine notes
 

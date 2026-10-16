@@ -164,6 +164,20 @@ plan_os_packages() {
 
 # --- stow -------------------------------------------------------------------------
 
+# A package link (base/nvim's) over a real directory: stow merges into the directory, or
+# errors while the link dangles, instead of reporting a conflict.
+dir_link_conflicts() {
+  local layer=$1 pkg rel
+  shift
+  for pkg in "$@"; do
+    while IFS= read -r rel; do
+      rel=${rel#./}
+      [[ -d $HOME/$rel && ! -L $HOME/$rel ]] && printf '%s\n' "$rel"
+    done < <(cd "$layer/$pkg" && find . -type l)
+  done
+  return 0
+}
+
 # Everything `stow -R` would object to, as "backup <relpath>" and "warn <message>"
 # lines. One dry run, callers filter. Pure: no side effects.
 #
@@ -175,6 +189,7 @@ stow_issues() {
   local layer=$1
   shift
   local out
+  dir_link_conflicts "$layer" "$@" | sed 's/^/backup /'
   out=$(stow -n -d "$layer" -R "$@" 2>&1 || true)
   printf '%s\n' "$out" | sed -nE \
     -e 's/^ *\* existing target is not owned by stow: (.+)$/backup \1/p' \
@@ -201,6 +216,8 @@ plan_links() {
       esac
     done
   done
+  # link runs `git submodule update --init --remote` first, except on a dry run
+  [[ -n ${STOW_FLAGS:-} ]] || _sms_list "$c_dim" nvim-config 'fetch the latest main of AH-Merii/nvim-config; ~/.config/nvim links to it'
 
   if ! command -v stow >/dev/null 2>&1; then
     sms_note 'stow not installed yet; conflicts will be checked during link'
