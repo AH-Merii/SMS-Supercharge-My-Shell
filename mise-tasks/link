@@ -35,11 +35,30 @@ backup_conflicts() {
   done < <(stow_conflicts "$@")
 }
 
+# base/nvim links ~/.config/nvim into this submodule; --remote moves it to nvim-config's latest main.
+update_nvim_config() {
+  git submodule update --init --remote nvim-config 2>/dev/null && return 0
+  # lazy.nvim rewrites lazy-lock.json in place, and git will not check out over that edit
+  local lock=nvim-config/nvim/lazy-lock.json bak
+  if [[ -e nvim-config/.git ]] && ! git -C nvim-config diff --quiet -- nvim/lazy-lock.json; then
+    bak=$lock.bak
+    [[ -e $bak ]] && bak="$bak.$(date +%Y%m%d%H%M%S)"
+    cp "$lock" "$bak"
+    git -C nvim-config checkout -q -- nvim/lazy-lock.json
+    sms_note "backed up $lock -> $bak (lazy.nvim's edit), so nvim-config's can be checked out"
+  fi
+  git submodule update --init --remote nvim-config
+}
+
 # A dry run is already a preview, so asking first would be a question about nothing.
 if [[ -n $flags ]]; then
   plan_links
 else
   sms_preview plan_links 'Link these packages?' || exit 0
+fi
+
+if [[ -z $flags ]] && ! update_nvim_config; then
+  sms_warn 'nvim-config was not updated (git says why above); linking the checkout already there'
 fi
 
 for layer in "${layers[@]}"; do

@@ -164,6 +164,20 @@ plan_os_packages() {
 
 # --- stow -------------------------------------------------------------------------
 
+# A package link (base/nvim's) over a real directory: stow merges into the directory, or
+# errors while the link dangles, instead of reporting a conflict.
+dir_link_conflicts() {
+  local layer=$1 pkg rel
+  shift
+  for pkg in "$@"; do
+    while IFS= read -r rel; do
+      rel=${rel#./}
+      [[ -d $HOME/$rel && ! -L $HOME/$rel ]] && printf '%s\n' "$rel"
+    done < <(cd "$layer/$pkg" && find . -type l)
+  done
+  return 0
+}
+
 # Everything `stow -R` would object to, as "backup <relpath>" and "warn <message>"
 # lines. One dry run, callers filter. Pure: no side effects.
 #
@@ -175,6 +189,7 @@ stow_issues() {
   local layer=$1
   shift
   local out
+  dir_link_conflicts "$layer" "$@" | sed 's/^/backup /'
   out=$(stow -n -d "$layer" -R "$@" 2>&1 || true)
   printf '%s\n' "$out" | sed -nE \
     -e 's/^ *\* existing target is not owned by stow: (.+)$/backup \1/p' \
@@ -201,6 +216,8 @@ plan_links() {
       esac
     done
   done
+  # link runs `git submodule update --init --remote` first, except on a dry run
+  [[ -n ${STOW_FLAGS:-} ]] || _sms_list "$c_dim" nvim-config 'fetch the latest main of AH-Merii/nvim-config; ~/.config/nvim links to it'
 
   if ! command -v stow >/dev/null 2>&1; then
     sms_note 'stow not installed yet; conflicts will be checked during link'
@@ -238,6 +255,28 @@ plan_unlink() {
 
 # --- mise tools -------------------------------------------------------------------
 
+# Tools the repo's mise config pins to "nightly", as tool@nightly: a moving build that
+# `mise install` and `mise upgrade` never fetch again once one is installed.
+nightly_tools() {
+  awk '
+    /^\[tools\]/ { t = 1; next }
+    /^\[/        { t = 0 }
+    t && /^[^#[:space:]]/ && /=[[:space:]]*"nightly"[[:space:]]*$/ {
+      split($0, kv, "=")
+      gsub(/^[ \t]+|[ \t]+$/, "", kv[1])
+      gsub(/^"|"$/, "", kv[1])
+      print kv[1] "@nightly"
+    }
+  ' "$MISE_PROJECT_ROOT/base/mise/.config/mise/config.toml"
+}
+
+_plan_nightly() {
+  local nightly=()
+  mapfile -t nightly < <(nightly_tools)
+  [[ ${#nightly[@]} -gt 0 ]] && _sms_list "$c_yellow" 'will re-fetch' "${nightly[@]}"
+  return 0
+}
+
 plan_tools() {
   local cfg=$MISE_PROJECT_ROOT/base/mise/.config/mise/config.toml
   if [[ ! -f $cfg ]]; then
@@ -272,12 +311,14 @@ plan_tools() {
     awk '{ print $1 }'); then
     sms_section 'mise tools' "$(_n ${#wanted[@]} tool)"
     sms_note 'could not determine which tools are installed; mise install will sort it out'
+    _plan_nightly
     return 0
   fi
 
   _split_by_installed "$installed" "${wanted[@]}"
   sms_section 'mise tools' "${#_want[@]} of ${#wanted[@]} missing"
   _show_split
+  _plan_nightly
 }
 
 # --- plugins ----------------------------------------------------------------------
@@ -326,6 +367,7 @@ plan_plugins() {
   fi
 
   _plan_claude_plugins
+  sms_note 'Neovim plugins: lazy.nvim restores them to the commits in nvim-config/nvim/lazy-lock.json'
 
   local tconf=$MISE_PROJECT_ROOT/base/tmux/.config/tmux/plugins.tmux.conf
   [[ -f $tconf ]] || return 0

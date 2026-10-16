@@ -1,0 +1,5 @@
+[submodule "nvim-config"]
+	path = nvim-config
+	url = https://github.com/AH-Merii/nvim-config.git
+	branch = main
+	ignore = all
