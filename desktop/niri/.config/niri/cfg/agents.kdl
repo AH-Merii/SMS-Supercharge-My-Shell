@@ -1,0 +1,12 @@
+// ────────────── Agent Rules ──────────────
+// Every rule made for Claude or other agent workflows lives here, so they can be
+// told apart from the general config at a glance. Included after rules.kdl.
+
+// Claude's lab windows (niri-screen-lab terminals and browsers) and the
+// interview-detective browser share this app-id: they open on the laptop panel
+// and never take focus.
+window-rule {
+    match app-id=r#"^dev\.claude\.lab$"#
+    open-on-output "eDP-1"
+    open-focused false
+}
