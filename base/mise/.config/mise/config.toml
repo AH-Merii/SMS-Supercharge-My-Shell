@@ -6,6 +6,10 @@
 #
 # Python is deliberately absent: uv manages interpreters.
 
+# gh keeps its token in the keyring, where mise cannot read it.
+[settings.github]
+credential_command = 'gh auth token --hostname "$MISE_CREDENTIAL_HOST"'
+
 [tools]
 # runtimes
 node = "lts"
