@@ -7,8 +7,9 @@ nightly only. SMS checks it out as the `nvim-config/` submodule with `branch = m
 stowing, so a machine takes nvim-config's latest main whenever it links, with no commit
 here. The `nvim` stow package is one relative link, `.config/nvim -> ../../../nvim-config/nvim`:
 with `--no-folding`, stowing the repo itself would link each of its files one by one. The
-global mise config pins `neovim = "nightly"`, and `mise run tools` reinstalls it on every
-run, because mise never fetches a newer build of a version it already has.
+global mise config pins `"github:neovim/neovim" = "nightly"`, and `mise run tools`
+reinstalls it on every run, because mise never fetches a newer build of a version it
+already has.
 
 ## Considered options
 

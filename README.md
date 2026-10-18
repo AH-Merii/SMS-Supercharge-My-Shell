@@ -110,6 +110,29 @@ combined one `setup` prints cannot disagree.
 Homebrew is not installed on Arch: `brew shellenv` would put its own python, perl and git in
 front of pacman's.
 
+### mise's GitHub token
+
+Without a token, mise's GitHub API calls share the anonymous limit of 60 requests an hour,
+and an install that hits it fails with `403 Forbidden`. A read-only token lifts the limit.
+It is optional: with no token file, mise installs anonymously. Set it up once per machine:
+
+1. Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
+   with repository access "Public repositories (read-only)", no permissions, and an expiry.
+2. Put it in `~/.config/mise/github_tokens.toml`, which only mise reads:
+
+   ```toml
+   [tokens."github.com"]
+   token = "github_pat_..."
+   ```
+
+3. `chmod 600 ~/.config/mise/github_tokens.toml`, then check that `mise token github` prints
+   `(source: github_tokens.toml)`.
+
+The file stays out of the repo: stow links only `config.toml` into `~/.config/mise`, which
+is a real directory. Renew the token before it expires and replace the value in the
+file. mise does not fall back to anonymous when GitHub rejects a token: installs fail with
+`401 Unauthorized` until the token is replaced or the file is deleted.
+
 ## Stow
 
 `.stowrc` sets the target to `~`, defaults the package dir to `base/`, and turns off folding
