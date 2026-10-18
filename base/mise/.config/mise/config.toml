@@ -15,7 +15,8 @@ rust = "stable"
 uv = "latest"
 
 # editor, prompt, multiplexers
-neovim = "nightly"
+# not bare `neovim`: that resolves to a vfox plugin that calls GitHub's API without a token
+"github:neovim/neovim" = "nightly"
 starship = "latest"
 # upstream moved orgs (ogulcancelik -> herdrdev); pinned so a stale registry cannot
 # resolve the abandoned repo. Migrate an old install with:
