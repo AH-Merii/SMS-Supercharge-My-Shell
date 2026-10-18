@@ -22,7 +22,8 @@ starship = "latest"
 # resolve the abandoned repo. Migrate an old install with:
 #   mise uninstall --all herdr && mise install herdr
 "aqua:herdrdev/herdr" = "latest"
-worktrunk = "latest"
+# pinned: a bare name takes whichever backend the local registry lists first (aqua or packslip)
+"packslip:github.com/max-sixty/worktrunk" = "latest"
 "github:joshmedeski/sesh" = "latest"
 
 # cli

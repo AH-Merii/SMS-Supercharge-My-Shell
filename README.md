@@ -86,7 +86,7 @@ reminder until the latter is done.
 | `link`    | Check out nvim-config's latest main, then stow the layers for this profile; conflicting files go to `.bak` (`STOW_FLAGS=-n` to dry-run, without the checkout) |
 | `unlink`  | Remove those symlinks                                               |
 | `check`   | Dry-run `link`                                                      |
-| `tools`   | `mise install` everything in the global mise config, re-fetching any tool pinned to `nightly` |
+| `tools`   | `mise install` everything in the global mise config, re-fetching any tool pinned to `nightly` or `edge` |
 | `plugins` | fisher + fish plugins, TPM + tmux plugins, Neovim plugins restored to nvim-config's `lazy-lock.json` |
 | `greeter` | Arch desktop: greetd + noctalia-greeter as the login screen, synced to the Noctalia theme; a no-op elsewhere |
 | `memory`  | Link the portable Claude Code memories into this checkout's project directory, and add any missing `MEMORY.md` lines |
