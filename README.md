@@ -104,7 +104,7 @@ combined one `setup` prints cannot disagree.
    tools (neovim, starship, ripgrep, fzf, ...). Same versions on every OS, no root needed.
    `mise use -g <tool>` edits the stowed file, so commit the result.
 2. **`pkglist/`** on Arch and Debian, **`Brewfile`** on macOS and WSL, for what mise cannot
-   build: fish, stow, gnupg, luarocks, GUI apps and fonts. Desktop-only packages go in
+   build: fish, stow, tmux, gnupg, luarocks, GUI apps and fonts. Desktop-only packages go in
    `pkglist/arch-desktop.txt`; AUR packages in `pkglist/aur.txt`.
 
 Homebrew is not installed on Arch: `brew shellenv` would put its own python, perl and git in

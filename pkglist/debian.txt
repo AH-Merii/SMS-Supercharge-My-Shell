@@ -5,6 +5,7 @@ curl
 git
 stow
 fish
+tmux
 gnupg
 luarocks
 wget

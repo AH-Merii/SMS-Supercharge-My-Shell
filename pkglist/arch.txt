@@ -6,6 +6,7 @@ git
 stow
 mise
 fish
+tmux
 gnupg
 luarocks
 wget
