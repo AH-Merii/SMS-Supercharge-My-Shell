@@ -255,25 +255,28 @@ plan_unlink() {
 
 # --- mise tools -------------------------------------------------------------------
 
-# Tools the repo's mise config pins to "nightly", as tool@nightly: a moving build that
-# `mise install` and `mise upgrade` never fetch again once one is installed.
-nightly_tools() {
+# Tools the repo's mise config pins to a moving channel ("nightly" or "edge"), as
+# tool@channel: a build that `mise install` and `mise upgrade` never fetch again once one
+# is installed.
+moving_tools() {
   awk '
     /^\[tools\]/ { t = 1; next }
     /^\[/        { t = 0 }
-    t && /^[^#[:space:]]/ && /=[[:space:]]*"nightly"[[:space:]]*$/ {
+    t && /^[^#[:space:]]/ && match($0, /=[[:space:]]*"(nightly|edge)"[[:space:]]*$/) {
       split($0, kv, "=")
       gsub(/^[ \t]+|[ \t]+$/, "", kv[1])
       gsub(/^"|"$/, "", kv[1])
-      print kv[1] "@nightly"
+      channel = substr($0, RSTART)
+      gsub(/[=" \t]/, "", channel)
+      print kv[1] "@" channel
     }
   ' "$MISE_PROJECT_ROOT/base/mise/.config/mise/config.toml"
 }
 
-_plan_nightly() {
-  local nightly=()
-  mapfile -t nightly < <(nightly_tools)
-  [[ ${#nightly[@]} -gt 0 ]] && _sms_list "$c_yellow" 'will re-fetch' "${nightly[@]}"
+_plan_moving() {
+  local moving=()
+  mapfile -t moving < <(moving_tools)
+  [[ ${#moving[@]} -gt 0 ]] && _sms_list "$c_yellow" 'will re-fetch' "${moving[@]}"
   return 0
 }
 
@@ -311,14 +314,14 @@ plan_tools() {
     awk '{ print $1 }'); then
     sms_section 'mise tools' "$(_n ${#wanted[@]} tool)"
     sms_note 'could not determine which tools are installed; mise install will sort it out'
-    _plan_nightly
+    _plan_moving
     return 0
   fi
 
   _split_by_installed "$installed" "${wanted[@]}"
   sms_section 'mise tools' "${#_want[@]} of ${#wanted[@]} missing"
   _show_split
-  _plan_nightly
+  _plan_moving
 }
 
 # --- plugins ----------------------------------------------------------------------

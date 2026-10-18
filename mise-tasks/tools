@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE description="Install every tool in the global mise config, and re-fetch its nightlies"
+#MISE description="Install every tool in the global mise config, and re-fetch its nightly and edge builds"
 #MISE raw=true
 set -euo pipefail
 cd "$MISE_PROJECT_ROOT"
@@ -8,9 +8,9 @@ source lib/plan.sh
 
 sms_preview plan_tools 'Install these tools?' || exit 0
 
-# Before the plain install, so a fresh machine downloads each nightly once.
-mapfile -t nightly < <(nightly_tools)
-[[ ${#nightly[@]} -eq 0 ]] || mise install --yes --force "${nightly[@]}"
+# Before the plain install, so a fresh machine downloads each moving build once.
+mapfile -t moving < <(moving_tools)
+[[ ${#moving[@]} -eq 0 ]] || mise install --yes --force "${moving[@]}"
 
 # --yes unconditionally: by this line the install is confirmed either way, and mise's own
 # prompt is about trusting config files the plan has already accounted for.
