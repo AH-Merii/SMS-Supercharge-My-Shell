@@ -1,7 +1,7 @@
 # Global mise config, identical on every machine.
 #
 # Rule: if `mise registry <tool>` (or a github:/npm:/cargo: backend) can install it, it lives
-# here and nowhere else. Packages mise cannot build (fish, stow, tmux, gnupg, GUI apps)
+# here and nowhere else. Packages mise cannot build (fish, stow, gnupg, GUI apps)
 # go in the Brewfile (macOS, WSL) or pkglist/ (Arch, Debian).
 #
 # Python is deliberately absent: uv manages interpreters.
@@ -24,6 +24,7 @@ starship = "latest"
 # pinned: a bare name takes whichever backend the local registry lists first (aqua or packslip)
 "packslip:github.com/max-sixty/worktrunk" = "latest"
 "github:joshmedeski/sesh" = "latest"
+"aqua:tmux/tmux-builds" = "latest"
 
 # cli
 lazygit = "latest"
