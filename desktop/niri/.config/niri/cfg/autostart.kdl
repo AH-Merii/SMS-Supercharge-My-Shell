@@ -7,3 +7,6 @@
 // there rather than on the laptop panel. See `niri-display` for why it watches
 // WorkspacesChanged instead of an output event.
 spawn-at-startup "niri-display" "watch"
+
+// Closes up the picture-in-picture stack when one of its windows closes.
+spawn-at-startup "niri-pip" "watch"

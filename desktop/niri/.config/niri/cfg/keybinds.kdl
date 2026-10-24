@@ -171,6 +171,8 @@ binds {
     // ─── Modes ───
     Mod+T                               hotkey-overlay-title="Toggle Floating Window" { toggle-window-floating; }
     Mod+CTRL+ALT+Shift+T                { toggle-window-floating; }
+    Mod+CTRL+P                          hotkey-overlay-title="Toggle Window in Picture-in-Picture Stack" { spawn "niri-pip"; }
+    Mod+ALT+P                           hotkey-overlay-title="Move Picture-in-Picture Stack to Next Corner" { spawn "niri-pip" "cycle"; }
     Mod+F                               hotkey-overlay-title="Toggle Fullscreen" { fullscreen-window; }
     Mod+CTRL+ALT+Shift+F                { fullscreen-window; }
     Mod+W                               hotkey-overlay-title="Toggle Tabbed Column" { toggle-column-tabbed-display; }
