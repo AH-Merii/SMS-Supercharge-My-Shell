@@ -1,0 +1,211 @@
+#!/bin/sh
+# niri-pip [ID] toggles a window (default: the focused one) in the picture-in-picture stack; niri-pip cycle moves the stack to the next corner;
+# niri-pip watch (started by autostart.kdl) closes up the stack when one of its windows closes.
+set -eu
+
+width=500  # px, the narrowest Firefox goes; the height follows at 16:9
+state=${XDG_RUNTIME_DIR:-/tmp}/niri-pip
+layout=${XDG_CONFIG_HOME:-$HOME/.config}/niri/cfg/layout.kdl
+
+# Reads niri's window list into $windows, which the queries below use instead of asking niri each time.
+snapshot() { windows=$(niri msg -j windows); }
+
+# window ID FILTER prints FILTER applied to window ID.
+window() { printf '%s' "$windows" | jq -r --argjson id "$1" ".[] | select(.id == \$id) | $2"; }
+
+# Sets gap and column (a set-window-width change) from cfg/layout.kdl, since niri's IPC doesn't report its config.
+load_layout() {
+  gap=$(sed -nE 's/^[[:space:]]*gaps[[:space:]]+([0-9.]+).*/\1/p' "$layout")
+  gap=${gap:-16}
+  column=$(sed -nE 's/.*default-column-width[[:space:]]*[{][[:space:]]*(proportion|fixed)[[:space:]]+([0-9.]+).*/\1 \2/p' "$layout")
+  case $column in
+    proportion*) column=$(jq -n "${column#proportion } * 100")% ;;
+    fixed*) column=${column#fixed } ;;
+    *) column=50% ;;
+  esac
+}
+
+# Sets area_w and area_h for workspace $1. The IPC has no working area, but the tallest tile spans it less two gaps, even scrolled out of view.
+measure_area() {
+  output=$(niri msg -j workspaces | jq -r --argjson ws "$1" '.[] | select(.id == $ws) | .output')
+  size=$(niri msg -j outputs | jq --arg o "$output" '.[$o].logical')
+  tallest=$(printf '%s' "$windows" | jq --argjson ws "$1" '[.[] | select(.workspace_id == $ws and (.is_floating | not)) | .layout.tile_size[1]] | max')
+  [ "$tallest" = null ] || jq -n "$tallest + 2 * $gap" > "$state/height-$output"
+  area_h=$(cat "$state/height-$output" 2>/dev/null || printf '%s' "$size" | jq .height)
+  area_w=$(printf '%s' "$size" | jq .width)
+}
+
+current_corner() { cat "$state/corner" 2>/dev/null || echo top-left; }
+
+next_corner() {
+  case $1 in
+    top-left) echo top-right ;;
+    top-right) echo bottom-right ;;
+    bottom-right) echo bottom-left ;;
+    *) echo top-left ;;
+  esac
+}
+
+height_for() { jq -n "$1 * 9 / 16 | round"; }
+
+# The stack is the file $state/windows, one window id per line, in order.
+stack() { printf '[%s]' "$(paste -sd, "$state/windows")"; }
+
+in_stack() { grep -qx "$1" "$state/windows"; }
+
+push() { printf '%s\n' "$1" >> "$state/windows"; }
+
+remove() {
+  grep -vx "$1" "$state/windows" > "$state/windows.$$" || true
+  mv "$state/windows.$$" "$state/windows"
+}
+
+# Drops windows that closed or were tiled again, keeping the stack order.
+prune() {
+  printf '%s' "$windows" | jq -r --argjson pips "$(stack)" \
+    '[.[] | select(.is_floating) | .id] as $floating | $pips[] | select(IN($floating[]))' > "$state/windows.$$"
+  mv "$state/windows.$$" "$state/windows"
+}
+
+# Prints the stack's windows on workspace $1, in order, as a JSON array.
+stack_on() {
+  printf '%s' "$windows" | jq -c --argjson ws "$1" --argjson pips "$(stack)" \
+    '[.[] | select(.workspace_id == $ws) | .id] as $here | [$pips[] | select(IN($here[]))]'
+}
+
+# Prints "ID X Y" for each window in the JSON array $1, stacked from the corner one gap apart and one gap from the edges.
+# $2 maps the ids of windows about to be resized to their new window size, so they are placed by the size they will have.
+positions() {
+  printf '%s' "$windows" | jq -r --argjson pips "$1" --argjson resize "$2" --arg corner "$corner" \
+    --argjson W "$area_w" --argjson H "$area_h" --argjson gap "$gap" '
+    [$pips[] as $p | .[] | select(.id == $p) | .layout as $l | ($resize["\(.id)"] // $l.window_size) as $s
+      | {id, w: ($s[0] + $l.tile_size[0] - $l.window_size[0]), h: ($s[1] + $l.tile_size[1] - $l.window_size[1])}]
+    | foreach .[] as $t (0; . + $t.h + $gap; [$t, . - $t.h - $gap])
+    | .[0] as $t | .[1] as $before
+    | (if $corner | endswith("left") then $gap else $W - $gap - $t.w end) as $x
+    | (if $corner | startswith("top") then $gap + $before else $H - $gap - $t.h - $before end | [., 0] | max) as $y
+    | "\($t.id) \($x) \($y)"'
+}
+
+# Prints the actions that resize the windows in $2 (ids mapped to window sizes) and move the stack on workspace $1 into place.
+actions() {
+  printf '%s' "$2" | jq -r 'to_entries[] | "resize \(.key) \(.value[0]) \(.value[1])"'
+  positions "$(stack_on "$1")" "$2" | sed 's/^/move /'
+}
+
+# Sends the actions $1 at once, so the windows resize and move together; a window's width goes before its height, so the size it takes for the height shows the width it accepted.
+send() {
+  printf '%s\n' "$1" | {
+    while read -r action pip a b; do
+      case $action in
+        resize) { niri msg action set-window-width --id "$pip" "$a" && niri msg action set-window-height --id "$pip" "$b"; } & ;;
+        move) niri msg action move-floating-window --id "$pip" -x "$a" -y "$b" & ;;
+      esac
+    done
+    wait
+  }
+}
+
+place() { send "$(actions "$1" "$2")"; }
+
+# Waits up to a second for window $1 to take the height $2 it was asked for, then prints the "WIDTH HEIGHT" it took.
+size_taken() {
+  tries=0
+  while :; do
+    taken=$(niri msg -j windows | jq -r --argjson id "$1" '.[] | select(.id == $id) | .layout.window_size | "\(.[0]) \(.[1])"')
+    if [ "${taken#* }" = "$2" ] || [ "$tries" -ge 50 ]; then break; fi
+    sleep 0.02
+    tries=$((tries + 1))
+  done
+  echo "$taken"
+}
+
+# Some apps won't go as narrow as asked; give window $1 the 16:9 height of the width it took, and place the stack on workspace $2 again.
+fit() {
+  asked_w=$3 asked_h=$4
+  taken=$(size_taken "$1" "$asked_h")
+  [ "${taken% *}" != "$asked_w" ] || return 0
+  place "$2" "{\"$1\": [${taken% *}, $(height_for "${taken% *}")]}"
+}
+
+# Adds window $1 to the stack on workspace $2 at PiP size, floating it if it is tiled, and places the stack.
+add() {
+  push "$1"
+  h=$(height_for "$width")
+  plan=$(actions "$2" "{\"$1\": [$width, $h]}")
+  if [ "$(window "$1" .is_floating)" != true ]; then
+    # Moving a tiled window sets where it will float to; otherwise it floats to where it last floated, then moves.
+    send "$(printf '%s\n' "$plan" | grep "^move $1 ")"
+    niri msg action toggle-window-floating --id "$1"
+  fi
+  send "$plan"
+  fit "$1" "$2" "$width" "$h"
+}
+
+# Tiles window $1 again at the default column width, and closes up the rest of the stack on workspace $2.
+put_back() {
+  remove "$1"
+  niri msg action toggle-window-floating --id "$1"
+  niri msg action set-window-width --id "$1" "$column"
+  place "$2" '{}'
+}
+
+# Moves the stack on the focused workspace to the next corner.
+cycle() {
+  corner=$(next_corner "$corner")
+  printf '%s\n' "$corner" > "$state/corner"
+  ws=$(niri msg -j workspaces | jq '.[] | select(.is_focused) | .id')
+  measure_area "$ws"
+  place "$ws" '{}'
+}
+
+# Puts window $1 back if it is in the stack, and adds it otherwise.
+toggle() {
+  ws=$(window "$1" .workspace_id)
+  measure_area "$ws"
+  if in_stack "$1"; then put_back "$1" "$ws"; else add "$1" "$ws"; fi
+}
+
+# Prints "ID WORKSPACE" for each window that closes. niri's WindowClosed event has only the id, so the workspaces come from earlier events.
+closed_windows() {
+  niri msg -j event-stream | jq -rn --unbuffered '
+    foreach inputs as $e ({ws: {}};
+      .closed = null
+      | if $e.WindowsChanged then .ws = ($e.WindowsChanged.windows | map({key: "\(.id)", value: .workspace_id}) | from_entries)
+        elif $e.WindowOpenedOrChanged then .ws["\($e.WindowOpenedOrChanged.window.id)"] = $e.WindowOpenedOrChanged.window.workspace_id
+        elif $e.WindowClosed then .closed = "\($e.WindowClosed.id) \(.ws["\($e.WindowClosed.id)"])" | del(.ws["\($e.WindowClosed.id)"])
+        else . end;
+      .closed // empty)'
+}
+
+# Closes up the stack whenever one of its windows closes.
+watch() {
+  closed_windows | while read -r closed ws; do
+    in_stack "$closed" || continue
+    corner=$(current_corner)
+    snapshot
+    prune
+    measure_area "$ws"
+    place "$ws" '{}'
+  done
+}
+
+main() {
+  mkdir -p "$state"
+  touch "$state/windows"
+  load_layout
+  corner=$(current_corner)
+  snapshot
+  prune
+
+  case ${1:-} in
+    cycle) cycle ;;
+    watch) watch ;;
+    *)
+      id=${1:-$(niri msg -j focused-window | jq .id)}
+      [ "$id" = null ] || toggle "$id"
+      ;;
+  esac
+}
+
+main "$@"
