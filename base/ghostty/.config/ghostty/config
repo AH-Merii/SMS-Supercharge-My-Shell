@@ -56,6 +56,17 @@ keybind = performable:ctrl+v=paste_from_clipboard
 keybind = shift+enter=text:\x1b\r
 keybind = ctrl+enter=unbind
 
+# Super belongs to the compositor. Keys niri doesn't bind would otherwise reach
+# the terminal, and tmux decodes Super as Meta, so Super+n fired Alt+n. Drop
+# them here. catch_all only matches its exact modifiers, hence one per combo;
+# Ghostty's own bound Super keys (split navigation) still win.
+keybind = super+catch_all=ignore
+keybind = super+shift+catch_all=ignore
+keybind = super+ctrl+catch_all=ignore
+keybind = super+alt+catch_all=ignore
+keybind = super+ctrl+shift+catch_all=ignore
+keybind = super+alt+shift+catch_all=ignore
+
 # Ctrl+Backspace has no encoding in the legacy key protocol: Backspace is the
 # control character 0x7f, and only CSI keys (arrows, F-keys, Delete) carry a
 # modifier field. The Kitty protocol does encode it (CSI 127;5u), but apps that
